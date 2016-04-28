@@ -18,6 +18,7 @@ import (
 	"bufio"
 	"bytes"
 	"io/ioutil"
+	"mime"
 	"net"
 	"net/http"
 	"strings"
@@ -93,7 +94,7 @@ func (l *LoggingMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	r.Body = ioutil.NopCloser(bytes.NewReader(body))
 
 	log.Debugln("------ Request: ------")
-	if !skipBody && (r.Header.Get("Content-Type") == "" || r.Header.Get("Content-Type") == "application/json") {
+	if !skipBody && isBodyLoggable(r.Header) {
 		log.Debugln(string(body))
 	} else {
 		log.Debugf("%d bytes of request body", len(body))
@@ -103,9 +104,18 @@ func (l *LoggingMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	l.Next.ServeHTTP(rlogger, r)
 
 	log.Debugln("------ Response: ------")
-	if !skipBody && (w.Header().Get("Content-Type") == "" || w.Header().Get("Content-Type") == "application/json") {
+	if !skipBody && isBodyLoggable(r.Header) {
 		log.Debugln(rlogger.String())
 	} else {
 		log.Debugf("%d bytes of response body", len(rlogger.String()))
 	}
+}
+
+func isBodyLoggable(h http.Header) bool {
+	contentType := h.Get("Content-Type")
+	mediaType, _, err := mime.ParseMediaType(contentType)
+	if err != nil {
+		return false
+	}
+	return mediaType == "" || mediaType == "application/json"
 }
