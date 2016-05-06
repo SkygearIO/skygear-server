@@ -46,6 +46,7 @@ type UserInfo struct {
 	HashedPassword []byte   `json:"password,omitempty"`
 	Roles          []string `json:"roles,omitempty"`
 	Auth           AuthInfo `json:"auth,omitempty"` // auth data for alternative methods
+	WithMasterKey  bool     `json:"with_master_key,omitempty"`
 }
 
 // NewUserInfo returns a new UserInfo with specified username, email and

@@ -41,6 +41,10 @@ func (p InjectUserIfPresent) Preprocess(payload *router.Payload, response *route
 		return http.StatusInternalServerError
 	}
 
+	if payload.AccessKey == router.MasterAccessKey {
+		userinfo.WithMasterKey = true
+	}
+
 	payload.UserInfo = &userinfo
 
 	return http.StatusOK
