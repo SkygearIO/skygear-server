@@ -362,6 +362,9 @@ func (r *Record) Accessible(userinfo *UserInfo, level ACLLevel) bool {
 	if userinfo == nil {
 		return false
 	}
+	if userinfo.WithMasterKey {
+		return true
+	}
 	if r.DatabaseID != "" && r.DatabaseID != userinfo.ID {
 		return false
 	}

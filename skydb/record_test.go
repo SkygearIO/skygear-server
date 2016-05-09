@@ -147,5 +147,24 @@ func TestRecordACL(t *testing.T) {
 			So(note.Accessible(userinfo, WriteLevel), ShouldBeFalse)
 			So(note.Accessible(stranger, WriteLevel), ShouldBeFalse)
 		})
+
+		Convey("Users with master key always have permission", func() {
+			note := Record{
+				ID:         NewRecordID("note", "0"),
+				DatabaseID: "",
+				ACL: RecordACL{
+					NewRecordACLEntryDirect("stranger", ReadLevel),
+					NewRecordACLEntryRole("admin", ReadLevel),
+				},
+			}
+
+			superUserInfo := &UserInfo{
+				ID:            "super_user",
+				WithMasterKey: true,
+			}
+
+			So(note.Accessible(superUserInfo, ReadLevel), ShouldBeTrue)
+			So(note.Accessible(superUserInfo, WriteLevel), ShouldBeTrue)
+		})
 	})
 }
