@@ -49,14 +49,10 @@ func (h *MeHandler) Handle(payload *router.Payload, response *router.Response) {
 		return
 	}
 
-	response.Result = map[string]interface{}{
-		"id":   userinfo.ID,
-		"type": "user",
-		"data": struct {
-			ID       string   `json:"_id"`
-			Email    string   `json:"email"`
-			Username string   `json:"username"`
-			Roles    []string `json:"roles,omitempty"`
-		}{userinfo.ID, userinfo.Email, userinfo.Username, userinfo.Roles},
-	}
+	response.Result = struct {
+		UserID   string   `json:"user_id,omitempty"`
+		Username string   `json:"username,omitempty"`
+		Email    string   `json:"email,omitempty"`
+		Roles    []string `json:"roles,omitempty"`
+	}{userinfo.ID, userinfo.Username, userinfo.Email, userinfo.Roles}
 }

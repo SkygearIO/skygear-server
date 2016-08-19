@@ -48,14 +48,10 @@ func TestMeHandler(t *testing.T) {
 			So(resp.Code, ShouldEqual, http.StatusOK)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
         "result": {
-          "data": {
-            "_id": "tester-1",
-            "email": "tester1@example.com",
-            "username": "tester1",
-            "roles": ["Test", "Programmer"]
-          },
-          "id": "tester-1",
-          "type": "user"
+          "user_id": "tester-1",
+          "email": "tester1@example.com",
+          "username": "tester1",
+          "roles": ["Test", "Programmer"]
         }
       }`)
 		})
