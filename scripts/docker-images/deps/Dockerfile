@@ -29,7 +29,7 @@ RUN apk --update --no-cache add --virtual build-dependencies \
                     --infodir=/usr/share/info; \
         make; make install; \
     ) && rm -rf zeromq4-1 && \
-    git clone --branch v$CZMQ_VERSION --depth 1 git://github.com/zeromq/czmq.git && \
+    git clone --branch v$CZMQ_VERSION-max-socket --depth 1 git://github.com/rickmak/czmq.git && \
     ( \
         cd czmq; \
         ./autogen.sh; \
