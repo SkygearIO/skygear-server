@@ -24,6 +24,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 )
 
+var isInitializingTestConn bool
+
 // NOTE(limouren): postgresql uses this error to signify a non-exist
 // schema
 func isInvalidSchemaName(err error) bool {
@@ -35,6 +37,12 @@ func isInvalidSchemaName(err error) bool {
 }
 
 func getTestConn(t *testing.T) *conn {
+	if isInitializingTestConn {
+		t.Fatal("test connection is opened without clean up")
+	}
+	t.Log("what the fuck")
+	isInitializingTestConn = true
+
 	defaultTo := func(envvar string, value string) {
 		if os.Getenv(envvar) == "" {
 			os.Setenv(envvar, value)
@@ -44,12 +52,15 @@ func getTestConn(t *testing.T) *conn {
 	defaultTo("PGSSLMODE", "disable")
 	c, err := Open("com.oursky.skygear", skydb.RoleBasedAccess, "", true)
 	if err != nil {
+		isInitializingTestConn = false
+
 		t.Fatal(err)
 	}
 
 	// create schema
 	err = mustInitDB(c.(*conn).Db().(*sqlx.DB), "com.oursky.skygear", true)
 	if err != nil {
+		isInitializingTestConn = false
 		t.Fatal(err)
 	}
 	return c.(*conn)
@@ -60,6 +71,7 @@ func cleanupConn(t *testing.T, c *conn) {
 	if err != nil && !isInvalidSchemaName(err) {
 		t.Fatal(err)
 	}
+	isInitializingTestConn = false
 }
 
 func addUser(t *testing.T, c *conn, userid string) {
