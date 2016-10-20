@@ -6,7 +6,7 @@ services:
   redis:
     image: redis:3.0
   app:
-    image: skygeario/skygear-godev:latest
+    image: skygeario/skygear-godev:1.7
     volumes:
     - .:/go/src/github.com/skygeario/skygear-server
     - dev:/go/pkg
