@@ -52,7 +52,7 @@ script:
   - go test --tags zmq -cover ./pkg/...
 
 before_deploy:
-  - make all
+  - if [[ -z "$TRAVIS_TAG" ]]; make all; fi
 
 deploy:
   - provider: releases
