@@ -1,6 +1,8 @@
 language: go
 
-go: 1.6
+go:
+ - 1.6
+ - 1.7
 
 addons:
   postgresql: "9.4"
@@ -64,18 +66,21 @@ deploy:
     on:
       repo: SkygearIO/skygear-server
       tags: true
+      go: 1.6
   - provider: script
     script: ./scripts/deploy-docker-hub.sh
     skip_cleanup: true
     on:
       repo: SkygearIO/skygear-server
       all_branches: true
+      go: 1.6
   - provider: script
     script: ./scripts/deploy-quay-io.sh
     skip_cleanup: true
     on:
       repo: SkygearIO/skygear-server
       all_branches: true
+      go: 1.6
 
 notifications:
   slack:
