@@ -27,6 +27,10 @@ GO_BUILD_ARGS := $(GO_BUILD_TAGS) $(GO_BUILD_LDFLAGS)
 vendor:
 	$(DOCKER_RUN) glide install
 
+.PHONY: vendor-update
+vendor-update:
+	$(DOCKER_RUN) glide update
+
 .PHONY: build
 build:
 	$(DOCKER_RUN) go build -o $(DIST) $(GO_BUILD_ARGS)
@@ -44,11 +48,13 @@ before-test:
 
 .PHONY: test
 test:
-	$(DOCKER_COMPOSE_RUN) go test $(GO_BUILD_ARGS) ./pkg/...
+	# Run `go install` to compile packages to speed up test process
+	$(DOCKER_COMPOSE_RUN) go install $(GO_BUILD_ARGS)
+	$(DOCKER_COMPOSE_RUN) go test $(GO_BUILD_ARGS) -cover ./pkg/...
 
 .PHONY: after-docker-test
 after-docker-test:
-	-$(DOCKER_COMPOSE_CMD) down
+	-$(DOCKER_COMPOSE_CMD) down -v
 
 .PHONY: clean
 	rm -rf $(DIST_DIR)

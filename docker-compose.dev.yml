@@ -2,13 +2,14 @@ version: '2'
 
 services:
   db:
-    image: mdillon/postgis:9.5
+    image: mdillon/postgis:9.4
   redis:
     image: redis:3.0
   app:
-    image: skygeario/skygear-godev:latest
+    image: skygeario/skygear-godev:1.7
     volumes:
     - .:/go/src/github.com/skygeario/skygear-server
+    - dev:/go/pkg
     working_dir: /go/src/github.com/skygeario/skygear-server
     links:
     - db
@@ -18,10 +19,16 @@ services:
       REDISTEST: redis://redis:6379
       PGHOST: db
       PGUSER: postgres
+      GOMAXPROCS: 12 
+      GOBIN: /go/bin
   db_cmd:
-    image: mdillon/postgis:9.5
+    image: mdillon/postgis:9.4
     links:
     - db
     environment:
       PGHOST: db
       PGUSER: postgres
+
+volumes:
+  dev:
+    driver: local

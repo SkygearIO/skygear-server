@@ -129,11 +129,11 @@ func dbInitializer() {
 
 			db.SetMaxOpenConns(10)
 
-			if err := mustInitDB(db, req.appName, req.migrate); err != nil {
-				db.Close()
-				req.done <- getDBResp{nil, fmt.Errorf("failed to open connection: %s", err)}
-				continue
-			}
+			//if err := mustInitDB(db, req.appName, req.migrate); err != nil {
+			//	db.Close()
+			//	req.done <- getDBResp{nil, fmt.Errorf("failed to open connection: %s", err)}
+			//	continue
+			//}
 
 			dbs[req.connString] = db
 		}
