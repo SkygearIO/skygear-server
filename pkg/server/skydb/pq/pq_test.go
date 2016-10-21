@@ -49,7 +49,6 @@ func getTestConn(t *testing.T) *conn {
 	defaultTo("PGDATABASE", "skygear_test")
 	defaultTo("PGSSLMODE", "disable")
 	appName := randomTestAppName()
-	schemaName := fmt.Sprintf("app_%s", toLowerAndUnderscore(appName))
 	c, err := Open(appName, skydb.RoleBasedAccess, "", true)
 	if err != nil {
 		t.Fatal(err)
@@ -64,7 +63,7 @@ func getTestConn(t *testing.T) *conn {
 }
 
 func cleanupConn(t *testing.T, c *conn) {
-	schemaName := fmt.Sprintf("app_%s", toLowerAndUnderscore(appName))
+	schemaName := fmt.Sprintf("app_%s", toLowerAndUnderscore(c.appName))
 	_, err := c.db.Exec(fmt.Sprintf("DROP SCHEMA if exists %s CASCADE", schemaName))
 	if err != nil && !isInvalidSchemaName(err) {
 		t.Fatal(err)
