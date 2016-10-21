@@ -27,6 +27,10 @@ GO_BUILD_ARGS := $(GO_BUILD_TAGS) $(GO_BUILD_LDFLAGS)
 vendor:
 	$(DOCKER_RUN) glide install
 
+.PHONY: vendor-update
+vendor-update:
+	$(DOCKER_RUN) glide update
+
 .PHONY: build
 build:
 	$(DOCKER_RUN) go build -o $(DIST) $(GO_BUILD_ARGS)
