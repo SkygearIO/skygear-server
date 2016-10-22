@@ -15,13 +15,34 @@
 package pq
 
 import (
+	"errors"
 	"fmt"
 	"testing"
 
+	"github.com/lib/pq"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 	. "github.com/smartystreets/goconvey/convey"
 )
+
+type MockPredicateSqlizerDatabaseInterface struct {
+	RecordSchemaMap map[string]skydb.RecordSchema
+}
+
+func (i *MockPredicateSqlizerDatabaseInterface) tableName(table string) string {
+	return "\"schemaName\"." + pq.QuoteIdentifier(table)
+}
+
+func (i *MockPredicateSqlizerDatabaseInterface) UserRecordType() string {
+	return "user"
+}
+
+func (i *MockPredicateSqlizerDatabaseInterface) remoteColumnTypes(recordType string) (skydb.RecordSchema, error) {
+	if schema, ok := i.RecordSchemaMap[recordType]; ok {
+		return schema, nil
+	}
+	return skydb.RecordSchema{}, errors.New("not found")
+}
 
 func TestSqlizer(t *testing.T) {
 	Convey("Expression Sqlizer", t, func() {
@@ -37,13 +58,13 @@ func TestSqlizer(t *testing.T) {
 
 func TestPredicateSqlizerFactory(t *testing.T) {
 	Convey("Expression", t, func() {
-		c := getTestConn(t)
-		defer cleanupConn(t, c)
-
-		db := c.PublicDB().(*database)
-		So(db.Extend("note", skydb.RecordSchema{
-			"title": skydb.FieldType{Type: skydb.TypeString},
-		}), ShouldBeNil)
+		db := &MockPredicateSqlizerDatabaseInterface{
+			RecordSchemaMap: map[string]skydb.RecordSchema{
+				"note": {
+					"title": skydb.FieldType{Type: skydb.TypeString},
+				},
+			},
+		}
 
 		f := newPredicateSqlizerFactory(db, "note")
 
@@ -69,14 +90,14 @@ func TestPredicateSqlizerFactory(t *testing.T) {
 	})
 
 	Convey("Comparison Predicate", t, func() {
-		c := getTestConn(t)
-		defer cleanupConn(t, c)
-
-		db := c.PublicDB().(*database)
-		So(db.Extend("note", skydb.RecordSchema{
-			"title":   skydb.FieldType{Type: skydb.TypeString},
-			"content": skydb.FieldType{Type: skydb.TypeString},
-		}), ShouldBeNil)
+		db := &MockPredicateSqlizerDatabaseInterface{
+			RecordSchemaMap: map[string]skydb.RecordSchema{
+				"note": {
+					"title":   skydb.FieldType{Type: skydb.TypeString},
+					"content": skydb.FieldType{Type: skydb.TypeString},
+				},
+			},
+		}
 
 		f := newPredicateSqlizerFactory(db, "note")
 
@@ -168,13 +189,13 @@ func TestPredicateSqlizerFactory(t *testing.T) {
 	})
 
 	Convey("Functional Predicate", t, func() {
-		c := getTestConn(t)
-		defer cleanupConn(t, c)
-
-		db := c.PublicDB().(*database)
-		So(db.Extend("note", skydb.RecordSchema{
-			"title": skydb.FieldType{Type: skydb.TypeString},
-		}), ShouldBeNil)
+		db := &MockPredicateSqlizerDatabaseInterface{
+			RecordSchemaMap: map[string]skydb.RecordSchema{
+				"note": {
+					"title": skydb.FieldType{Type: skydb.TypeString},
+				},
+			},
+		}
 
 		f := newPredicateSqlizerFactory(db, "user")
 
