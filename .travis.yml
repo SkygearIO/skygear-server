@@ -36,6 +36,7 @@ install:
   - go install
 
 before_script:
+  - cat /etc/postgresql/9.5/main/postgresql.conf
   - psql -c 'CREATE DATABASE skygear_test;' -U postgres
   - psql -c 'CREATE EXTENSION postgis;' -U postgres -d skygear_test
   - >
