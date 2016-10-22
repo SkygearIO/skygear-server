@@ -57,14 +57,14 @@ var findRevisions = func(current string, target string) []Revision {
 	if current != "" {
 		currentIndex = findRevisionIndex(current)
 		if currentIndex == -1 {
-			panic("not found")
+			log.Panicf(`Revision "%s" not found`, current)
 		}
 	}
 
 	if target != "" {
 		targetIndex = findRevisionIndex(target)
 		if targetIndex == -1 {
-			panic("not found")
+			log.Panicf(`Revision "%s" not found`, target)
 		}
 	}
 
