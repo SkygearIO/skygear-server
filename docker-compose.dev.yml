@@ -2,7 +2,7 @@ version: '2'
 
 services:
   db:
-    image: mdillon/postgis:9.5
+    image: skygeario/skygear-postgresdev:9.5
   redis:
     image: redis:3.0
   app:
@@ -21,7 +21,7 @@ services:
       PGUSER: postgres
       GOBIN: /go/bin
   db_cmd:
-    image: mdillon/postgis:9.5
+    image: skygeario/skygear-postgresdev:9.5
     links:
     - db
     environment:
