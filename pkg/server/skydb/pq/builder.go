@@ -26,9 +26,15 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
+type prediateSqlizerDatabaseInterface interface {
+	tableName(table string) string
+	UserRecordType() string
+	remoteColumnTypes(recordType string) (skydb.RecordSchema, error)
+}
+
 // predicateSqlizerFactory is a factory for creating sqlizer for predicate
 type predicateSqlizerFactory struct {
-	db           *database
+	db           prediateSqlizerDatabaseInterface
 	primaryTable string
 	joinedTables []joinedTable
 	extraColumns map[string]skydb.FieldType
@@ -320,7 +326,7 @@ func (f *predicateSqlizerFactory) updateTypemap(typemap skydb.RecordSchema) skyd
 	return typemap
 }
 
-func newPredicateSqlizerFactory(db *database, primaryTable string) *predicateSqlizerFactory {
+func newPredicateSqlizerFactory(db prediateSqlizerDatabaseInterface, primaryTable string) *predicateSqlizerFactory {
 	return &predicateSqlizerFactory{
 		db:           db,
 		primaryTable: primaryTable,
