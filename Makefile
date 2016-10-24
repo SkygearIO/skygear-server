@@ -18,7 +18,7 @@ DOCKER_RUN := docker run --rm -i \
 	-v `pwd`:/go/src/github.com/skygeario/skygear-server \
 	-w /go/src/github.com/skygeario/skygear-server \
 	skygeario/skygear-godev:latest
-DOCKER_COMPOSE_RUN := ${DOCKER_COMPOSE_CMD} run --rm app
+DOCKER_COMPOSE_RUN := ${DOCKER_COMPOSE_CMD} run --rm -e GOMAXPROCS app
 DOCKER_COMPOSE_RUN_DB := ${DOCKER_COMPOSE_CMD} run --rm db_cmd
 GO_TEST_TIMEOUT := 5m
 endif
@@ -48,7 +48,8 @@ before-test:
 test:
 	# Run `go install` to compile packages to speed up test process
 	$(DOCKER_COMPOSE_RUN) go install $(GO_BUILD_ARGS)
-	$(DOCKER_COMPOSE_RUN) go test $(GO_BUILD_ARGS) -cover -timeout $(GO_TEST_TIMEOUT) ./pkg/...
+	GOMAXPROCS=1 $(DOCKER_COMPOSE_RUN) go test $(GO_BUILD_ARGS) -cover -timeout $(GO_TEST_TIMEOUT) ./pkg/...
+	GOMAXPROCS=4 $(DOCKER_COMPOSE_RUN) go test $(GO_BUILD_ARGS) -cover -timeout $(GO_TEST_TIMEOUT) ./pkg/...
 
 .PHONY: after-docker-test
 after-docker-test:
