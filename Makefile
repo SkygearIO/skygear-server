@@ -46,7 +46,8 @@ before-test:
 test:
 	# Run `go install` to compile packages to speed up test process
 	$(DOCKER_COMPOSE_RUN) go install $(GO_BUILD_ARGS)
-	$(DOCKER_COMPOSE_RUN) go test $(GO_BUILD_ARGS) -cover ./pkg/...
+	$(DOCKER_COMPOSE_RUN) GOMAXPROCS=1 go test $(GO_BUILD_ARGS) -cover ./pkg/...
+	$(DOCKER_COMPOSE_RUN) GOMAXPROCS=4 go test $(GO_BUILD_ARGS) -cover ./pkg/...
 
 .PHONY: after-docker-test
 after-docker-test:
