@@ -159,15 +159,18 @@ func (db *database) createTable(recordType string) (err error) {
 		return err
 	}
 
-	const CreateTriggerStmtFmt = `CREATE TRIGGER trigger_notify_record_change
-    AFTER INSERT OR UPDATE OR DELETE ON %s FOR EACH ROW
-    EXECUTE PROCEDURE public.notify_record_change();
-`
-	stmt = fmt.Sprintf(CreateTriggerStmtFmt, tablename)
-	log.WithField("stmt", stmt).Debugln("Creating trigger")
-	_, err = db.c.Exec(stmt)
+	return nil
+	/*
+		const CreateTriggerStmtFmt = `CREATE TRIGGER trigger_notify_record_change
+	    AFTER INSERT OR UPDATE OR DELETE ON %s FOR EACH ROW
+	    EXECUTE PROCEDURE public.notify_record_change();
+	`
+		stmt = fmt.Sprintf(CreateTriggerStmtFmt, tablename)
+		log.WithField("stmt", stmt).Debugln("Creating trigger")
+		_, err = db.c.Exec(stmt)
 
-	return err
+		return err
+	*/
 }
 
 func createTableStmt(tableName string) string {

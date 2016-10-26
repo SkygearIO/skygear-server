@@ -35,25 +35,6 @@ func (r *revision_48b961caa) Up(tx *sqlx.Tx) error {
 	    );
 	    `,
 		`
-	    CREATE OR REPLACE FUNCTION public.notify_record_change() RETURNS TRIGGER AS $$
-	        DECLARE
-	            affected_record RECORD;
-	            inserted_id integer;
-	        BEGIN
-	            IF (TG_OP = 'DELETE') THEN
-	                affected_record := OLD;
-	            ELSE
-	                affected_record := NEW;
-	            END IF;
-	            INSERT INTO pending_notification (op, appname, recordtype, record)
-	                VALUES (TG_OP, TG_TABLE_SCHEMA, TG_TABLE_NAME, row_to_json(affected_record)::jsonb)
-	                RETURNING id INTO inserted_id;
-	            PERFORM pg_notify('record_change', inserted_id::TEXT);
-	            RETURN affected_record;
-	        END;
-	    $$ LANGUAGE plpgsql;
-	    `,
-		`
 	    CREATE TABLE _user (
 	        id text PRIMARY KEY,
 	        email text,
