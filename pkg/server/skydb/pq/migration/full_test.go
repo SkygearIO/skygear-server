@@ -23,7 +23,7 @@ import (
 )
 
 func TestFullMigration(t *testing.T) {
-	schema := testSchemaName()
+	schema := "app_com_oursky_skygear"
 
 	Convey("execute", t, func() {
 		db := getTestDB(t)
