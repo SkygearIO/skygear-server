@@ -4,9 +4,6 @@ go:
  - 1.6.3
  - 1.7.3
 
-addons:
-  postgresql: "9.5"
-
 services:
   - redis-server
   - docker
@@ -18,6 +15,12 @@ cache:
 go_import_path: github.com/skygeario/skygear-server
 
 before_install:
+  - sudo /etc/init.d/postgresql stop
+  - wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+  - sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ precise-pgdg main 9.5" >> /etc/apt/sources.list.d/postgresql.list'
+  - sudo apt-get update
+  - sudo apt-get install postgresql-9.5 postgresql-9.5-postgis-2.3
+
   - mkdir -p $HOME/.cache/local
   - export LD_INSTALL_PREFIX=$HOME/.cache/local
   - export LD_LIBRARY_PATH=$LD_INSTALL_PREFIX/lib:$LD_LIBRARY_PATH
