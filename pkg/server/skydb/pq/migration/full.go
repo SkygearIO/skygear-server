@@ -29,7 +29,6 @@ func (r *fullMigration) Version() string { return "db76e79e987" }
 
 func (r *fullMigration) createTable(tx *sqlx.Tx) error {
 	const stmt = `
-CREATE EXTENSION IF NOT EXISTS postgis WITH SCHEMA public;
 CREATE EXTENSION IF NOT EXISTS citext WITH SCHEMA public;
 CREATE TABLE IF NOT EXISTS public.pending_notification (
 	id SERIAL NOT NULL PRIMARY KEY,
