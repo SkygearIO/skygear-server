@@ -19,6 +19,7 @@ import (
 	"os"
 	"runtime"
 	"testing"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
@@ -77,6 +78,18 @@ func dropAllRecordTables(t *testing.T, c *conn) {
 	}
 }
 
+func schemaExists(db *sqlx.DB, schema string) (bool, error) {
+	var exists bool
+	err := db.QueryRowx(`
+		SELECT EXISTS (
+			SELECT schema_name
+			FROM information_schema.schemata
+			WHERE schema_name = $1
+		);
+	`, schema).Scan(&exists)
+	return exists, err
+}
+
 func cleanupConn(t *testing.T, c *conn) {
 	if len(c.RecordSchema) > 0 {
 		dropAllRecordTables(t, c)
@@ -85,6 +98,18 @@ func cleanupConn(t *testing.T, c *conn) {
 	_, err := c.db.Exec("DROP SCHEMA if exists app_com_oursky_skygear CASCADE")
 	if err != nil && !isInvalidSchemaName(err) {
 		t.Fatal(err)
+	}
+
+	retryLimit := 10
+	for i := 0; i < retryLimit; i++ {
+		exists, err := schemaExists(c.db, "app_com_oursky_skygear")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !exists {
+			return
+		}
+		time.Sleep(time.Second)
 	}
 }
 
