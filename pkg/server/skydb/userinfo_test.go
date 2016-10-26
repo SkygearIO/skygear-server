@@ -22,16 +22,7 @@ import (
 
 func TestGetSetProvidedAuthData(t *testing.T) {
 	Convey("Test Get/Set Provided Auth Data", t, func() {
-		k := "com.example:johndoe"
-		v := map[string]interface{}{
-			"hello": "world",
-		}
-
 		Convey("Test Set Provided Auth", func() {
-			info := UserInfo{}
-			info.SetProvidedAuthData(k, v)
-
-			So(info.Auth[k], ShouldResemble, v)
 		})
 	})
 }
