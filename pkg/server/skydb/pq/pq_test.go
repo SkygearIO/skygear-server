@@ -111,6 +111,7 @@ func cleanupConn(t *testing.T, c *conn) {
 		}
 		time.Sleep(time.Second)
 	}
+	time.Sleep(time.Millisecond * 100)
 }
 
 func addUser(t *testing.T, c *conn, userid string) {
