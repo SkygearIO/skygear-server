@@ -17,7 +17,6 @@ package pq
 import (
 	"database/sql"
 	"os"
-	"runtime"
 	"testing"
 	"time"
 
@@ -37,9 +36,6 @@ func isInvalidSchemaName(err error) bool {
 }
 
 func getTestConn(t *testing.T) *conn {
-	if runtime.GOMAXPROCS(0) > 1 {
-		t.Skip("skipping zmq test in GOMAXPROCS>1")
-	}
 	defaultTo := func(envvar string, value string) {
 		if os.Getenv(envvar) == "" {
 			os.Setenv(envvar, value)
