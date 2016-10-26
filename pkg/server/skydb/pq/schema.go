@@ -185,6 +185,7 @@ func dropTable(tx *sqlx.Tx, tableName string) error {
 	stmt := fmt.Sprintf(`
 		DROP TRIGGER IF EXISTS trigger_notify_record_change
 		ON %s
+		CASCADE
 	`, tableName)
 	log.WithField("stmt", stmt).Debugln("Deleting trigger")
 	if _, err := tx.Exec(stmt); err != nil {
@@ -193,6 +194,7 @@ func dropTable(tx *sqlx.Tx, tableName string) error {
 
 	stmt = fmt.Sprintf(`
 		DROP TABLE IF EXISTS %s
+		CASCADE
 	`, tableName)
 	log.WithField("stmt", stmt).Debugln("Deleting table")
 	if _, err := tx.Exec(stmt); err != nil {
