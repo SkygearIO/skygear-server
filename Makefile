@@ -48,6 +48,7 @@ before-test:
 test:
 	# Run `go install` to compile packages to speed up test process
 	$(DOCKER_COMPOSE_RUN) go install $(GO_BUILD_ARGS)
+	$(DOCKER_COMPOSE_RUN) go test $(GO_BUILD_ARGS) -cover -timeout $(GO_TEST_TIMEOUT) -cpu 1 ./pkg/server/skydb/pq/...
 	$(DOCKER_COMPOSE_RUN) go test $(GO_BUILD_ARGS) -cover -timeout $(GO_TEST_TIMEOUT) -cpu 1,4 ./pkg/...
 
 .PHONY: after-docker-test
