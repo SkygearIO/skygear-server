@@ -1,5 +1,5 @@
-hash: 37cc39109d1be309985ddd82923284136b18e18aca4ab82f7a43e981c95d5995
-updated: 2016-09-02T17:16:18.504250625+08:00
+hash: fe38d84de91f89b8c3450a9d8f73e7ac6f42ea9f9f314a623d4bd2c3bf63f9fc
+updated: 2016-10-26T14:32:47.072056619+08:00
 imports:
 - name: github.com/dgrijalva/jwt-go
   version: 01aeca54ebda6e0fbfafd0a524d234159c05ec20
@@ -97,13 +97,13 @@ testImports:
 - name: github.com/jtolds/gls
   version: 8ddce2a84170772b95dd5d576c48d517b22cac63
 - name: github.com/smartystreets/assertions
-  version: 2063fd1cc7c975db70502811a34b06ad034ccdf2
+  version: e9a2f6771d97c709b2f7609fdf89ebde8b64c926
   subpackages:
   - internal/go-render/render
   - internal/oglematchers
 - name: github.com/smartystreets/goconvey
-  version: 5db88ed452e937f2fd557de6f4f1af7f2eabed0b
+  version: d4c757aa9afd1e2fc1832aaab209b5794eb336e1
   subpackages:
   - convey
-  - convey/gotest
   - convey/reporting
+  - convey/gotest

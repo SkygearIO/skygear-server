@@ -87,5 +87,8 @@ import:
 testImport:
 - package: github.com/jarcoal/httpmock
 - package: github.com/smartystreets/goconvey
+  version: ~1.6.2
   subpackages:
   - convey
+- package: github.com/smartystreets/assertions
+  version: ~1.6.0
