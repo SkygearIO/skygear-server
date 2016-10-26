@@ -2,11 +2,7 @@ language: go
 
 go: 1.6.3
 
-addons:
-  postgresql: "9.5"
-
 services:
-  - redis-server
   - docker
 
 cache:
@@ -16,43 +12,30 @@ cache:
 go_import_path: github.com/skygeario/skygear-server
 
 before_install:
-  - mkdir -p $HOME/.cache/local
-  - export LD_INSTALL_PREFIX=$HOME/.cache/local
-  - export LD_LIBRARY_PATH=$LD_INSTALL_PREFIX/lib:$LD_LIBRARY_PATH
-  - export LIBRARY_PATH=$LD_INSTALL_PREFIX/lib:$LIBRARY_PATH
-  - export PKG_CONFIG_PATH=$LD_INSTALL_PREFIX/lib/pkgconfig:$PKG_CONFIG_PATH
-  - mkdir -p $LD_INSTALL_PREFIX/src
-  - pushd $LD_INSTALL_PREFIX/src
-  - $TRAVIS_BUILD_DIR/scripts/build-git-lib.sh git://github.com/jedisct1/libsodium.git 1.0.5
-  - $TRAVIS_BUILD_DIR/scripts/build-git-lib.sh git://github.com/zeromq/zeromq4-1.git v4.1.3
-  - $TRAVIS_BUILD_DIR/scripts/build-git-lib.sh git://github.com/zeromq/czmq.git v3.0.2
-  - popd
-  - go get github.com/Masterminds/glide
 
 install:
-  - glide install
-  - go install
+  - make vendor WITH_DOCKER=1
 
 before_script:
-  - psql -c 'CREATE DATABASE skygear_test;' -U postgres
-  - psql -c 'CREATE EXTENSION postgis;' -U postgres -d skygear_test
+  - make before-docker-test
   - >
     go get golang.org/x/tools/cmd/stringer \
-           golang.org/x/tools/cmd/cover \
            github.com/golang/lint/golint \
            github.com/rickmak/gocyclo \
-           github.com/oursky/gogocyclo \
-           github.com/mitchellh/gox
+           github.com/oursky/gogocyclo
 
 script:
   - golint ./pkg/... | grep -v -f .golint.exclude; test $? -eq 1
   - go generate ./pkg/...
   - git status | grep "_string.go$"; test $? -eq 1
   - gocyclo -over 15 pkg | gogocyclo
-  - WITH_ZMQ=1 make test
+  - make test WITH_ZMQ=1 WITH_DOCKER=1
+
+after_script:
+  - make after-docker-test
 
 before_deploy:
-  - if [[ -z "$TRAVIS_TAG" ]]; then make all; fi
+  - if [[ -z "$TRAVIS_TAG" ]]; then make all WITH_ZMQ=1 WITH_DOCKER=1; fi
 
 deploy:
   - provider: releases
