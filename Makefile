@@ -4,6 +4,7 @@ VERSION := $(shell git describe --always --tags)
 GO_BUILD_LDFLAGS := -ldflags "-X github.com/skygeario/skygear-server/pkg/server/skyversion.version=$(VERSION)"
 GO_TEST_TIMEOUT := 1m
 OSARCHS := linux/amd64 linux/386 linux/arm windows/amd64 windows/386 darwin/amd64
+WHAT := ./pkg/...
 
 ifeq (1,${WITH_ZMQ})
 GO_BUILD_TAGS := --tags zmq
@@ -48,7 +49,7 @@ before-test:
 test:
 	# Run `go install` to compile packages to speed up test process
 	$(DOCKER_COMPOSE_RUN) go install $(GO_BUILD_ARGS)
-	$(DOCKER_COMPOSE_RUN) go test $(GO_BUILD_ARGS) -cover -timeout $(GO_TEST_TIMEOUT) -cpu 1,4 ./pkg/...
+	$(DOCKER_COMPOSE_RUN) go test $(GO_BUILD_ARGS) -cover -timeout $(GO_TEST_TIMEOUT) -cpu 1,4 $(WHAT)
 
 .PHONY: after-docker-test
 after-docker-test:
