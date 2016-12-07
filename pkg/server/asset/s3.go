@@ -72,8 +72,12 @@ func (s *s3Store) PutFileReader(
 	length int64,
 	contentType string,
 ) error {
+	acl := s3.Private
+	if s.public {
+		acl = s3.PublicRead
+	}
 
-	return s.bucket.PutReader(name, src, length, contentType, s3.Private)
+	return s.bucket.PutReader(name, src, length, contentType, acl)
 }
 
 // GeneratePostFileRequest return a PostFileRequest for uploading asset
