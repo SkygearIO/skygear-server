@@ -17,14 +17,20 @@
 package zmq
 
 import (
+	"bytes"
+	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"math/rand"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/zeromq/goczmq"
 )
 
@@ -74,6 +80,41 @@ func newParcel(frame []byte) *parcel {
 		frame:    frame,
 		retry:    0,
 	}
+}
+
+func (p *parcel)makePayload() (*router.Payload, error) {
+	buffer := p.frame
+	reader := bytes.NewReader(buffer)
+	data := map[string]interface{}{}
+	if jsonErr := json.NewDecoder(reader).Decode(&data); jsonErr != nil && jsonErr != io.EOF {
+		return nil, jsonErr
+	}
+
+	payloadData := data["payload"].(map[string]interface{})
+	method := data["method"].(string)
+	actionString := payloadData["action"].(string)
+	path := strings.Replace(actionString, ":", "/", -1)
+
+	workers := p.workers
+	requestID := p.requestID
+	bounceCount := p.bounceCount
+
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, ZMQWorkerIDsContextKey, workers)
+	ctx = context.WithValue(ctx, ZMQRequestIDContextKey, requestID)
+	ctx = context.WithValue(ctx, ZMQBounceCountContextKey, bounceCount)
+
+	payload := &router.Payload{
+		Context: ctx,
+		Meta: map[string]interface{}{
+			"method": method,
+			"path": path,
+		},
+		Data: payloadData,
+		AccessKey: router.MasterAccessKey,
+	}
+
+	return payload, nil
 }
 
 var requestIDPrefix = ""
