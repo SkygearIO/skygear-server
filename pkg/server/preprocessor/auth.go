@@ -22,6 +22,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/server/authtoken"
 	"github.com/skygeario/skygear-server/pkg/server/router"
+	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
@@ -116,6 +117,14 @@ func (p *UserAuthenticator) Preprocess(payload *router.Payload, response *router
 		if userID, ok := payload.Data["_user_id"].(string); ok {
 			payload.UserInfoID = userID
 			payload.Context = context.WithValue(payload.Context, router.UserIDContextKey, userID)
+		} else {
+			// There is no user specified, we are going to use the "god user"
+			info := skydb.NewGodUserInfo()
+			if err := payload.DBConn.CreateUser(&info); err != skydb.ErrUserDuplicated {
+				return http.StatusInternalServerError
+			}
+			payload.UserInfoID = info.ID
+			payload.Context = context.WithValue(payload.Context, router.UserIDContextKey, info.ID)
 		}
 	}
 
