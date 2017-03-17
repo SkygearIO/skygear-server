@@ -56,14 +56,15 @@ func NewPluginHandler(info pluginHandlerInfo, ppreg router.PreprocessorRegistry,
 func (h *Handler) Setup() {
 	if h.UserRequired {
 		h.preprocessors = h.PreprocessorList.GetByNames(
-			"authenticator",
 			"dbconn",
+			"authenticator",
 			"inject_user",
 			"require_user",
 			"plugin_ready",
 		)
 	} else if h.AccessKeyRequired {
 		h.preprocessors = h.PreprocessorList.GetByNames(
+			"dbconn",
 			"authenticator",
 			"plugin_ready",
 		)

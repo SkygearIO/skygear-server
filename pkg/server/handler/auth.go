@@ -345,6 +345,7 @@ func (h *LoginHandler) authPrincipal(ctx context.Context, p *loginPayload) (stri
 // LogoutHandler receives an access token and invalidates it
 type LogoutHandler struct {
 	TokenStore    authtoken.Store  `inject:"TokenStore"`
+	DBConn        router.Processor `preprocessor:"dbconn"`
 	Authenticator router.Processor `preprocessor:"authenticator"`
 	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
@@ -352,6 +353,7 @@ type LogoutHandler struct {
 
 func (h *LogoutHandler) Setup() {
 	h.preprocessors = []router.Processor{
+		h.DBConn,
 		h.Authenticator,
 		h.PluginReady,
 	}
@@ -439,8 +441,8 @@ type PasswordHandler struct {
 
 func (h *PasswordHandler) Setup() {
 	h.preprocessors = []router.Processor{
-		h.Authenticator,
 		h.DBConn,
+		h.Authenticator,
 		h.InjectUser,
 		h.InjectDB,
 		h.PluginReady,

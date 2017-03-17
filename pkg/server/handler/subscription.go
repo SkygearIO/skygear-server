@@ -254,8 +254,8 @@ type SubscriptionFetchHandler struct {
 
 func (h *SubscriptionFetchHandler) Setup() {
 	h.preprocessors = []router.Processor{
-		h.Authenticator,
 		h.DBConn,
+		h.Authenticator,
 		h.InjectUser,
 		h.InjectDB,
 		h.RequireUser,
@@ -329,8 +329,8 @@ type SubscriptionFetchAllHandler struct {
 
 func (h *SubscriptionFetchAllHandler) Setup() {
 	h.preprocessors = []router.Processor{
-		h.Authenticator,
 		h.DBConn,
+		h.Authenticator,
 		h.InjectUser,
 		h.InjectDB,
 		h.RequireUser,
@@ -457,8 +457,8 @@ type SubscriptionSaveHandler struct {
 
 func (h *SubscriptionSaveHandler) Setup() {
 	h.preprocessors = []router.Processor{
-		h.Authenticator,
 		h.DBConn,
+		h.Authenticator,
 		h.InjectUser,
 		h.InjectDB,
 		h.RequireUser,
@@ -529,8 +529,8 @@ type SubscriptionDeleteHandler struct {
 
 func (h *SubscriptionDeleteHandler) Setup() {
 	h.preprocessors = []router.Processor{
-		h.Authenticator,
 		h.DBConn,
+		h.Authenticator,
 		h.InjectUser,
 		h.InjectDB,
 		h.RequireUser,

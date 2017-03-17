@@ -120,7 +120,7 @@ func (p *UserAuthenticator) Preprocess(payload *router.Payload, response *router
 		} else {
 			// There is no user specified, we are going to use the "god user"
 			info := skydb.NewGodUserInfo()
-			if err := payload.DBConn.CreateUser(&info); err != skydb.ErrUserDuplicated {
+			if err := payload.DBConn.CreateUser(&info); err != nil && err != skydb.ErrUserDuplicated {
 				return http.StatusInternalServerError
 			}
 			payload.UserInfoID = info.ID

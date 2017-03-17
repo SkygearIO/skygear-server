@@ -253,8 +253,8 @@ type RecordSaveHandler struct {
 
 func (h *RecordSaveHandler) Setup() {
 	h.preprocessors = []router.Processor{
-		h.Authenticator,
 		h.DBConn,
+		h.Authenticator,
 		h.InjectUser,
 		h.InjectDB,
 		h.RequireUser,
@@ -416,8 +416,8 @@ type RecordFetchHandler struct {
 
 func (h *RecordFetchHandler) Setup() {
 	h.preprocessors = []router.Processor{
-		h.Authenticator,
 		h.DBConn,
+		h.Authenticator,
 		h.InjectUser,
 		h.InjectDB,
 		h.PluginReady,
@@ -522,8 +522,8 @@ type RecordQueryHandler struct {
 
 func (h *RecordQueryHandler) Setup() {
 	h.preprocessors = []router.Processor{
-		h.Authenticator,
 		h.DBConn,
+		h.Authenticator,
 		h.InjectUser,
 		h.InjectDB,
 		h.PluginReady,
@@ -687,8 +687,8 @@ type RecordDeleteHandler struct {
 
 func (h *RecordDeleteHandler) Setup() {
 	h.preprocessors = []router.Processor{
-		h.Authenticator,
 		h.DBConn,
+		h.Authenticator,
 		h.InjectUser,
 		h.InjectDB,
 		h.RequireUser,
