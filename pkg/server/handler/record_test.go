@@ -302,6 +302,80 @@ func TestRecordSaveHandler(t *testing.T) {
 				}]
 			}`)
 		})
+
+		Convey("Use default ACL when record is new and _access is null", func() {
+			resp := r.POST(`{
+				"records": [{
+					"_id": "note/1",
+					"content": "hello",
+					"_access": null,
+					"_default_access": [{"role": "admin", "level": "write"}]
+				}]
+			}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [{
+					"_id": "note/1",
+					"_type": "record",
+					"content": "hello",
+					"_access": [{"role": "admin", "level": "write"}],
+					"_created_by":"user0",
+					"_updated_by":"user0",
+					"_ownerID": "user0"
+				}]
+			}`)
+		})
+
+		Convey("Prefer _access over _default_access when creating ", func() {
+			resp := r.POST(`{
+				"records": [{
+					"_id": "note/1",
+					"content": "hello",
+					"_access": [{"public": true, "level": "write"}],
+					"_default_access": [{"role": "admin", "level": "write"}]
+				}]
+			}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [{
+					"_id": "note/1",
+					"_type": "record",
+					"content": "hello",
+					"_access": [{"public": true, "level": "write"}],
+					"_created_by":"user0",
+					"_updated_by":"user0",
+					"_ownerID": "user0"
+				}]
+			}`)
+		})
+
+		Convey("Prevent updating ACL when _access is null", func() {
+			resp := r.POST(`{
+				"records": [{
+					"_id": "note/1",
+					"content": "hello",
+					"_access": [{"role": "admin", "level": "write"}]
+				}]
+			}`)
+			resp = r.POST(`{
+				"records": [{
+					"_id": "note/1",
+					"content": "hello2",
+					"_access": null,
+					"_default_access": [{"public": true, "level": "read"}]
+				}]
+			}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [{
+					"_id": "note/1",
+					"_type": "record",
+					"content": "hello2",
+					"_access": [{"role": "admin", "level": "write"}],
+					"_created_by":"user0",
+					"_updated_by":"user0",
+					"_ownerID": "user0"
+				}]
+			}`)
+		})
+
 		Convey("REGRESSION #119: Returns record invalid error if _id is missing or malformated", func() {
 			resp := r.POST(`{
 				"records": [{
