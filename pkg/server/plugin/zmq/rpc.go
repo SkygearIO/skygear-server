@@ -90,7 +90,7 @@ func (p *zmqTransport) RunHook(ctx context.Context, hookName string, record *sky
 }
 
 func (p *zmqTransport) RunTimer(name string, in []byte) (out []byte, err error) {
-	req := pluginrequest.Request{Kind: "timer", Name: name}
+	req := pluginrequest.NewTimerRequest(name)
 	out, err = p.rpc(&req)
 	return
 }
