@@ -92,19 +92,7 @@ func (db *database) GetByIDs(ids []skydb.RecordID) (*skydb.Rows, error) {
 }
 
 // Save attempts to do a upsert
-func (db *database) SaveDeltaRecord(delta *skydb.Record, original *skydb.Record, record *skydb.Record) error {
-	wrappers := map[string]func(string, string) string{}
-	wrap(original, &wrappers)
-	wrap(record, &wrappers)
-
-	return db.saveWithWrappers(delta, wrappers)
-}
-
 func (db *database) Save(record *skydb.Record) error {
-	return db.saveWithWrappers(record, map[string]func(string, string) string{})
-}
-
-func (db *database) saveWithWrappers(record *skydb.Record, wrappers map[string]func(string, string) string) error {
 	if record.ID.Key == "" {
 		return errors.New("db.save: got empty record id")
 	}
@@ -128,14 +116,31 @@ func (db *database) saveWithWrappers(record *skydb.Record, wrappers map[string]f
 		}
 	}
 
+	typemap, err := db.remoteColumnTypes(record.ID.Type)
+	if err != nil {
+		return err
+	}
+
+	wrappers := map[string]func(string) string{}
+	for column, fieldType := range typemap {
+		if fieldType.Type == skydb.TypeGeometry {
+			wrappers[column] = func(val string) string {
+				return fmt.Sprintf("ST_GeomFromGeoJSON(%s)", val)
+			}
+		}
+	}
+
 	upsert := upsertQueryWithWrappers(db.tableName(record.ID.Type), pkData, convert(record), wrappers).
 		IgnoreKeyOnUpdate("_owner_id").
 		IgnoreKeyOnUpdate("_created_at").
 		IgnoreKeyOnUpdate("_created_by")
 
-	typemap, err := db.remoteColumnTypes(record.ID.Type)
-	if err != nil {
-		return err
+	// record type is empty in the following statement because upsert
+	// only concerns with one record type, and that specifying the
+	// name of the record type here actually causes the SQL to find
+	// the table, which is not found because aliasing.
+	for column, sqlizer := range columnSqlizersForSelect("", typemap) {
+		upsert = upsert.SelectColumn(column, sqlizer)
 	}
 
 	if err := db.preSave(typemap, record); err != nil {
@@ -198,15 +203,6 @@ func convert(r *skydb.Record) map[string]interface{} {
 	m["_updated_at"] = r.UpdatedAt
 	m["_updated_by"] = r.UpdaterID
 	return m
-}
-
-func wrap(r *skydb.Record, m *map[string]func(string, string) string) {
-	for key, rawValue := range r.Data {
-		switch rawValue.(type) {
-		case skydb.Geometry:
-			(*m)[key] = wrapGeometry
-		}
-	}
 }
 
 func (db *database) Delete(id skydb.RecordID) error {
@@ -565,7 +561,8 @@ func newRows(recordType string, typemap skydb.RecordSchema, rows *sqlx.Rows, err
 	return skydb.NewRows(rowsIter{rows, rs}), nil
 }
 
-func (db *database) selectQuery(q sq.SelectBuilder, recordType string, typemap skydb.RecordSchema) sq.SelectBuilder {
+func columnSqlizersForSelect(recordType string, typemap skydb.RecordSchema) map[string]sq.Sqlizer {
+	sqlizers := map[string]sq.Sqlizer{}
 	for column, fieldType := range typemap {
 		expr := fieldType.Expression
 		if expr.IsEmpty() {
@@ -574,7 +571,18 @@ func (db *database) selectQuery(q sq.SelectBuilder, recordType string, typemap s
 				Value: column,
 			}
 		}
-		e := expressionSqlizer{recordType, expr, ContextSelect, fieldType}
+
+		sqlizer := newExpressionSqlizer(recordType, fieldType, expr)
+		if fieldType.Type == skydb.TypeGeometry {
+			sqlizer.requireCast = true
+		}
+		sqlizers[column] = &sqlizer
+	}
+	return sqlizers
+}
+
+func (db *database) selectQuery(q sq.SelectBuilder, recordType string, typemap skydb.RecordSchema) sq.SelectBuilder {
+	for column, e := range columnSqlizersForSelect(recordType, typemap) {
 		sqlOperand, opArgs, _ := e.ToSql()
 		q = q.Column(sqlOperand+" as "+pq.QuoteIdentifier(column), opArgs...)
 	}
