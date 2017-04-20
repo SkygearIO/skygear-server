@@ -294,11 +294,10 @@ func TestBrokerWorker(t *testing.T) {
 				}()
 				w.SendMessage(bytesArray(Ready))
 				msg := recvNonControlFrame(w)
-				if len(msg) == 3 {
-					c.So(msg[2], ShouldResemble, []byte("from server"))
-					msg[2] = []byte("from worker")
-					w.SendMessage(msg)
-				}
+				c.So(len(msg), ShouldEqual, 3)
+				c.So(msg[2], ShouldResemble, []byte("from server"))
+				msg[2] = []byte("from worker")
+				w.SendMessage(msg)
 			}()
 
 			go func() {
@@ -311,11 +310,10 @@ func TestBrokerWorker(t *testing.T) {
 				}()
 				w2.SendMessage(bytesArray(Ready))
 				msg := recvNonControlFrame(w2)
-				if len(msg) == 3 {
-					c.So(msg[2], ShouldResemble, []byte("from server"))
-					msg[2] = []byte("from worker")
-					w2.SendMessage(msg)
-				}
+				c.So(len(msg), ShouldEqual, 3)
+				c.So(msg[2], ShouldResemble, []byte("from server"))
+				msg[2] = []byte("from worker")
+				w2.SendMessage(msg)
 			}()
 
 			reqChan := make(chan chan []byte)
