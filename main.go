@@ -591,6 +591,7 @@ func initSentry(config skyconfig.Configuration) {
 		return
 	}
 	hook.Timeout = 1 * time.Second
+	hook.StackTraceConfiguration.Enabled = true
 	log.Infof("Logging to Sentry: %v", levels)
 	logging.AddHook(hook)
 }
