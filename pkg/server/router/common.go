@@ -66,9 +66,9 @@ func (r *commonRouter) HandlePayload(payload *Payload, resp *Response) {
 	)
 
 	defer func() {
-		if r := recover(); r != nil {
-			resp.Err = errorFromRecoveringPanic(r)
-			log.WithField("recovered", r).Errorln("panic occurred while handling request")
+		if err := skyerr.MakeError(recover()); err != nil {
+			log.WithError(err).Errorln("Panic occurred while handling request.")
+			resp.Err = err
 		}
 
 		writer := resp.Writer()
@@ -87,7 +87,7 @@ func (r *commonRouter) HandlePayload(payload *Payload, resp *Response) {
 			log.Errorln("timed out serving request")
 		}
 
-		if resp.Err != nil && httpStatus >= 200 && httpStatus <= 299 {
+		if httpStatus == http.StatusOK && resp.Err != nil {
 			httpStatus = defaultStatusCode(resp.Err)
 		}
 
@@ -128,20 +128,19 @@ func (r *commonRouter) callHandler(handler Handler, pp []Processor, payload *Pay
 	httpStatus = http.StatusOK
 
 	defer func() {
-		if r := recover(); r != nil {
-			log.WithField("recovered", r).Errorln("panic occurred while handling request")
+		if err := skyerr.MakeError(recover()); err != nil {
+			log.WithError(err).Errorln("Panic occurred while handling request.")
+			resp.Err = err
+		}
 
-			resp.Err = errorFromRecoveringPanic(r)
+		if httpStatus == http.StatusOK && resp.Err != nil {
 			httpStatus = defaultStatusCode(resp.Err)
 		}
 	}()
 
 	for _, p := range pp {
 		httpStatus = p.Preprocess(payload, resp)
-		if resp.Err != nil {
-			if httpStatus == http.StatusOK {
-				httpStatus = defaultStatusCode(resp.Err)
-			}
+		if resp.Err != nil || httpStatus != http.StatusOK {
 			return
 		}
 	}

@@ -18,6 +18,8 @@ package skyerr
 import (
 	"encoding/json"
 	"fmt"
+
+	"github.com/pkg/errors"
 )
 
 // ErrorCode is an integer representation of an error condition
@@ -162,14 +164,6 @@ type Error interface {
 	json.Marshaler
 }
 
-// genericError is an intuitive implementation of Error that contains
-// an code and error message.
-type genericError struct {
-	code    ErrorCode
-	message string
-	info    map[string]interface{}
-}
-
 // NewError returns an error suitable to be returned to the client
 func NewError(code ErrorCode, message string) Error {
 	return NewErrorWithInfo(code, message, nil)
@@ -186,6 +180,17 @@ func NewErrorWithInfo(code ErrorCode, message string, info map[string]interface{
 		code:    code,
 		message: message,
 		info:    info,
+		stack:   callers(),
+	}
+}
+
+// NewErrorWithCause returns an Error
+func NewErrorWithCause(code ErrorCode, message string, cause error) Error {
+	return &genericError{
+		code:    code,
+		message: message,
+		cause:   cause,
+		stack:   callers(),
 	}
 }
 
@@ -198,6 +203,7 @@ func NewInvalidArgument(message string, arguments []string) Error {
 		info: map[string]interface{}{
 			"arguments": arguments,
 		},
+		stack: callers(),
 	}
 }
 
@@ -211,11 +217,31 @@ func newNotFoundErr(code ErrorCode, message string) Error {
 //
 // For specified error of other kinds, the returned error always have code
 // `UnexpectedError`.
-func MakeError(err error) Error {
-	if skyError, ok := err.(Error); ok {
-		return skyError
+func MakeError(any interface{}) Error {
+	if any == nil {
+		return nil
 	}
-	return NewError(UnexpectedError, err.Error())
+
+	switch val := any.(type) {
+	case Error:
+		return val
+	case error:
+		return &genericError{
+			code:    UnexpectedError,
+			message: val.Error(),
+			info:    nil,
+			cause:   val,
+			stack:   callers(),
+		}
+	default:
+		return &genericError{
+			code:    UnexpectedError,
+			message: fmt.Sprintf("panic: %v", val),
+			info:    nil,
+			cause:   nil,
+			stack:   callers(),
+		}
+	}
 }
 
 // NewRequestJSONInvalidErr returns new RequestJSONInvalid Error
@@ -269,6 +295,16 @@ func NewResourceDeleteFailureErrWithStringID(kind string, id string) Error {
 	return newResourceDeleteFailureErr(kind, iID)
 }
 
+// genericError is an intuitive implementation of Error that contains
+// an code and error message.
+type genericError struct {
+	code    ErrorCode
+	message string
+	info    map[string]interface{}
+	cause   error
+	stack   *stack
+}
+
 func (e *genericError) Name() string {
 	return fmt.Sprintf("%v", e.code)
 }
@@ -283,6 +319,21 @@ func (e *genericError) Message() string {
 
 func (e *genericError) Info() map[string]interface{} {
 	return e.info
+}
+
+// Cause implements "github.com/pkg/errors".causer
+func (e *genericError) Cause() error {
+	return e.cause
+}
+
+// StackTrace implements "github.com/pkg/errors".stackTracer
+func (e *genericError) StackTrace() errors.StackTrace {
+	cause := errors.Cause(e)
+	if causeStackTracer, ok := cause.(stackTracer); ok {
+		return causeStackTracer.StackTrace()
+	}
+
+	return callers().StackTrace()
 }
 
 func (e *genericError) Error() string {

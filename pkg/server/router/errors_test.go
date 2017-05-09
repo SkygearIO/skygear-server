@@ -41,24 +41,4 @@ func TestErrors(t *testing.T) {
 			So(httpStatus, ShouldEqual, http.StatusInternalServerError)
 		})
 	})
-
-	Convey("errorFromRecoveringPanic", t, func() {
-		Convey("return original skyerr", func() {
-			err := skyerr.NewError(skyerr.InvalidArgument, "an error")
-			newError := errorFromRecoveringPanic(err)
-			So(newError, ShouldResemble, err)
-		})
-
-		Convey("wrap error with skyerror", func() {
-			err := errors.New("an error")
-			newError := errorFromRecoveringPanic(err)
-			So(newError, ShouldResemble, skyerr.NewErrorf(skyerr.UnexpectedError, "panic occurred while handling request: an error"))
-		})
-
-		Convey("wrap unexpected type with skyerror", func() {
-			err := "an error"
-			newError := errorFromRecoveringPanic(err)
-			So(newError, ShouldResemble, skyerr.NewErrorf(skyerr.UnexpectedError, "an panic occurred and the error is not known"))
-		})
-	})
 }
