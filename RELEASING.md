@@ -137,7 +137,9 @@ $ git push origin
 ## Wait for Travis deployment...
 
 ## Release to npm
-$ npm publish
+$ lerna bootstrap # make sure dependencies are linked
+$ npm run prepublish # Build all packages
+$ lerna publish --repo-version v$SKYGEAR_VERSION # Publish all packages
 
 ## Push to latest branch to trigger Docker build
 $ git push origin master:latest
