@@ -69,6 +69,10 @@ lint:
 after-docker-test:
 	-$(DOCKER_COMPOSE_CMD) down -v
 
+.PHONY: test
+test:
+	$(DOCKER_RUN) go test ./pkg/...
+
 .PHONY: clean
 clean:
 	rm -rf $(DIST_DIR)
