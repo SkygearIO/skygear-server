@@ -123,10 +123,14 @@ $ git log --first-parent `git describe --abbrev=0`.. > new-release
 $ edit new-release
 $ github-release release -u skygeario -r skygear-SDK-JS --draft --tag v$SKYGEAR_VERSION --name "v$SKYGEAR_VERSION" --description "`cat new-release`"
 
-## Update changelog and version number
+## Update changelog
 $ cat CHANGELOG.md >> new-release && mv new-release CHANGELOG.md
-$ sed -i "" "s/\"version\": \".*\"/\"version\": \"$SKYGEAR_VERSION\"/" package.json
-$ git add CHANGELOG.md package.json
+$ git add CHANGELOG.md
+
+## Chaning the version number and releasing all packages to npm using lerna.
+$ npm run lerna bootstrap # make sure dependencies are linked
+$ npm run prepublish # Build all packages
+$ npm run lerna publish --skip-git --repo-version $SKYGEAR_VERSION # Publish all packages
 $ git commit -m "Update CHANGELOG for v$SKYGEAR_VERSION"
 
 ## Tag and push commit
@@ -135,9 +139,6 @@ $ git push --follow-tags origin v$SKYGEAR_VERSION
 $ git push origin
 
 ## Wait for Travis deployment...
-
-## Release to npm
-$ npm publish
 
 ## Push to latest branch to trigger Docker build
 $ git push origin master:latest
