@@ -127,7 +127,7 @@ $ github-release release -u skygeario -r skygear-SDK-JS --draft --tag v$SKYGEAR_
 $ cat CHANGELOG.md >> new-release && mv new-release CHANGELOG.md
 $ git add CHANGELOG.md
 
-## Chaning the version number and releasing all packages to npm using lerna.
+## Changing the version number and releasing all packages to npm using lerna.
 $ npm run lerna bootstrap # make sure dependencies are linked
 $ npm run prepublish # Build all packages
 $ npm run lerna publish --skip-git --repo-version $SKYGEAR_VERSION # Publish all packages
