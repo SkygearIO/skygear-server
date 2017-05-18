@@ -24,6 +24,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/authtoken"
 	"github.com/skygeario/skygear-server/pkg/server/authtoken/authtokentest"
 	"github.com/skygeario/skygear-server/pkg/server/router"
+	"github.com/skygeario/skygear-server/pkg/server/skydb/skydbtest"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
@@ -86,6 +87,7 @@ func TestUserAuthenticator(t *testing.T) {
 		payload := &router.Payload{
 			Data: map[string]interface{}{},
 			Meta: map[string]interface{}{},
+			DBConn: skydbtest.NewMapConn(),
 		}
 		resp := &router.Response{}
 
@@ -97,11 +99,13 @@ func TestUserAuthenticator(t *testing.T) {
 			So(resp.Err, ShouldBeNil)
 		})
 
-		Convey("test master key", func() {
+		Convey("test master key uses _god user", func() {
 			payload.Data["api_key"] = "master-key"
 			So(pp.Preprocess(payload, resp), ShouldEqual, http.StatusOK)
 			So(payload.AccessKey, ShouldEqual, router.MasterAccessKey)
 			So(payload.AppName, ShouldEqual, "app-name")
+			So(payload.UserInfoID, ShouldEqual, "_god")
+			So(payload.Context.Value(router.UserIDContextKey), ShouldEqual, "_god")
 			So(resp.Err, ShouldBeNil)
 		})
 

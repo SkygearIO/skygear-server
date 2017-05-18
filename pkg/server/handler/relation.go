@@ -115,8 +115,8 @@ type RelationQueryHandler struct {
 
 func (h *RelationQueryHandler) Setup() {
 	h.preprocessors = []router.Processor{
-		h.Authenticator,
 		h.DBConn,
+		h.Authenticator,
 		h.InjectUser,
 		h.InjectDB,
 		h.PluginReady,
@@ -235,8 +235,8 @@ type RelationAddHandler struct {
 
 func (h *RelationAddHandler) Setup() {
 	h.preprocessors = []router.Processor{
-		h.Authenticator,
 		h.DBConn,
+		h.Authenticator,
 		h.InjectUser,
 		h.InjectDB,
 		h.PluginReady,
@@ -308,8 +308,8 @@ type RelationRemoveHandler struct {
 
 func (h *RelationRemoveHandler) Setup() {
 	h.preprocessors = []router.Processor{
-		h.Authenticator,
 		h.DBConn,
+		h.Authenticator,
 		h.InjectUser,
 		h.InjectDB,
 		h.PluginReady,

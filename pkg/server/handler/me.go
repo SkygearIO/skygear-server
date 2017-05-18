@@ -33,8 +33,8 @@ type MeHandler struct {
 // Setup adds injected pre-processors to preprocessors array
 func (h *MeHandler) Setup() {
 	h.preprocessors = []router.Processor{
-		h.Authenticator,
 		h.DBConn,
+		h.Authenticator,
 		h.InjectUser,
 		h.PluginReady,
 	}

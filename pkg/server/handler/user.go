@@ -49,8 +49,8 @@ type UserQueryHandler struct {
 
 func (h *UserQueryHandler) Setup() {
 	h.preprocessors = []router.Processor{
-		h.Authenticator,
 		h.DBConn,
+		h.Authenticator,
 		h.InjectUser,
 		h.InjectDB,
 		h.PluginReady,
@@ -152,8 +152,8 @@ type UserUpdateHandler struct {
 
 func (h *UserUpdateHandler) Setup() {
 	h.preprocessors = []router.Processor{
-		h.Authenticator,
 		h.DBConn,
+		h.Authenticator,
 		h.InjectUser,
 		h.InjectDB,
 		h.RequireUser,
@@ -274,8 +274,8 @@ type UserLinkHandler struct {
 
 func (h *UserLinkHandler) Setup() {
 	h.preprocessors = []router.Processor{
-		h.Authenticator,
 		h.DBConn,
+		h.Authenticator,
 		h.InjectUser,
 		h.InjectDB,
 		h.RequireUser,

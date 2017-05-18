@@ -76,6 +76,14 @@ func NewAnonymousUserInfo() UserInfo {
 	}
 }
 
+// NewGodUserInfo returns the god user info which would be used
+// when master key is used.
+func NewGodUserInfo() UserInfo {
+	return UserInfo{
+		ID: "_god",
+	}
+}
+
 // NewProvidedAuthUserInfo returns an UserInfo provided by a AuthProvider,
 // which has no Email and Password.
 func NewProvidedAuthUserInfo(principalID string, authData map[string]interface{}) UserInfo {
