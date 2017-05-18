@@ -16,6 +16,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -167,19 +168,24 @@ func (payload *recordSavePayload) InitRecord(m map[string]interface{}, r *skydb.
 		if !ok {
 			return skyerr.NewInvalidArgument("_access must be an array", []string{"_access"})
 		}
-		acl := skydb.RecordACL{}
-		for _, v := range aclSlice {
-			ace := skydb.RecordACLEntry{}
-			typed, ok := v.(map[string]interface{})
-			if !ok {
-				return skyerr.NewInvalidArgument("invalid _access entry", []string{"_access"})
-			}
-			if err := (*skyconv.MapACLEntry)(&ace).FromMap(typed); err != nil {
-				return skyerr.NewInvalidArgument("invalid _access entry", []string{"_access"})
-			}
-			acl = append(acl, ace)
+		acl, err := parseACLData(aclSlice)
+		if err != nil {
+			return skyerr.NewInvalidArgument("invalid _access entry", []string{"_access"})
 		}
 		r.ACL = acl
+	}
+
+	defaultACLData, ok := m["_default_access"]
+	if ok && defaultACLData != nil {
+		aclSlice, ok := defaultACLData.([]interface{})
+		if !ok {
+			return skyerr.NewInvalidArgument("_default_access must be an array", []string{"_default_access"})
+		}
+		acl, err := parseACLData(aclSlice)
+		if err != nil {
+			return skyerr.NewInvalidArgument("invalid _default_access entry", []string{"_default_access"})
+		}
+		r.DefaultACL = acl
 	}
 
 	payload.purgeReservedKey(m)
@@ -190,6 +196,22 @@ func (payload *recordSavePayload) InitRecord(m map[string]interface{}, r *skydb.
 	r.Data = data
 
 	return nil
+}
+
+func parseACLData(aclSlice []interface{}) (skydb.RecordACL, error) {
+	acl := skydb.RecordACL{}
+	for _, v := range aclSlice {
+		ace := skydb.RecordACLEntry{}
+		typed, ok := v.(map[string]interface{})
+		if !ok {
+			return nil, errors.New("Invalid ACL format")
+		}
+		if err := (*skyconv.MapACLEntry)(&ace).FromMap(typed); err != nil {
+			return nil, errors.New("Invalid ACL format")
+		}
+		acl = append(acl, ace)
+	}
+	return acl, nil
 }
 
 /*

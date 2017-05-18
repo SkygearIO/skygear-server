@@ -362,10 +362,19 @@ func mergeRecord(dst, src *skydb.Record) {
 // the same record
 func deriveDeltaRecord(dst, base, delta *skydb.Record) {
 	dst.ID = delta.ID
-	if delta.ACL != nil {
-		dst.ACL = delta.ACL
+	if base.ID.IsEmpty() {
+		// this is a new record
+		if delta.ACL != nil {
+			dst.ACL = delta.ACL
+		} else {
+			dst.ACL = delta.DefaultACL
+		}
 	} else {
-		dst.ACL = base.ACL
+		if delta.ACL != nil {
+			dst.ACL = delta.ACL
+		} else {
+			dst.ACL = base.ACL
+		}
 	}
 	dst.OwnerID = delta.OwnerID
 	dst.CreatedAt = delta.CreatedAt

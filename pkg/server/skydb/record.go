@@ -283,6 +283,7 @@ type Record struct {
 	UpdatedAt  time.Time
 	UpdaterID  string
 	ACL        RecordACL
+	DefaultACL RecordACL
 	Data       Data
 	Transient  Data `json:"-"`
 }
