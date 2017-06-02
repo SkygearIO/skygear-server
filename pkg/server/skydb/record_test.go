@@ -236,3 +236,20 @@ func TestRecordSchema(t *testing.T) {
 		})
 	})
 }
+
+func TestRecordType(t *testing.T) {
+	Convey("ValidateRecordType", t, func() {
+		So(ValidateRecordType("note"), ShouldBeNil)
+		So(ValidateRecordType("note1"), ShouldBeNil)
+		So(ValidateRecordType("note_1"), ShouldBeNil)
+		So(ValidateRecordType("Note1"), ShouldBeNil)
+		So(ValidateRecordType("n"), ShouldBeNil)
+		So(ValidateRecordType(" note_1"), ShouldNotBeNil)
+		So(ValidateRecordType("note_1 "), ShouldNotBeNil)
+		So(ValidateRecordType("note 1"), ShouldNotBeNil)
+		So(ValidateRecordType("note 1"), ShouldNotBeNil)
+		So(ValidateRecordType("note$"), ShouldNotBeNil)
+		So(ValidateRecordType("_note"), ShouldNotBeNil)
+		So(ValidateRecordType("1note"), ShouldNotBeNil)
+	})
+}

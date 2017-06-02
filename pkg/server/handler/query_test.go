@@ -21,8 +21,19 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestQueryFromRaw(t *testing.T) {
-	Convey("functional predicate", t, func() {
+func TestQueryParser(t *testing.T) {
+	Convey("QueryParser", t, func() {
+		Convey("should return error with invalid record type", func() {
+			parser := &QueryParser{
+				UserID: "USER_ID",
+			}
+			query := skydb.Query{}
+			err := parser.queryFromRaw(map[string]interface{}{
+				"record_type": "_note",
+			}, &query)
+			So(err, ShouldNotBeNil)
+		})
+
 		Convey("functional predicate with user relation", func() {
 			parser := &QueryParser{
 				UserID: "USER_ID",

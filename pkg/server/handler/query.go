@@ -300,9 +300,14 @@ func (parser *QueryParser) queryFromRaw(rawQuery map[string]interface{}, query *
 		}
 	}()
 	recordType, _ := rawQuery["record_type"].(string)
-	if recordType == "" {
-		return skyerr.NewError(skyerr.InvalidArgument, "recordType cannot be empty")
+
+	if recordTypeErr := skydb.ValidateRecordType(recordType); recordTypeErr != nil {
+		return skyerr.NewInvalidArgument(
+			fmt.Sprintf("record: %s", recordTypeErr.Error()),
+			[]string{"record_type"},
+		)
 	}
+
 	query.Type = recordType
 
 	mustDoSlice(rawQuery, "predicate", func(rawPredicate []interface{}) skyerr.Error {

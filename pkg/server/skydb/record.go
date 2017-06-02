@@ -26,6 +26,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/asset"
 )
 
+var recordTypeRe = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9_]*$`)
+
 // RecordID identifies an unique record in a Database
 type RecordID struct {
 	Type string
@@ -616,4 +618,11 @@ func DeriveFieldType(value interface{}) (fieldType FieldType, err error) {
 		}
 	}
 	return
+}
+
+func ValidateRecordType(name string) error {
+	if !recordTypeRe.MatchString(name) {
+		return fmt.Errorf(`record type "%s" is not valid, it should contains alphanumeric characters and underscore only`, name)
+	}
+	return nil
 }

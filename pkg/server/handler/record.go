@@ -158,6 +158,13 @@ func (payload *recordSavePayload) InitRecord(m map[string]interface{}, r *skydb.
 
 	recordType, id := ss[0], ss[1]
 
+	if recordTypeErr := skydb.ValidateRecordType(recordType); recordTypeErr != nil {
+		return skyerr.NewInvalidArgument(
+			fmt.Sprintf("record: %s", recordTypeErr.Error()),
+			[]string{"id"},
+		)
+	}
+
 	r.ID.Key = id
 	r.ID.Type = recordType
 
@@ -380,9 +387,16 @@ func (payload *recordFetchPayload) Validate() skyerr.Error {
 		if len(ss) == 1 {
 			return skyerr.NewInvalidArgument(fmt.Sprintf("invalid id format: %v", rawID), []string{"ids"})
 		}
+		recordType, id := ss[0], ss[1]
+		if recordTypeErr := skydb.ValidateRecordType(recordType); recordTypeErr != nil {
+			return skyerr.NewInvalidArgument(
+				fmt.Sprintf("record: %s", recordTypeErr.Error()),
+				[]string{"ids"},
+			)
+		}
 
-		payload.RecordIDs[i].Type = ss[0]
-		payload.RecordIDs[i].Key = ss[1]
+		payload.RecordIDs[i].Type = recordType
+		payload.RecordIDs[i].Key = id
 	}
 	return nil
 }
@@ -651,8 +665,16 @@ func (payload *recordDeletePayload) Validate() skyerr.Error {
 			)
 		}
 
-		payload.RecordIDs[i].Type = ss[0]
-		payload.RecordIDs[i].Key = ss[1]
+		recordType, id := ss[0], ss[1]
+		if recordTypeErr := skydb.ValidateRecordType(recordType); recordTypeErr != nil {
+			return skyerr.NewInvalidArgument(
+				fmt.Sprintf("record: %s", recordTypeErr.Error()),
+				[]string{"ids"},
+			)
+		}
+
+		payload.RecordIDs[i].Type = recordType
+		payload.RecordIDs[i].Key = id
 	}
 	return nil
 }

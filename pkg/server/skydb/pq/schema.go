@@ -29,6 +29,13 @@ import (
 )
 
 func (db *database) Extend(recordType string, recordSchema skydb.RecordSchema) (extended bool, err error) {
+	if validateErr := skydb.ValidateRecordType(recordType); validateErr != nil {
+		return false, skyerr.NewError(
+			skyerr.UnexpectedRecordTypeInvalid,
+			validateErr.Error(),
+		)
+	}
+
 	remoteRecordSchema, err := db.RemoteColumnTypes(recordType)
 	if err != nil {
 		return
@@ -106,6 +113,13 @@ func (db *database) RenameSchema(recordType, oldName, newName string) error {
 		return skyerr.NewError(skyerr.IncompatibleSchema, "Record schema requires migration but migration is disabled.")
 	}
 
+	if validateErr := skydb.ValidateRecordType(recordType); validateErr != nil {
+		return skyerr.NewError(
+			skyerr.UnexpectedRecordTypeInvalid,
+			validateErr.Error(),
+		)
+	}
+
 	tableName := db.TableName(recordType)
 	oldName = pq.QuoteIdentifier(oldName)
 	newName = pq.QuoteIdentifier(newName)
@@ -124,6 +138,13 @@ func (db *database) DeleteSchema(recordType, columnName string) error {
 		return skyerr.NewError(skyerr.IncompatibleSchema, "Record schema requires migration but migration is disabled.")
 	}
 
+	if validateErr := skydb.ValidateRecordType(recordType); validateErr != nil {
+		return skyerr.NewError(
+			skyerr.UnexpectedRecordTypeInvalid,
+			validateErr.Error(),
+		)
+	}
+
 	tableName := db.TableName(recordType)
 	columnName = pq.QuoteIdentifier(columnName)
 
@@ -135,6 +156,13 @@ func (db *database) DeleteSchema(recordType, columnName string) error {
 }
 
 func (db *database) GetSchema(recordType string) (skydb.RecordSchema, error) {
+	if validateErr := skydb.ValidateRecordType(recordType); validateErr != nil {
+		return nil, skyerr.NewError(
+			skyerr.UnexpectedRecordTypeInvalid,
+			validateErr.Error(),
+		)
+	}
+
 	remoteRecordSchema, err := db.RemoteColumnTypes(recordType)
 	if err != nil {
 		return nil, err
@@ -285,6 +313,13 @@ func (db *database) getSequences(recordType string) ([]string, error) {
 // AND tc.table_schema = 'app__'
 // AND tc.table_name = 'note';
 func (db *database) RemoteColumnTypes(recordType string) (skydb.RecordSchema, error) {
+	if validateErr := skydb.ValidateRecordType(recordType); validateErr != nil {
+		return nil, skyerr.NewError(
+			skyerr.UnexpectedRecordTypeInvalid,
+			validateErr.Error(),
+		)
+	}
+
 	typemap := skydb.RecordSchema{}
 	var err error
 	// STEP 0: Return the cached ColumnType

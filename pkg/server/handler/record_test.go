@@ -103,6 +103,21 @@ func TestRecordDeleteHandler(t *testing.T) {
 
 		})
 
+		Convey("returns error when record type is invalid", func() {
+			resp := router.POST(`{
+	"ids": ["_note/0"]
+}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"error": {
+					"code": 108,
+					"info": {"arguments": ["ids"]},
+					"message": "record: record type \"_note\" is not valid, it should contains alphanumeric characters and underscore only",
+					"name": "InvalidArgument"
+				}
+			}`)
+
+		})
+
 		Convey("cannot delete user record", func() {
 			resp := router.POST(`{
 	"ids": ["user/0"]
@@ -267,6 +282,8 @@ func TestRecordSaveHandler(t *testing.T) {
 				"records": [{
 				}, {
 					"_id": "invalidkey"
+				}, {
+					"_id": "_note/1"
 				}]
 			}`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
@@ -281,6 +298,12 @@ func TestRecordSaveHandler(t *testing.T) {
 					"name": "InvalidArgument",
 					"code": 108,
 					"message": "record: \"_id\" should be of format '{type}/{id}', got \"invalidkey\"",
+					"info": {"arguments":["id"]}
+				},{
+					"_type": "error",
+					"name": "InvalidArgument",
+					"code": 108,
+					"message": "record: record type \"_note\" is not valid, it should contains alphanumeric characters and underscore only",
 					"info": {"arguments":["id"]}
 			}]}`)
 		})
@@ -378,8 +401,8 @@ func TestRecordSaveDataType(t *testing.T) {
 		conn := skydbtest.NewMapConn()
 		conn.AssetMap = map[string]skydb.Asset{
 			"asset-name": skydb.Asset{
-						Name: "asset-name",
-						ContentType: "plain/text",
+				Name:        "asset-name",
+				ContentType: "plain/text",
 			},
 		}
 
@@ -450,7 +473,7 @@ func TestRecordSaveDataType(t *testing.T) {
 				ID: skydb.NewRecordID("type1", "id1"),
 				Data: map[string]interface{}{
 					"asset": &skydb.Asset{
-						Name: "asset-name",
+						Name:        "asset-name",
 						ContentType: "plain/text",
 					},
 				},
@@ -559,7 +582,6 @@ func (db bogusFieldDatabase) Get(id skydb.RecordID, record *skydb.Record) error 
 func (db bogusFieldDatabase) Save(record *skydb.Record) error {
 	return db.SaveFunc(record)
 }
-
 
 func (db bogusFieldDatabase) GetSchema(recordType string) (skydb.RecordSchema, error) {
 	return skydb.RecordSchema{}, nil
@@ -1296,7 +1318,7 @@ func TestRecordOwnerIDSerialization(t *testing.T) {
 			OwnerID: "ownerID",
 		}
 		db := &singleRecordDatabase{
-			record: record,
+			record:       record,
 			recordSchema: skydb.RecordSchema{},
 		}
 		conn := skydbtest.NewMapConn()
@@ -1478,7 +1500,7 @@ func TestRecordAssetSerialization(t *testing.T) {
 			ID: skydb.NewRecordID("record", "id"),
 			Data: map[string]interface{}{
 				"asset": &skydb.Asset{
-					Name: "asset-name",
+					Name:        "asset-name",
 					ContentType: "plain/text",
 				},
 			},
@@ -1517,7 +1539,7 @@ func TestRecordAssetSerialization(t *testing.T) {
 			ID: skydb.NewRecordID("record", "id"),
 			Data: map[string]interface{}{
 				"asset": &skydb.Asset{
-					Name: "asset-name",
+					Name:        "asset-name",
 					ContentType: "plain/text",
 				},
 			},
@@ -1627,11 +1649,11 @@ func (db *referencedRecordDatabase) GetSchema(recordType string) (skydb.RecordSc
 	typemap := map[string]skydb.RecordSchema{
 		"note": skydb.RecordSchema{
 			"category": skydb.FieldType{
-				Type: skydb.TypeReference,
+				Type:          skydb.TypeReference,
 				ReferenceType: "category",
 			},
 			"city": skydb.FieldType{
-				Type: skydb.TypeReference,
+				Type:          skydb.TypeReference,
 				ReferenceType: "city",
 			},
 		},
