@@ -243,6 +243,7 @@ func main() {
 	r.Map("schema:fetch", injector.Inject(&handler.SchemaFetchHandler{}))
 	r.Map("schema:access", injector.Inject(&handler.SchemaAccessHandler{}))
 	r.Map("schema:default_access", injector.Inject(&handler.SchemaDefaultAccessHandler{}))
+	r.Map("schema:fetch_default_access", injector.Inject(&handler.SchemaFetchDefaultAccessHandler{}))
 
 	serveMux.Handle("/", r)
 
