@@ -156,7 +156,7 @@ func TestSchemaCreatePayload(t *testing.T) {
 			So(skyErr, ShouldNotBeNil)
 		})
 
-		Convey("reserved type", func() {
+		Convey("invalid type", func() {
 			raw := []byte(`{
 				"record_types": {
 					"_note": {
@@ -382,7 +382,7 @@ func TestSchemaRenamePayload(t *testing.T) {
 			So(skyErr, ShouldNotBeNil)
 		})
 
-		Convey("reserved type", func() {
+		Convey("invalid type", func() {
 			raw := []byte(`{
 				"record_type": "_note",
 				"item_name": "field1",
@@ -541,7 +541,7 @@ func TestSchemaDeletePayload(t *testing.T) {
 			So(skyErr, ShouldNotBeNil)
 		})
 
-		Convey("reserved type", func() {
+		Convey("invalid type", func() {
 			raw := []byte(`{
 				"record_type": "_note",
 				"item_name": "field1"
@@ -810,10 +810,10 @@ func TestSchemaDefaultAccessPayload(t *testing.T) {
 				"default_access": []interface{}{
 					map[string]interface{}{
 						"public": true,
-						"level": "read",
+						"level":  "read",
 					},
 					map[string]interface{}{
-						"role": "admin",
+						"role":  "admin",
 						"level": "write",
 					},
 				},
@@ -836,10 +836,10 @@ func TestSchemaDefaultAccessPayload(t *testing.T) {
 				"default_access": []interface{}{
 					map[string]interface{}{
 						"public": true,
-						"level": "read",
+						"level":  "read",
 					},
 					map[string]interface{}{
-						"role": "admin",
+						"role":  "admin",
 						"level": "write",
 					},
 				},

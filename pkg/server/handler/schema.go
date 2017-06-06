@@ -15,6 +15,7 @@
 package handler
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/mitchellh/mapstructure"
@@ -94,8 +95,11 @@ func (payload *schemaRenamePayload) Validate() skyerr.Error {
 	if len(missingArgs) > 0 {
 		return skyerr.NewInvalidArgument("missing required fields", missingArgs)
 	}
-	if strings.HasPrefix(payload.RecordType, "_") {
-		return skyerr.NewInvalidArgument("attempts to change reserved table", []string{"record_type"})
+	if recordTypeErr := skydb.ValidateRecordType(payload.RecordType); recordTypeErr != nil {
+		return skyerr.NewInvalidArgument(
+			fmt.Sprintf("record: %s", recordTypeErr.Error()),
+			[]string{"record_type"},
+		)
 	}
 	if strings.HasPrefix(payload.OldName, "_") {
 		return skyerr.NewInvalidArgument("attempts to change reserved key", []string{"item_name"})
@@ -196,10 +200,12 @@ func (payload *schemaDeletePayload) Validate() skyerr.Error {
 	if len(missingArgs) > 0 {
 		return skyerr.NewInvalidArgument("missing required fields", missingArgs)
 	}
-	if strings.HasPrefix(payload.RecordType, "_") {
-		return skyerr.NewInvalidArgument("attempts to change reserved table", []string{"record_type"})
+	if recordTypeErr := skydb.ValidateRecordType(payload.RecordType); recordTypeErr != nil {
+		return skyerr.NewInvalidArgument(
+			fmt.Sprintf("record: %s", recordTypeErr.Error()),
+			[]string{"record_type"},
+		)
 	}
-
 	if strings.HasPrefix(payload.ColumnName, "_") {
 		return skyerr.NewInvalidArgument("attempts to change reserved key", []string{"item_name"})
 	}
@@ -292,6 +298,12 @@ func (payload *schemaCreatePayload) Decode(data map[string]interface{}) skyerr.E
 
 	payload.Schemas = make(map[string]skydb.RecordSchema)
 	for recordType, schema := range payload.RawSchemas {
+		if recordTypeErr := skydb.ValidateRecordType(recordType); recordTypeErr != nil {
+			return skyerr.NewInvalidArgument(
+				fmt.Sprintf("record: %s", recordTypeErr.Error()),
+				[]string{"record_types"},
+			)
+		}
 		payload.Schemas[recordType] = make(skydb.RecordSchema)
 		for _, field := range schema.Fields {
 			var err error
