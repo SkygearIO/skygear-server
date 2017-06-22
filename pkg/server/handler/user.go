@@ -139,6 +139,32 @@ func (payload *userUpdatePayload) Validate() skyerr.Error {
 	return nil
 }
 
+// UserUpdateHandler update an UserInfo with the supplied information.
+//
+// UserUpdateHandler allow user to update his attributes with provided ID.
+// The attributes are following:
+//
+// * username (string, optional)
+// * email (string, optional)
+// * roles ([]string, optional)
+//
+// Missing of attributes will keep the attibute as it.
+// For `roles`, this API will create the missing roles in database and
+// assoicate it immediately with the user.
+//
+// Beside updating current user ID, this API also allow user with admin role
+// or API call using `master_key` to update other user attributes.
+//
+//  curl -X POST -H "Content-Type: application/json" \
+//    -d @- http://localhost:3000/ <<EOF
+//  {
+//      "action": "user:update",
+//      "_id": "95db1e34-0cc0-47b0-8a97-3948633ce09f",
+//      "username": "rickmak",
+//      "email": "rick.mak@gmail.com",
+//      "roles": ["user", "admin", "developer"]
+//  }
+//  EOF
 type UserUpdateHandler struct {
 	AccessModel   skydb.AccessModel `inject:"AccessModel"`
 	Authenticator router.Processor  `preprocessor:"authenticator"`
