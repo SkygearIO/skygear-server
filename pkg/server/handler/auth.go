@@ -16,6 +16,7 @@ package handler
 
 import (
 	"context"
+	"strings"
 
 	"github.com/mitchellh/mapstructure"
 
@@ -626,4 +627,538 @@ func (h *PasswordHandler) Handle(payload *router.Payload, response *router.Respo
 	}
 
 	response.Result = authResponse
+}
+
+// Define the playload for sso plugin to login user with provider
+type loginProviderPayload struct {
+	Provider            string                 `mapstructure:"provider"`
+	PrincipalID         string                 `mapstructure:"principal_id"`
+	ProviderPrincipalID string
+	ProviderAuthData    map[string]interface{} `mapstructure:"provider_auth_data"`
+}
+
+func (payload *loginProviderPayload) Decode(data map[string]interface{}) skyerr.Error {
+	if err := mapstructure.Decode(data, payload); err != nil {
+		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
+	}
+	payload.ProviderPrincipalID = payload.Provider + ":" + payload.PrincipalID
+	return payload.Validate()
+}
+
+func (payload *loginProviderPayload) Validate() skyerr.Error {
+	if payload.Provider == "" {
+		return skyerr.NewInvalidArgument("empty provider", []string{"provider"})
+	}
+
+	if payload.PrincipalID == "" {
+		return skyerr.NewInvalidArgument("empty principal id", []string{"principal_id"})
+	}
+
+	return nil
+}
+// LoginProviderHandler login user with provider information
+//
+// LoginProviderHandler receives parameters:
+//
+// * provider (string, required)
+// * principal_id (string, required)
+// * provider_auth_data (json object, optional)
+//
+// curl -X POST -H "Content-Type: application/json" \
+//   -d @- http://localhost:3000/ <<EOF
+// {
+// 		"action": "auth:provider:login",
+// 		"provider": "facebook",
+// 		"principal_id": "104174434987489953648",
+// 		"provider_auth_data": {}
+// }
+// EOF
+// Response
+// if login exist
+// 		return user and token
+// eles
+// 		return skyerr.InvalidCredentials
+//
+
+type LoginProviderHandler struct {
+	TokenStore       authtoken.Store    `inject:"TokenStore"`
+	ProviderRegistry *provider.Registry `inject:"ProviderRegistry"`
+	HookRegistry     *hook.Registry     `inject:"HookRegistry"`
+	AssetStore       asset.Store        `inject:"AssetStore"`
+	AuthRecordKeys   [][]string         `inject:"AuthRecordKeys"`
+	AccessKey        router.Processor   `preprocessor:"accesskey"`
+	DBConn           router.Processor   `preprocessor:"dbconn"`
+	InjectPublicDB   router.Processor   `preprocessor:"inject_public_db"`
+	PluginReady      router.Processor   `preprocessor:"plugin_ready"`
+	RequireMasterKey router.Processor   `preprocessor:"require_master_key"`
+	preprocessors    []router.Processor
+}
+
+func (h *LoginProviderHandler) Setup() {
+	h.preprocessors = []router.Processor{
+		h.AccessKey,
+		h.DBConn,
+		h.InjectPublicDB,
+		h.PluginReady,
+		h.RequireMasterKey,
+	}
+}
+
+func (h *LoginProviderHandler) GetPreprocessors() []router.Processor {
+	return h.preprocessors
+}
+
+func (h *LoginProviderHandler) Handle(payload *router.Payload, response *router.Response) {
+	log.Debugf("Login provider")
+	p := &loginProviderPayload{}
+	skyErr := p.Decode(payload.Data)
+	if skyErr != nil {
+		response.Err = skyErr
+		return
+	}
+
+	store := h.TokenStore
+	info := skydb.AuthInfo{}
+	user := skydb.Record{}
+	principalID := p.ProviderPrincipalID
+
+	if err := payload.DBConn.GetAuthByPrincipalID(principalID, &info); err != nil {
+		response.Err = skyerr.NewError(skyerr.InvalidCredentials, "no connected user")
+		return
+	}
+
+	info.SetProviderInfoData(principalID, p.ProviderAuthData)
+	if err := payload.DBConn.UpdateAuth(&info); err != nil {
+		response.Err = skyerr.MakeError(err)
+		return
+	}
+
+	err := payload.Database.Get(skydb.NewRecordID("user", info.ID), &user)
+	if err != nil {
+		response.Err = skyerr.MakeError(err)
+		return
+	}
+
+	// generate access-token
+	token, err := store.NewToken(payload.AppName, info.ID)
+	if err != nil {
+		panic(err)
+	}
+
+	if err = store.Put(&token); err != nil {
+		panic(err)
+	}
+
+	authResponse, err := AuthResponseFactory{
+		AssetStore: h.AssetStore,
+		Conn:       payload.DBConn,
+	}.NewAuthResponse(info, user, token.AccessToken, payload.HasMasterKey())
+	if err != nil {
+		response.Err = skyerr.MakeError(err)
+		return
+	}
+
+	// Populate the activity time to user
+	now := timeNow()
+	info.LastSeenAt = &now
+	if err := payload.DBConn.UpdateAuth(&info); err != nil {
+		response.Err = skyerr.MakeError(err)
+		return
+	}
+
+	// update user record last login time
+	user.UpdatedAt = now
+	user.UpdaterID = info.ID
+	user.Data[UserRecordLastLoginAtKey] = now
+	if err := payload.Database.Save(&user); err != nil {
+		response.Err = skyerr.MakeError(err)
+		return
+	}
+
+	response.Result = authResponse
+	return
+}
+
+// Define the playload for sso plugin to signup user with provider
+type signupProviderPayload struct {
+	Provider         		string                 `mapstructure:"provider"`
+	PrincipalID         string                 `mapstructure:"principal_id"`
+	ProviderPrincipalID string
+	ProviderAuthData    map[string]interface{} `mapstructure:"provider_auth_data"`
+	Profile             skydb.Data             `mapstructure:"profile"`
+}
+
+func (payload *signupProviderPayload) Decode(data map[string]interface{}) skyerr.Error {
+	if err := mapstructure.Decode(data, payload); err != nil {
+		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
+	}
+	payload.ProviderPrincipalID = payload.Provider + ":" + payload.PrincipalID
+	return payload.Validate()
+}
+
+func (payload *signupProviderPayload) Validate() skyerr.Error {
+	if payload.Provider == "" {
+		return skyerr.NewInvalidArgument("empty provider", []string{"provider"})
+	}
+
+	if strings.Contains(payload.Provider, ":") {
+		return skyerr.NewInvalidArgument("provider name contains invalid character :", []string{"provider"})
+	}
+
+	if payload.PrincipalID == "" {
+		return skyerr.NewInvalidArgument("empty principal id", []string{"principal_id"})
+	}
+
+	return nil
+}
+
+// SignupProviderHandler create new user with provider information
+//
+// LoginProviderHandler receives parameters:
+//
+// * provider (string, required)
+// * principal_id (string, required)
+// * provider_auth_data (json object, optional)
+// * profile (json object, optional)
+//
+// curl -X POST -H "Content-Type: application/json" \
+//   -d @- http://localhost:3000/ <<EOF
+// {
+// 		"action": "auth:provider:signup",
+// 		"provider": "facebook",
+// 		"principal_id": "104174434987489953648",
+// 		"provider_auth_data": {},
+// 		"profile": {"email": "chima@skygeario.com"}
+// }
+// EOF
+// Response
+// if no connected user
+// 		return user and token
+// else
+// 		return skyerr.InvalidArgument
+
+type SignupProviderHandler struct {
+	TokenStore       authtoken.Store    `inject:"TokenStore"`
+	HookRegistry     *hook.Registry     `inject:"HookRegistry"`
+	AssetStore       asset.Store        `inject:"AssetStore"`
+	AuthRecordKeys   [][]string         `inject:"AuthRecordKeys"`
+	AccessKey        router.Processor   `preprocessor:"accesskey"`
+	DBConn           router.Processor   `preprocessor:"dbconn"`
+	InjectPublicDB   router.Processor   `preprocessor:"inject_public_db"`
+	PluginReady      router.Processor   `preprocessor:"plugin_ready"`
+	RequireMasterKey router.Processor   `preprocessor:"require_master_key"`
+	preprocessors    []router.Processor
+}
+
+func (h *SignupProviderHandler) Setup() {
+	h.preprocessors = []router.Processor{
+		h.AccessKey,
+		h.DBConn,
+		h.InjectPublicDB,
+		h.PluginReady,
+		h.RequireMasterKey,
+	}
+}
+
+func (h *SignupProviderHandler) GetPreprocessors() []router.Processor {
+	return h.preprocessors
+}
+
+func (h *SignupProviderHandler) Handle(payload *router.Payload, response *router.Response) {
+	log.Debugf("Signup provider")
+	p := &signupProviderPayload{}
+	skyErr := p.Decode(payload.Data)
+	if skyErr != nil {
+		response.Err = skyErr
+		return
+	}
+
+	store := h.TokenStore
+	info := skydb.AuthInfo{}
+	user := skydb.Record{}
+	principalID := p.ProviderPrincipalID
+
+	if err := payload.DBConn.GetAuthByPrincipalID(principalID, &info); err != nil {
+		if err != skydb.ErrUserNotFound {
+			// TODO: more error handling here if necessary
+			response.Err = skyerr.NewResourceFetchFailureErr("provider", p.Provider)
+			return
+		}
+
+		// create new user
+		info = skydb.NewProviderInfoAuthInfo(principalID, p.ProviderAuthData)
+		createContext := createUserWithRecordContext{
+			payload.DBConn, payload.Database, h.AssetStore, h.HookRegistry, h.AuthRecordKeys, payload.Context,
+		}
+		createdUser, err := createContext.execute(&info, skydb.AuthData{}, p.Profile)
+		if err != nil {
+			response.Err = skyerr.MakeError(err)
+			return
+		}
+
+		user = *createdUser
+	} else {
+		response.Err = skyerr.NewError(skyerr.InvalidArgument, "user already connected")
+		return
+	}
+
+	// generate access-token
+	token, err := store.NewToken(payload.AppName, info.ID)
+	if err != nil {
+		panic(err)
+	}
+
+	if err = store.Put(&token); err != nil {
+		panic(err)
+	}
+
+	authResponse, err := AuthResponseFactory{
+		AssetStore: h.AssetStore,
+		Conn:       payload.DBConn,
+	}.NewAuthResponse(info, user, token.AccessToken, payload.HasMasterKey())
+	if err != nil {
+		response.Err = skyerr.MakeError(err)
+		return
+	}
+
+	// Populate the activity time to user
+	now := timeNow()
+	info.LastSeenAt = &now
+	if err := payload.DBConn.UpdateAuth(&info); err != nil {
+		response.Err = skyerr.MakeError(err)
+		return
+	}
+
+	// update user record last login time
+	user.UpdatedAt = now
+	user.UpdaterID = info.ID
+	user.Data[UserRecordLastLoginAtKey] = now
+	if err := payload.Database.Save(&user); err != nil {
+		response.Err = skyerr.MakeError(err)
+		return
+	}
+
+	response.Result = authResponse
+	return
+}
+
+// Define the playload for sso plugin to connect user with provider
+type linkProviderPayload struct {
+	Provider            string                 `mapstructure:"provider"`
+	PrincipalID         string                 `mapstructure:"principal_id"`
+	ProviderPrincipalID string
+	ProviderAuthData    map[string]interface{} `mapstructure:"provider_auth_data"`
+	UserID              string                 `mapstructure:"user_id"`
+}
+
+func (payload *linkProviderPayload) Decode(data map[string]interface{}) skyerr.Error {
+	if err := mapstructure.Decode(data, payload); err != nil {
+		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
+	}
+	payload.ProviderPrincipalID = payload.Provider + ":" + payload.PrincipalID
+	return payload.Validate()
+}
+
+func (payload *linkProviderPayload) Validate() skyerr.Error {
+	if payload.Provider == "" {
+		return skyerr.NewInvalidArgument("empty provider", []string{"provider"})
+	}
+
+	if payload.PrincipalID == "" {
+		return skyerr.NewInvalidArgument("empty principal id", []string{"principal_id"})
+	}
+
+	if payload.UserID == "" {
+		return skyerr.NewInvalidArgument("empty user id", []string{"user_id"})
+	}
+
+	return nil
+}
+
+// LinkProviderHandler connect user with provider information
+//
+// LinkProviderHandler receives parameters:
+//
+// * provider (string, required)
+// * principal_id (string, required)
+// * provider_auth_data (json object, optional)
+// * user_id (string, required)
+//
+// curl -X POST -H "Content-Type: application/json" \
+//   -d @- http://localhost:3000/ <<EOF
+// {
+// 		"action": "auth:provider:link",
+// 		"provider": "facebook",
+// 		"principal_id": "104174434987489953648",
+// 		"provider_auth_data": {},
+// 		"user_id": "c0959b6b-15ea-4e21-8afb-9c8308ad79db"
+// }
+// EOF
+// Response
+// {
+//     "result": "OK"
+// }
+type LinkProviderHandler struct {
+	HookRegistry     *hook.Registry     `inject:"HookRegistry"`
+	AssetStore       asset.Store        `inject:"AssetStore"`
+	AuthRecordKeys   [][]string         `inject:"AuthRecordKeys"`
+	AccessKey        router.Processor   `preprocessor:"accesskey"`
+	DBConn           router.Processor   `preprocessor:"dbconn"`
+	InjectPublicDB   router.Processor   `preprocessor:"inject_public_db"`
+	PluginReady      router.Processor   `preprocessor:"plugin_ready"`
+	RequireMasterKey router.Processor   `preprocessor:"require_master_key"`
+	preprocessors    []router.Processor
+}
+
+func (h *LinkProviderHandler) Setup() {
+	h.preprocessors = []router.Processor{
+		h.AccessKey,
+		h.DBConn,
+		h.InjectPublicDB,
+		h.PluginReady,
+		h.RequireMasterKey,
+	}
+}
+
+func (h *LinkProviderHandler) GetPreprocessors() []router.Processor {
+	return h.preprocessors
+}
+
+func (h *LinkProviderHandler) Handle(payload *router.Payload, response *router.Response) {
+	log.Debugf("Link provider")
+	p := &linkProviderPayload{}
+	skyErr := p.Decode(payload.Data)
+	if skyErr != nil {
+		response.Err = skyErr
+		return
+	}
+
+	info := skydb.AuthInfo{}
+	principalID := p.ProviderPrincipalID
+	userID := p.UserID
+
+	if err := payload.DBConn.GetAuthByPrincipalID(principalID, &info); err != nil {
+		if err != skydb.ErrUserNotFound {
+			response.Err = skyerr.NewResourceFetchFailureErr("principal_id", principalID)
+			return
+		}
+	} else {
+		response.Err = skyerr.NewError(skyerr.InvalidArgument, "principal id already connected")
+		return
+	}
+
+	if err := payload.DBConn.GetAuth(userID, &info); err != nil {
+		response.Err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
+		return
+	}
+
+	info.SetProviderInfoData(principalID, p.ProviderAuthData)
+	if err := payload.DBConn.UpdateAuth(&info); err != nil {
+		response.Err = skyerr.MakeError(err)
+		return
+	}
+
+	response.Result = "OK"
+	return
+}
+
+// Define the playload for sso plugin to disconnect user with provider
+type unlinkProviderPayload struct {
+	Provider            string                 `mapstructure:"provider"`
+	UserID              string                 `mapstructure:"user_id"`
+}
+
+func (payload *unlinkProviderPayload) Decode(data map[string]interface{}) skyerr.Error {
+	if err := mapstructure.Decode(data, payload); err != nil {
+		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
+	}
+	return payload.Validate()
+}
+
+func (payload *unlinkProviderPayload) Validate() skyerr.Error {
+	if payload.Provider == "" {
+		return skyerr.NewInvalidArgument("empty provider", []string{"provider"})
+	}
+
+	if payload.UserID == "" {
+		return skyerr.NewInvalidArgument("empty user id", []string{"user_id"})
+	}
+
+	return nil
+}
+
+// UnlinkProviderHandler disconnect user with specific provider
+//
+// UnlinkProviderHandler receives parameters:
+//
+// * provider (string, required)
+// * user_id (string, required)
+//
+// curl -X POST -H "Content-Type: application/json" \
+//   -d @- http://localhost:3000/ <<EOF
+// {
+// 		"action": "auth:provider:unlink",
+// 		"provider": "facebook",
+// 		"user_id": "c0959b6b-15ea-4e21-8afb-9c8308ad79db"
+// }
+// EOF
+// Response
+// {
+//     "result": "OK"
+// }
+type UnlinkProviderHandler struct {
+	HookRegistry     *hook.Registry     `inject:"HookRegistry"`
+	AssetStore       asset.Store        `inject:"AssetStore"`
+	AuthRecordKeys   [][]string         `inject:"AuthRecordKeys"`
+	AccessKey        router.Processor   `preprocessor:"accesskey"`
+	DBConn           router.Processor   `preprocessor:"dbconn"`
+	InjectPublicDB   router.Processor   `preprocessor:"inject_public_db"`
+	PluginReady      router.Processor   `preprocessor:"plugin_ready"`
+	RequireMasterKey router.Processor   `preprocessor:"require_master_key"`
+	preprocessors    []router.Processor
+}
+
+func (h *UnlinkProviderHandler) Setup() {
+	h.preprocessors = []router.Processor{
+		h.AccessKey,
+		h.DBConn,
+		h.InjectPublicDB,
+		h.PluginReady,
+		h.RequireMasterKey,
+	}
+}
+
+func (h *UnlinkProviderHandler) GetPreprocessors() []router.Processor {
+	return h.preprocessors
+}
+
+func (h *UnlinkProviderHandler) Handle(payload *router.Payload, response *router.Response) {
+	log.Debugf("Unlink provider")
+	p := &unlinkProviderPayload{}
+	skyErr := p.Decode(payload.Data)
+	if skyErr != nil {
+		response.Err = skyErr
+		return
+	}
+
+	info := skydb.AuthInfo{}
+	userID := p.UserID
+
+	if err := payload.DBConn.GetAuth(userID, &info); err != nil {
+		response.Err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
+		return
+	}
+
+	if err := info.RemoveProviderInfoDataByProvider(p.Provider); err != nil {
+		response.Err = skyerr.MakeError(err)
+		return
+	}
+
+	if err := payload.DBConn.UpdateAuth(&info); err != nil {
+		response.Err = skyerr.MakeError(err)
+		return
+	}
+
+	response.Result = "OK"
+	return
 }
