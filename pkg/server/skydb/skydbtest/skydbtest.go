@@ -77,6 +77,20 @@ func (conn *MapConn) GetAuthByPrincipalID(principalID string, authinfo *skydb.Au
 	return skydb.ErrUserNotFound
 }
 
+// GetAuthByProviderAndPrincipalID returns a AuthInfo by its provider and principalID.
+func (conn *MapConn) GetAuthByProviderAndPrincipalID(provider string, principalID string, authinfo *skydb.AuthInfo) error {
+	for _, u := range conn.UserMap {
+		if info, existed := u.ProviderInfo[provider]; existed {
+			if pid, _ := info["principal_id"]; pid == principalID {
+				*authinfo = u
+				return nil
+			}
+		}
+	}
+
+	return skydb.ErrUserNotFound
+}
+
 // UpdateAuth updates an existing AuthInfo in UserMap.
 func (conn *MapConn) UpdateAuth(authinfo *skydb.AuthInfo) error {
 	if _, ok := conn.UserMap[authinfo.ID]; !ok {

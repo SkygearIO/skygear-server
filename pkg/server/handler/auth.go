@@ -16,7 +16,6 @@ package handler
 
 import (
 	"context"
-	"strings"
 
 	"github.com/mitchellh/mapstructure"
 
@@ -633,7 +632,6 @@ func (h *PasswordHandler) Handle(payload *router.Payload, response *router.Respo
 type loginProviderPayload struct {
 	Provider            string                 `mapstructure:"provider"`
 	PrincipalID         string                 `mapstructure:"principal_id"`
-	ProviderPrincipalID string
 	ProviderAuthData    map[string]interface{} `mapstructure:"provider_auth_data"`
 }
 
@@ -641,7 +639,7 @@ func (payload *loginProviderPayload) Decode(data map[string]interface{}) skyerr.
 	if err := mapstructure.Decode(data, payload); err != nil {
 		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
 	}
-	payload.ProviderPrincipalID = payload.Provider + ":" + payload.PrincipalID
+	payload.ProviderAuthData["principal_id"] = payload.PrincipalID
 	return payload.Validate()
 }
 
@@ -720,14 +718,15 @@ func (h *LoginProviderHandler) Handle(payload *router.Payload, response *router.
 	store := h.TokenStore
 	info := skydb.AuthInfo{}
 	user := skydb.Record{}
-	principalID := p.ProviderPrincipalID
+	provider := p.Provider
+	principalID := p.PrincipalID
 
-	if err := payload.DBConn.GetAuthByPrincipalID(principalID, &info); err != nil {
+	if err := payload.DBConn.GetAuthByProviderAndPrincipalID(provider, principalID, &info); err != nil {
 		response.Err = skyerr.NewError(skyerr.InvalidCredentials, "no connected user")
 		return
 	}
 
-	info.SetProviderInfoData(principalID, p.ProviderAuthData)
+	info.SetProviderInfoData(provider, p.ProviderAuthData)
 	if err := payload.DBConn.UpdateAuth(&info); err != nil {
 		response.Err = skyerr.MakeError(err)
 		return
@@ -783,7 +782,6 @@ func (h *LoginProviderHandler) Handle(payload *router.Payload, response *router.
 type signupProviderPayload struct {
 	Provider         		string                 `mapstructure:"provider"`
 	PrincipalID         string                 `mapstructure:"principal_id"`
-	ProviderPrincipalID string
 	ProviderAuthData    map[string]interface{} `mapstructure:"provider_auth_data"`
 	Profile             skydb.Data             `mapstructure:"profile"`
 }
@@ -792,17 +790,13 @@ func (payload *signupProviderPayload) Decode(data map[string]interface{}) skyerr
 	if err := mapstructure.Decode(data, payload); err != nil {
 		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
 	}
-	payload.ProviderPrincipalID = payload.Provider + ":" + payload.PrincipalID
+	payload.ProviderAuthData["principal_id"] = payload.PrincipalID
 	return payload.Validate()
 }
 
 func (payload *signupProviderPayload) Validate() skyerr.Error {
 	if payload.Provider == "" {
 		return skyerr.NewInvalidArgument("empty provider", []string{"provider"})
-	}
-
-	if strings.Contains(payload.Provider, ":") {
-		return skyerr.NewInvalidArgument("provider name contains invalid character :", []string{"provider"})
 	}
 
 	if payload.PrincipalID == "" {
@@ -876,9 +870,10 @@ func (h *SignupProviderHandler) Handle(payload *router.Payload, response *router
 	store := h.TokenStore
 	info := skydb.AuthInfo{}
 	user := skydb.Record{}
-	principalID := p.ProviderPrincipalID
+	provider := p.Provider
+	principalID := p.PrincipalID
 
-	if err := payload.DBConn.GetAuthByPrincipalID(principalID, &info); err != nil {
+	if err := payload.DBConn.GetAuthByProviderAndPrincipalID(provider, principalID, &info); err != nil {
 		if err != skydb.ErrUserNotFound {
 			// TODO: more error handling here if necessary
 			response.Err = skyerr.NewResourceFetchFailureErr("provider", p.Provider)
@@ -886,7 +881,7 @@ func (h *SignupProviderHandler) Handle(payload *router.Payload, response *router
 		}
 
 		// create new user
-		info = skydb.NewProviderInfoAuthInfo(principalID, p.ProviderAuthData)
+		info = skydb.NewProviderInfoAuthInfo(provider, p.ProviderAuthData)
 		createContext := createUserWithRecordContext{
 			payload.DBConn, payload.Database, h.AssetStore, h.HookRegistry, h.AuthRecordKeys, payload.Context,
 		}
@@ -946,7 +941,6 @@ func (h *SignupProviderHandler) Handle(payload *router.Payload, response *router
 type linkProviderPayload struct {
 	Provider            string                 `mapstructure:"provider"`
 	PrincipalID         string                 `mapstructure:"principal_id"`
-	ProviderPrincipalID string
 	ProviderAuthData    map[string]interface{} `mapstructure:"provider_auth_data"`
 	UserID              string                 `mapstructure:"user_id"`
 }
@@ -955,7 +949,7 @@ func (payload *linkProviderPayload) Decode(data map[string]interface{}) skyerr.E
 	if err := mapstructure.Decode(data, payload); err != nil {
 		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
 	}
-	payload.ProviderPrincipalID = payload.Provider + ":" + payload.PrincipalID
+	payload.ProviderAuthData["principal_id"] = payload.PrincipalID
 	return payload.Validate()
 }
 
@@ -1034,10 +1028,11 @@ func (h *LinkProviderHandler) Handle(payload *router.Payload, response *router.R
 	}
 
 	info := skydb.AuthInfo{}
-	principalID := p.ProviderPrincipalID
+	provider := p.Provider
+	principalID := p.PrincipalID
 	userID := p.UserID
 
-	if err := payload.DBConn.GetAuthByPrincipalID(principalID, &info); err != nil {
+	if err := payload.DBConn.GetAuthByProviderAndPrincipalID(provider, principalID, &info); err != nil {
 		if err != skydb.ErrUserNotFound {
 			response.Err = skyerr.NewResourceFetchFailureErr("principal_id", principalID)
 			return
@@ -1052,7 +1047,7 @@ func (h *LinkProviderHandler) Handle(payload *router.Payload, response *router.R
 		return
 	}
 
-	info.SetProviderInfoData(principalID, p.ProviderAuthData)
+	info.SetProviderInfoData(provider, p.ProviderAuthData)
 	if err := payload.DBConn.UpdateAuth(&info); err != nil {
 		response.Err = skyerr.MakeError(err)
 		return

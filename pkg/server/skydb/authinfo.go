@@ -15,7 +15,6 @@
 package skydb
 
 import (
-	"strings"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -268,19 +267,13 @@ func (info *AuthInfo) RemoveProviderInfoData(principalID string) {
 
 // RemoveProviderInfoDataByProvider remove the auth data for the provider.
 func (info *AuthInfo) RemoveProviderInfoDataByProvider(provider string) error {
-	principalIDPrefix := provider + ":"
-	unlinked := false
-	for k := range info.ProviderInfo {
-		if strings.HasPrefix(k, principalIDPrefix) {
-			info.RemoveProviderInfoData(k)
-			unlinked = true
+	if info.ProviderInfo != nil {
+		if _, ok := info.ProviderInfo[provider]; ok {
+			delete(info.ProviderInfo, provider)
+			return nil
 		}
 	}
 
-	if !unlinked {
-		return skyerr.NewError(
-			skyerr.InvalidArgument, "no connected provider to unlink")
-	}
-
-	return nil
+	return skyerr.NewError(
+		skyerr.InvalidArgument, "no connected provider to unlink")
 }

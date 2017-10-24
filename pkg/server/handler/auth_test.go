@@ -1174,6 +1174,7 @@ func TestPasswordHandlerWithProvider(t *testing.T) {
 	})
 }
 
+
 func TestLoginProviderHandler(t *testing.T) {
 	Convey("LoginProviderHandler", t, func() {
 		realTime := timeNow
@@ -1183,14 +1184,15 @@ func TestLoginProviderHandler(t *testing.T) {
 		}()
 
 		tokenStore := authtokentest.SingleTokenStore{}
-		conn := singleUserConn{}
+
+		conn := skydbtest.NewMapConn()
 		db := skydbtest.NewMapDB()
 		txdb := skydbtest.NewMockTxDatabase(db)
 
 		r := handlertest.NewSingleRouteRouter(&LoginProviderHandler{
 			TokenStore: &tokenStore,
 		}, func(p *router.Payload) {
-			p.DBConn = &conn
+			p.DBConn = conn
 			p.Database = txdb
 			p.AccessKey = router.MasterAccessKey
 		})
@@ -1217,19 +1219,18 @@ func TestLoginProviderHandler(t *testing.T) {
 
 		Convey("login provider with existent principal id", func() {
 			authinfo := skydb.NewProviderInfoAuthInfo(
-				"skygear:chima",
-				map[string]interface{}{"name": "chima ceo"},
+				"skygear",
+				map[string]interface{}{
+					"name": "chima ceo",
+					"principal_id": "chima",
+				},
 			)
 
 			anHourAgo := timeNow().Add(-1 * time.Hour)
 			authinfo.LastSeenAt = &anHourAgo
 
-			conn.authinfo = &authinfo
-			defer func() {
-				conn.authinfo = nil
-			}()
-
 			userRecordID := skydb.NewRecordID("user", authinfo.ID)
+			conn.CreateAuth(&authinfo)
 			db.Save(&skydb.Record{
 				ID:         userRecordID,
 				DatabaseID: db.ID(),
@@ -1251,11 +1252,18 @@ func TestLoginProviderHandler(t *testing.T) {
 				}`)
 			token := tokenStore.Token
 			So(token.AccessToken, ShouldNotBeBlank)
-			So(conn.authinfo, ShouldNotBeNil)
 
-			authData := conn.authinfo.ProviderInfo["skygear:chima"]
+
+			newAuthInfo := skydb.AuthInfo{}
+			conn.GetAuth(authinfo.ID, &newAuthInfo)
+			So(newAuthInfo, ShouldNotBeNil)
+
+			authData := newAuthInfo.ProviderInfo["skygear"]
 			authDataJSON, _ := json.Marshal(&authData)
-			So(authDataJSON, ShouldEqualJSON, `{"name": "new chima ceo"}`)
+			So(authDataJSON, ShouldEqualJSON, `{
+				"name": "new chima ceo",
+				"principal_id": "chima"
+			}`)
 
 			So(resp.Code, ShouldEqual, 200)
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`
@@ -1301,41 +1309,17 @@ func TestSignupProviderHandler(t *testing.T) {
 		}()
 
 		tokenStore := authtokentest.SingleTokenStore{}
-		conn := singleUserConn{}
+
+		conn := skydbtest.NewMapConn()
 		db := skydbtest.NewMapDB()
 		txdb := skydbtest.NewMockTxDatabase(db)
 
 		r := handlertest.NewSingleRouteRouter(&SignupProviderHandler{
 			TokenStore: &tokenStore,
 		}, func(p *router.Payload) {
-			p.DBConn = &conn
+			p.DBConn = conn
 			p.Database = txdb
 			p.AccessKey = router.MasterAccessKey
-		})
-
-		Convey("signup provider with invalid provider name", func() {
-			resp := r.POST(`
-				{
-					"principal_id": "non-existent",
-					"provider": "skygear:",
-					"provider_auth_data": {"name": "chima ceo"},
-					"profile": {"email": "chima@skygeario.com"}
-				}`)
-
-			So(resp.Body.Bytes(), ShouldEqualJSON, `
-				{
-					"error": {
-						"name": "InvalidArgument",
-						"code": 108,
-						"message": "provider name contains invalid character :",
-						"info": {
-							"arguments": [
-								"provider"
-							]
-						}
-					}
-				}`)
-			So(resp.Code, ShouldEqual, 400)
 		})
 
 		Convey("signup provider with non existent principal id", func() {
@@ -1350,7 +1334,10 @@ func TestSignupProviderHandler(t *testing.T) {
 			token := tokenStore.Token
 			So(token.AccessToken, ShouldNotBeBlank)
 
-			authinfo := conn.authinfo
+			newAuthInfo := skydb.AuthInfo{}
+			conn.GetAuthByProviderAndPrincipalID(
+				"skygear", "non-existent", &newAuthInfo)
+
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`
 				{
 					"result": {
@@ -1370,30 +1357,29 @@ func TestSignupProviderHandler(t *testing.T) {
 					}
 				}`,
 				token.AccessToken,
-				authinfo.ID,
-				authinfo.ID,
-				authinfo.ID,
-				authinfo.ID,
-				authinfo.ID,
+				newAuthInfo.ID,
+				newAuthInfo.ID,
+				newAuthInfo.ID,
+				newAuthInfo.ID,
+				newAuthInfo.ID,
 			))
 			So(resp.Code, ShouldEqual, 200)
 		})
 
 		Convey("signup provider with existent principal id", func() {
 			authinfo := skydb.NewProviderInfoAuthInfo(
-				"skygear:chima",
-				map[string]interface{}{"name": "chima ceo"},
+				"skygear",
+				map[string]interface{}{
+					"name": "chima ceo",
+					"principal_id": "chima",
+				},
 			)
 
 			anHourAgo := timeNow().Add(-1 * time.Hour)
 			authinfo.LastSeenAt = &anHourAgo
 
-			conn.authinfo = &authinfo
-			defer func() {
-				conn.authinfo = nil
-			}()
-
 			userRecordID := skydb.NewRecordID("user", authinfo.ID)
+			conn.CreateAuth(&authinfo)
 			db.Save(&skydb.Record{
 				ID:         userRecordID,
 				DatabaseID: db.ID(),
@@ -1465,8 +1451,11 @@ func TestLinkProviderHandler(t *testing.T) {
 
 		Convey("connect provider which is already connected", func() {
 			authinfo := skydb.NewProviderInfoAuthInfo(
-				"skygear:chima",
-				map[string]interface{}{"name": "chima ceo"},
+				"skygear",
+				map[string]interface{}{
+					"name": "chima ceo",
+					"principal_id": "chima",
+				},
 			)
 			anHourAgo := timeNow().Add(-1 * time.Hour)
 			authinfo.LastSeenAt = &anHourAgo
@@ -1504,10 +1493,13 @@ func TestLinkProviderHandler(t *testing.T) {
 				}`)
 		})
 
-		Convey("auto connect provider when login", func() {
+		Convey("link provider", func() {
 			authinfo := skydb.NewProviderInfoAuthInfo(
-				"skygear:chima",
-				map[string]interface{}{"name": "chima ceo"},
+				"skygear",
+				map[string]interface{}{
+					"name": "chima ceo",
+					"principal_id": "chima",
+				},
 			)
 			anHourAgo := timeNow().Add(-1 * time.Hour)
 			authinfo.LastSeenAt = &anHourAgo
@@ -1532,44 +1524,7 @@ func TestLinkProviderHandler(t *testing.T) {
 					"principal_id": "non-existent",
 					"provider": "skygear",
 					"provider_auth_data": {"name": "chima ceo"},
-					"user_id": "%v",
-					"is_login": true
-				}`, authinfo.ID))
-
-			So(resp.Code, ShouldEqual, 200)
-			So(resp.Body.Bytes(), ShouldEqualJSON, `{"result": "OK"}`)
-		})
-
-		Convey("connect provider after login", func() {
-			authinfo := skydb.NewProviderInfoAuthInfo(
-				"skygear:chima",
-				map[string]interface{}{"name": "chima ceo"},
-			)
-			anHourAgo := timeNow().Add(-1 * time.Hour)
-			authinfo.LastSeenAt = &anHourAgo
-
-			conn.CreateAuth(&authinfo)
-			userRecordID := skydb.NewRecordID("user", authinfo.ID)
-			db.Save(&skydb.Record{
-				ID: userRecordID,
-				DatabaseID: db.ID(),
-				OwnerID:    authinfo.ID,
-				CreatorID:  authinfo.ID,
-				UpdaterID:  authinfo.ID,
-				CreatedAt:  anHourAgo,
-				UpdatedAt:  anHourAgo,
-				Data: map[string]interface{}{
-					"last_login_at": anHourAgo,
-				},
-			})
-
-			resp := r.POST(fmt.Sprintf(`
-				{
-					"principal_id": "non-existent",
-					"provider": "skygear",
-					"provider_auth_data": {"name": "chima ceo"},
-					"user_id": "%v",
-					"is_login": false
+					"user_id": "%v"
 				}`, authinfo.ID))
 
 			So(resp.Code, ShouldEqual, 200)
@@ -1616,20 +1571,18 @@ func TestUnlinkProviderHandler(t *testing.T) {
 		Convey("unlink provider success", func() {
 			authinfo := skydb.NewAnonymousAuthInfo()
 			authinfo.SetProviderInfoData(
-				"skygear:chima",
-				map[string]interface{}{"name": "chima ceo"},
+				"skygear",
+				map[string]interface{}{
+					"name": "chima ceo",
+					"principal_id": "chima",
+				},
 			)
 			authinfo.SetProviderInfoData(
-				"skygear:faseng",
-				map[string]interface{}{"name": "faseng cto"},
-			)
-			authinfo.SetProviderInfoData(
-				"cat:milktea",
-				map[string]interface{}{"name": "milktea the cat"},
-			)
-			authinfo.SetProviderInfoData(
-				"cat:coffee",
-				map[string]interface{}{"name": "office lady"},
+				"cat",
+				map[string]interface{}{
+					"name": "milktea the cat",
+					"principal_id": "milktea",
+				},
 			)
 
 			anHourAgo := timeNow().Add(-1 * time.Hour)
@@ -1659,10 +1612,54 @@ func TestUnlinkProviderHandler(t *testing.T) {
 
 			newAuthInfo := skydb.AuthInfo{}
 			conn.GetAuth(authinfo.ID, &newAuthInfo)
-			So(newAuthInfo.GetProviderInfoData("skygear:chima"), ShouldBeNil)
-			So(newAuthInfo.GetProviderInfoData("skygear:faseng"), ShouldBeNil)
-			So(newAuthInfo.GetProviderInfoData("cat:milktea"), ShouldNotBeNil)
-			So(newAuthInfo.GetProviderInfoData("cat:coffee"), ShouldNotBeNil)
+			So(newAuthInfo.GetProviderInfoData("skygear"), ShouldBeNil)
+			So(newAuthInfo.GetProviderInfoData("cat"), ShouldNotBeNil)
+		})
+
+		Convey("no connected provider to unlink", func() {
+			authinfo := skydb.NewAnonymousAuthInfo()
+			authinfo.SetProviderInfoData(
+				"skygear",
+				map[string]interface{}{
+					"name": "chima ceo",
+					"principal_id": "chima",
+				},
+			)
+
+			anHourAgo := timeNow().Add(-1 * time.Hour)
+			authinfo.LastSeenAt = &anHourAgo
+			userRecordID := skydb.NewRecordID("user", authinfo.ID)
+			conn.CreateAuth(&authinfo)
+			db.Save(&skydb.Record{
+				ID:         userRecordID,
+				DatabaseID: db.ID(),
+				OwnerID:    authinfo.ID,
+				CreatorID:  authinfo.ID,
+				UpdaterID:  authinfo.ID,
+				CreatedAt:  anHourAgo,
+				UpdatedAt:  anHourAgo,
+				Data: map[string]interface{}{
+					"last_login_at": anHourAgo,
+				},
+			})
+
+			resp := r.POST(fmt.Sprintf(`
+				{
+					"provider": "non-existent",
+					"user_id": "%v"
+				}`, authinfo.ID))
+			So(resp.Code, ShouldEqual, 400)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"error": {
+						"name": "InvalidArgument",
+						"code": 108,
+						"message": "no connected provider to unlink"
+				}
+			}`)
+
+			newAuthInfo := skydb.AuthInfo{}
+			conn.GetAuth(authinfo.ID, &newAuthInfo)
+			So(newAuthInfo.GetProviderInfoData("skygear"), ShouldNotBeNil)
 		})
 	})
 }

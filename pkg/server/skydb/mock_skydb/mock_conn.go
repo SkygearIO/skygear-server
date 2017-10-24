@@ -182,6 +182,16 @@ func (_mr *_MockConnRecorder) GetAuthByPrincipalID(arg0, arg1 interface{}) *gomo
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetAuthByPrincipalID", arg0, arg1)
 }
 
+func (_m *MockConn) GetAuthByProviderAndPrincipalID(_param0 string, _param1 string, _param2 *skydb.AuthInfo) error {
+	ret := _m.ctrl.Call(_m, "GetAuthByProviderAndPrincipalID", _param0, _param1, _param2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockConnRecorder) GetAuthByProviderAndPrincipalID(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetAuthByProviderAndPrincipalID", arg0, arg1, arg2)
+}
+
 func (_m *MockConn) GetDefaultRoles() ([]string, error) {
 	ret := _m.ctrl.Call(_m, "GetDefaultRoles")
 	ret0, _ := ret[0].([]string)
