@@ -82,6 +82,18 @@ type Conn interface {
 	// for the supplied principal ID.
 	GetAuthByPrincipalID(principalID string, authinfo *AuthInfo) error
 
+	// GetAuthByProviderAndPrincipalID fetches the AuthInfo with supplied provider and principal ID in the
+	// container and fills in the supplied AuthInfo with the result.
+	//
+	// Provider is the name provider which provided by the SSO plugin.
+	//
+	// Principal ID is an ID of an authenticated principal with such
+	// authentication provided by SSO plugin.
+	//
+	// GetAuthByProviderAndPrincipalID returns ErrUserNotFound if no AuthInfo exists
+	// for the supplied provider and principal ID.
+	GetAuthByProviderAndPrincipalID(provider string, ID string, authinfo *AuthInfo) error
+
 	// UpdateAuth updates an existing AuthInfo matched by the ID field.
 	//
 	// UpdateAuth returns ErrUserNotFound if such AuthInfo does not

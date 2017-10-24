@@ -173,6 +173,15 @@ func (c *conn) GetAuthByPrincipalID(principalID string, authinfo *skydb.AuthInfo
 	return c.doScanAuth(authinfo, scanner)
 }
 
+func (c *conn) GetAuthByProviderAndPrincipalID(provider string, principalID string, authinfo *skydb.AuthInfo) error {
+	builder := c.baseUserBuilder().Where(
+		`provider_info @> ?::jsonb`,
+		fmt.Sprintf(`{"%s":{"principal_id":"%s"}}`, provider, principalID),
+	)
+	scanner := c.QueryRowWith(builder)
+	return c.doScanAuth(authinfo, scanner)
+}
+
 func (c *conn) DeleteAuth(id string) error {
 	builder := psql.Delete(c.tableName("_auth")).
 		Where("id = ?", id)
