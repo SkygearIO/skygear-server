@@ -26,10 +26,29 @@ GO_TEST_TIMEOUT := 5m
 endif
 
 GO_BUILD_ARGS := $(GO_BUILD_TAGS) $(GO_BUILD_LDFLAGS)
+GO_INSTALL_DEPS := golang.org/x/tools/cmd/stringer \
+	golang.org/x/tools/cmd/cover \
+	github.com/golang/lint/golint \
+	github.com/rickmak/gocyclo \
+	github.com/oursky/gogocyclo \
+	github.com/mitchellh/gox \
+	github.com/golang/mock/mockgen \
+	honnef.co/go/tools/cmd/staticcheck
 
 .PHONY: vendor
 vendor:
 	$(DOCKER_RUN) glide install
+
+.PHONY: install-deps
+install-deps: vendor
+	cd vendor/golang.org/x/tools/cmd/stringer; go install .
+	cd vendor/golang.org/x/tools/cmd/cover; go install .
+	cd vendor/github.com/golang/lint/golint; go install .
+	cd vendor/github.com/rickmak/gocyclo; go install .
+	cd vendor/github.com/oursky/gogocyclo; go install .
+	cd vendor/github.com/mitchellh/gox; go install .
+	cd vendor/github.com/golang/mock/mockgen; go install .
+	cd vendor/honnef.co/go/tools/cmd/staticcheck; go install .
 
 .PHONY: generate
 generate:

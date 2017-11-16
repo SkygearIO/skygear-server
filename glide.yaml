@@ -84,3 +84,15 @@ testImport:
 - package: github.com/smartystreets/goconvey
   subpackages:
   - convey
+# required by tools
+- package: golang.org/x/tools/cmd/stringer
+- package: golang.org/x/tools/cmd/cover
+- package: github.com/golang/lint/golint
+- package: github.com/rickmak/gocyclo
+- package: github.com/oursky/gogocyclo
+- package: github.com/mitchellh/gox
+- package: github.com/golang/mock/mockgen
+- package: honnef.co/go/tools/cmd/staticcheck
+- package: gopkg.in/gcfg.v1
+  version: ^1.2.1
+- package: gopkg.in/warnings.v0

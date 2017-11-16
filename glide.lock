@@ -1,8 +1,8 @@
-hash: b0f628ee5e2756c4da946ec3addfbde3cedd94ba10ef3bf02b51297267f16b9f
-updated: 2017-09-22T18:42:10.47614083+08:00
+hash: 3108890a14379aba4dee3c0ff587915b7332cf211b6563bdae43a6ad9698af5b
+updated: 2017-11-16T14:58:57.945122+08:00
 imports:
 - name: github.com/aws/aws-sdk-go
-  version: 5615d2ed566a09d326f681c789310a2e5ba5de5d
+  version: b69f447375c7fa0047ebcdd8ae5d585d5aac2f71
   subpackages:
   - aws
   - aws/awserr
@@ -122,6 +122,10 @@ imports:
   subpackages:
   - unix
 testImports:
+- name: github.com/golang/lint
+  version: 6aaf7c34af0f4c36a57e0c429bace4d706d8e931
+  subpackages:
+  - golint
 - name: github.com/gopherjs/gopherjs
   version: 2b1d432c8a82c9bff0b0baffaeb3ec6e92974112
   subpackages:
@@ -130,6 +134,12 @@ testImports:
   version: 4442edb3db31196622da56482fd8d0fa375fba4d
 - name: github.com/jtolds/gls
   version: 77f18212c9c7edc9bd6a33d383a7b545ce62f064
+- name: github.com/mitchellh/gox
+  version: c9740af9c6574448fd48eb30a71f964014c7a837
+- name: github.com/oursky/gogocyclo
+  version: 38cdae112011b01b3bed71286eb68a27b4a5e9cc
+- name: github.com/rickmak/gocyclo
+  version: 38adf1a47a4c4718e4b6df55431783540db69e01
 - name: github.com/smartystreets/assertions
   version: 4ea54c1f28ad3ae597e76607dea3871fa177e263
   subpackages:
@@ -141,3 +151,16 @@ testImports:
   - convey
   - convey/gotest
   - convey/reporting
+- name: golang.org/x/tools
+  version: 6d70fb2e85323e81c89374331d3d2b93304faa36
+  subpackages:
+  - cmd/cover
+  - cmd/stringer
+- name: gopkg.in/gcfg.v1
+  version: 298b7a6a3838f79debfaee8bd3bfb2b8d779e756
+- name: gopkg.in/warnings.v0
+  version: ec4a0fea49c7b46c2aeb0b51aac55779c607e52b
+- name: honnef.co/go/tools
+  version: 3139676c5e710ef5caf51cd29cc1ef2994cfb6b7
+  subpackages:
+  - cmd/staticcheck
