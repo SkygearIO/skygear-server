@@ -17,6 +17,7 @@ package skydb
 import (
 	"bytes"
 	"testing"
+	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
 	"golang.org/x/crypto/bcrypt"
@@ -156,6 +157,52 @@ func TestSetPassword(t *testing.T) {
 	if info.TokenValidSince.IsZero() {
 		t.Fatalf("got info.TokenValidSince.IsZero = true, want false")
 	}
+}
+
+func TestShouldSavePasswordHistory(t *testing.T) {
+	Convey("ShouldSavePasswordHistory", t, func() {
+		info := AuthInfo{}
+		So(info.ShouldSavePasswordHistory(), ShouldBeFalse)
+
+		info.SetPassword("secret")
+		So(info.ShouldSavePasswordHistory(), ShouldBeFalse)
+
+		info.PasswordHistoryEnabled = true
+		So(info.ShouldSavePasswordHistory(), ShouldBeTrue)
+	})
+}
+
+func TestIsPasswordExpired(t *testing.T) {
+	now := time.Date(2017, 12, 2, 0, 0, 0, 0, time.UTC)
+	Convey("IsPasswordExpired", t, func() {
+		Convey("return false if authinfo is not password based", func() {
+			info := AuthInfo{}
+			So(info.IsPasswordExpired(1, now), ShouldBeFalse)
+		})
+		Convey("return false if expiryDays is not positive", func() {
+			info := AuthInfo{}
+			info.HashedPassword = []byte("unimportant")
+			tokenValidSince := time.Date(2017, 12, 1, 0, 0, 0, 0, time.UTC)
+			info.TokenValidSince = &tokenValidSince
+			So(info.IsPasswordExpired(0, now), ShouldBeFalse)
+		})
+		Convey("return false if password is indeed valid", func() {
+			info := AuthInfo{}
+			info.HashedPassword = []byte("unimportant")
+			tokenValidSince := time.Date(2017, 12, 1, 0, 0, 0, 0, time.UTC)
+			info.TokenValidSince = &tokenValidSince
+			So(info.IsPasswordExpired(30, now), ShouldBeFalse)
+		})
+		Convey("return true if password is indeed expired", func() {
+			info := AuthInfo{}
+			info.HashedPassword = []byte("unimportant")
+			tokenValidSince := time.Date(2017, 12, 1, 0, 0, 0, 0, time.UTC)
+			info.TokenValidSince = &tokenValidSince
+			So(info.IsPasswordExpired(30, info.TokenValidSince.AddDate(0, 0, 29)), ShouldBeFalse)
+			So(info.IsPasswordExpired(30, info.TokenValidSince.AddDate(0, 0, 30)), ShouldBeFalse)
+			So(info.IsPasswordExpired(30, info.TokenValidSince.AddDate(0, 0, 31)), ShouldBeTrue)
+		})
+	})
 }
 
 func TestIsSamePassword(t *testing.T) {

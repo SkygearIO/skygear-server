@@ -1,8 +1,8 @@
-hash: b0f628ee5e2756c4da946ec3addfbde3cedd94ba10ef3bf02b51297267f16b9f
-updated: 2017-09-22T18:42:10.47614083+08:00
+hash: 061669c1be40894ac6cd58a628b45ae9a45a9017cefdbfc703b2eeeb2b084d67
+updated: 2017-11-29T22:01:47.826319842+08:00
 imports:
 - name: github.com/aws/aws-sdk-go
-  version: 5615d2ed566a09d326f681c789310a2e5ba5de5d
+  version: b69f447375c7fa0047ebcdd8ae5d585d5aac2f71
   subpackages:
   - aws
   - aws/awserr
@@ -84,6 +84,8 @@ imports:
   version: d86062634d19b6ac3e601f0d2b875879bb6b9569
 - name: github.com/mitchellh/mapstructure
   version: 281073eb9eb092240d33ef253c404f1cca550309
+- name: github.com/nbutton23/zxcvbn-go
+  version: eafdab6b0663b4b528c35975c8b0e78be6e25261
 - name: github.com/paulmach/go.geo
   version: c84b6002b0f727d4a2d40e05466dfc3cc54eb329
 - name: github.com/paulmach/go.geojson

@@ -79,6 +79,8 @@ import:
   - push
 - package: github.com/aws/aws-sdk-go
   version: ~1.10.50
+- package: github.com/nbutton23/zxcvbn-go
+  version: eafdab6b0663b4b528c35975c8b0e78be6e25261
 testImport:
 - package: github.com/jarcoal/httpmock
 - package: github.com/smartystreets/goconvey

@@ -42,12 +42,13 @@ type ProviderInfo map[string]map[string]interface{}
 
 // AuthInfo contains a user's information for authentication purpose
 type AuthInfo struct {
-	ID              string       `json:"_id"`
-	HashedPassword  []byte       `json:"password,omitempty"`
-	Roles           []string     `json:"roles,omitempty"`
-	ProviderInfo    ProviderInfo `json:"provider_info,omitempty"` // auth data for alternative methods
-	TokenValidSince *time.Time   `json:"token_valid_since,omitempty"`
-	LastSeenAt      *time.Time   `json:"last_seen_at,omitempty"`
+	ID                     string       `json:"_id"`
+	HashedPassword         []byte       `json:"password,omitempty"`
+	Roles                  []string     `json:"roles,omitempty"`
+	ProviderInfo           ProviderInfo `json:"provider_info,omitempty"` // auth data for alternative methods
+	TokenValidSince        *time.Time   `json:"token_valid_since,omitempty"`
+	LastSeenAt             *time.Time   `json:"last_seen_at,omitempty"`
+	PasswordHistoryEnabled bool
 }
 
 // AuthData contains the unique authentication data of a user
@@ -224,10 +225,30 @@ func (info *AuthInfo) SetPassword(password string) {
 	info.TokenValidSince = &timeNow
 }
 
+// IsPasswordExpired determines whether the password is expired
+// It returns false if the authinfo is not password-based.
+func (info *AuthInfo) IsPasswordExpired(expiryDays int, t time.Time) bool {
+	if expiryDays > 0 &&
+		len(info.HashedPassword) > 0 &&
+		info.TokenValidSince != nil &&
+		!info.TokenValidSince.IsZero() {
+		validUntil := info.TokenValidSince.AddDate(0, 0, expiryDays)
+		return t.After(validUntil)
+	}
+	return false
+}
+
 // IsSamePassword determines whether the specified password is the same
 // password as where the HashedPassword is generated from
 func (info AuthInfo) IsSamePassword(password string) bool {
 	return bcrypt.CompareHashAndPassword(info.HashedPassword, []byte(password)) == nil
+}
+
+func (info *AuthInfo) ShouldSavePasswordHistory() bool {
+	return info.PasswordHistoryEnabled &&
+		info.HashedPassword != nil &&
+		info.TokenValidSince != nil &&
+		!info.TokenValidSince.IsZero()
 }
 
 // SetProviderInfoData sets the auth data to the specified principal.
