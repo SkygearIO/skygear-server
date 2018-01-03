@@ -21,3 +21,14 @@ import (
 
 var log = logging.LoggerEntry("skydb")
 var timeNow = func() time.Time { return time.Now().UTC() }
+
+// SetTimeNowForTestingOnlyPleaseDoNotUseThis sets timeNow
+// for testing purpose only.
+func SetTimeNowForTestingOnlyPleaseDoNotUseThis(f func() time.Time) {
+	timeNow = f
+}
+
+// GetTimeNowForTestingOnlyPleaseDoNotUseThis returns timeNow
+func GetTimeNowForTestingOnlyPleaseDoNotUseThis() func() time.Time {
+	return timeNow
+}

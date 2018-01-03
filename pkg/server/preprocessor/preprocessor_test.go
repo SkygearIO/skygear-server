@@ -318,10 +318,11 @@ func TestInjectAuthProcessor(t *testing.T) {
 		})
 
 		Convey("should check password expiry", func() {
-			realTimeNow := timeNow
-			timeNow = func() time.Time { return time.Date(2017, 12, 2, 0, 0, 0, 0, time.UTC) }
+			realTimeNow := skydb.GetTimeNowForTestingOnlyPleaseDoNotUseThis()
+			mockedTimeNow := func() time.Time { return time.Date(2017, 12, 2, 0, 0, 0, 0, time.UTC) }
+			skydb.SetTimeNowForTestingOnlyPleaseDoNotUseThis(mockedTimeNow)
 			defer func() {
-				timeNow = realTimeNow
+				skydb.SetTimeNowForTestingOnlyPleaseDoNotUseThis(realTimeNow)
 			}()
 			ppWithPasswordExpiryDays := InjectAuthIfPresent{
 				PwExpiryDays: 30,
