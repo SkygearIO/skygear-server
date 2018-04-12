@@ -150,8 +150,10 @@ type Configuration struct {
 		CustomTokenSecret string `json:"custom_token_secret"`
 	} `json:"auth"`
 	AssetStore struct {
-		ImplName string `json:"implementation"`
-		Public   bool   `json:"public"`
+		ImplName        string `json:"implementation"`
+		Public          bool   `json:"public"`
+		PresignExpiry   int64  `json:"expiry"`
+		PresignInterval int64  `json:"interval"`
 
 		FileSystemStore struct {
 			Path      string `json:"-"`
@@ -252,6 +254,8 @@ func NewConfiguration() Configuration {
 	config.TokenStore.Path = "data/token"
 	config.TokenStore.Expiry = 0
 	config.AssetStore.ImplName = "fs"
+	config.AssetStore.PresignExpiry = 15 * 60
+	config.AssetStore.PresignInterval = 5
 	config.AssetStore.FileSystemStore.Path = "data/asset"
 	config.AssetStore.FileSystemStore.URLPrefix = "http://localhost:3000/files"
 	config.APNS.Enable = false
@@ -436,6 +440,7 @@ func (config *Configuration) readTokenStore() {
 	}
 }
 
+// nolint: gocyclo
 func (config *Configuration) readAssetStore() {
 	assetStore := os.Getenv("ASSET_STORE")
 	if assetStore != "" {
@@ -444,6 +449,13 @@ func (config *Configuration) readAssetStore() {
 
 	if assetStorePublic, err := parseBool(os.Getenv("ASSET_STORE_PUBLIC")); err == nil {
 		config.AssetStore.Public = assetStorePublic
+	}
+
+	if expiry, err := strconv.ParseInt(os.Getenv("ASSET_STORE_PRESIGN_EXPIRY"), 10, 60); err == nil {
+		config.AssetStore.PresignExpiry = expiry
+	}
+	if interval, err := strconv.ParseInt(os.Getenv("ASSET_STORE_PRESIGN_INTERVAL"), 10, 60); err == nil {
+		config.AssetStore.PresignInterval = interval
 	}
 
 	// Local Storage related

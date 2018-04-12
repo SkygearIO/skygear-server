@@ -31,19 +31,20 @@ import (
 )
 
 const (
-	cloudAssetURLExpiryInterval          = 15 * time.Minute
 	cloudAssetSignerTokenRefreshInterval = 30 * time.Minute
 	cloudAssetSignerTokenExpiryInterval  = 2 * time.Hour
 )
 
 // cloudStore models the skygear cloud asset store
 type cloudStore struct {
-	appName   string
-	host      string
-	authToken string
-	urlPrefix string
-	public    bool
-	signer    *cloudStoreSigner
+	appName         string
+	host            string
+	authToken       string
+	urlPrefix       string
+	public          bool
+	presignExpiry   time.Duration
+	presignInterval time.Duration
+	signer          *cloudStoreSigner
 }
 
 type refreshSignerTokenResponse struct {
@@ -60,6 +61,8 @@ func NewCloudStore(
 	publicURLPrefix string,
 	privateURLPrefix string,
 	public bool,
+	presignExpiry time.Duration,
+	presignInterval time.Duration,
 ) (Store, error) {
 	if appName == "" {
 		return nil, errors.New("Missing app name for cloud asset")
@@ -87,11 +90,13 @@ func NewCloudStore(
 	}
 
 	store := &cloudStore{
-		appName:   appName,
-		host:      host,
-		authToken: authToken,
-		public:    public,
-		urlPrefix: urlPrefix,
+		appName:         appName,
+		host:            host,
+		authToken:       authToken,
+		public:          public,
+		urlPrefix:       urlPrefix,
+		presignExpiry:   presignExpiry,
+		presignInterval: presignInterval,
 	}
 
 	store.signer = newCloudStoreSigner(
@@ -247,7 +252,7 @@ func (s cloudStore) SignedURL(name string) (string, error) {
 		return "", errors.New("Cloud Asset Signer Token is not yet ready")
 	}
 
-	expiredAt := time.Now().Add(cloudAssetURLExpiryInterval)
+	expiredAt := getPresignExpireTime(time.Now(), s.presignInterval, s.presignExpiry)
 	expiredAtString := strconv.FormatInt(expiredAt.Unix(), 10)
 
 	hash := hmac.New(sha256.New, []byte(signerToken))

@@ -465,6 +465,8 @@ func initUserAuthRecordKeys(connOpener func() (skydb.Conn, error), authRecordKey
 
 func initAssetStore(config skyconfig.Configuration) asset.Store {
 	var store asset.Store
+	presignExpiry := time.Second * time.Duration(config.AssetStore.PresignExpiry)
+	presignInterval := time.Second * time.Duration(config.AssetStore.PresignInterval)
 	switch config.AssetStore.ImplName {
 	default:
 		panic("unrecgonized asset store implementation: " + config.AssetStore.ImplName)
@@ -474,6 +476,8 @@ func initAssetStore(config skyconfig.Configuration) asset.Store {
 			config.AssetStore.FileSystemStore.URLPrefix,
 			config.AssetStore.FileSystemStore.Secret,
 			config.AssetStore.Public,
+			presignExpiry,
+			presignInterval,
 		)
 	case "s3":
 		s3Store, err := asset.NewS3Store(
@@ -483,6 +487,8 @@ func initAssetStore(config skyconfig.Configuration) asset.Store {
 			config.AssetStore.S3Store.Bucket,
 			config.AssetStore.S3Store.URLPrefix,
 			config.AssetStore.Public,
+			presignExpiry,
+			presignInterval,
 		)
 		if err != nil {
 			panic("failed to initialize asset.S3Store: " + err.Error())
@@ -496,6 +502,8 @@ func initAssetStore(config skyconfig.Configuration) asset.Store {
 			config.AssetStore.CloudStore.PublicPrefix,
 			config.AssetStore.CloudStore.PrivatePrefix,
 			config.AssetStore.Public,
+			presignExpiry,
+			presignInterval,
 		)
 		if err != nil {
 			panic("Fail to initialize asset.CloudStore: " + err.Error())

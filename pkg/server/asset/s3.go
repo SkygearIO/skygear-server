@@ -29,11 +29,13 @@ import (
 
 // s3Store implements Store by storing files on S3
 type s3Store struct {
-	svc       *s3.S3
-	uploader  *s3manager.Uploader
-	bucket    *string
-	urlPrefix string
-	public    bool
+	svc             *s3.S3
+	uploader        *s3manager.Uploader
+	bucket          *string
+	urlPrefix       string
+	public          bool
+	presignExpiry   time.Duration
+	presignInterval time.Duration
 }
 
 // NewS3Store returns a new s3Store
@@ -44,6 +46,8 @@ func NewS3Store(
 	bucketName string,
 	urlPrefix string,
 	public bool,
+	presignExpiry time.Duration,
+	presignInterval time.Duration,
 ) (Store, error) {
 
 	creds := credentials.NewStaticCredentials(
@@ -61,11 +65,13 @@ func NewS3Store(
 	bucket := aws.String(bucketName)
 
 	return &s3Store{
-		svc:       svc,
-		uploader:  uploader,
-		bucket:    bucket,
-		urlPrefix: urlPrefix,
-		public:    public,
+		svc:             svc,
+		uploader:        uploader,
+		bucket:          bucket,
+		urlPrefix:       urlPrefix,
+		public:          public,
+		presignExpiry:   presignExpiry,
+		presignInterval: presignInterval,
 	}, nil
 }
 
@@ -127,7 +133,9 @@ func (s *s3Store) SignedURL(name string) (string, error) {
 		Key:    key,
 	}
 	req, _ := s.svc.GetObjectRequest(input)
-	return req.Presign(time.Minute * time.Duration(15))
+	// The req.Time field contains the current time for calculating the expire time.
+	req.Time = getPresignIntervalStartTime(time.Now(), s.presignInterval)
+	return req.Presign(s.presignExpiry)
 }
 
 // IsSignatureRequired indicates whether a signature is required

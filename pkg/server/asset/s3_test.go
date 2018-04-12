@@ -17,6 +17,8 @@ func TestS3Store(t *testing.T) {
 				"bucket-name",
 				"http://bucket-name.s3-website-us-west-1.amazonaws.com/",
 				true,
+				15*60,
+				5*60,
 			)
 			So(err, ShouldBeNil)
 			//So(s3.(s3Store).urlPrefix, ShouldEqual, "http://bucket-name.s3-website-us-east-2.amazonaws.com/")
@@ -30,6 +32,8 @@ func TestS3Store(t *testing.T) {
 				"bucket-name",
 				"http://bucket-name.s3-website-us-east-2.amazonaws.com/",
 				true,
+				15*60,
+				5*60,
 			)
 			So(err, ShouldBeNil)
 			//So(s3.(s3Store).urlPrefix, ShouldEqual, "http://bucket-name.s3-website-us-east-2.amazonaws.com/")

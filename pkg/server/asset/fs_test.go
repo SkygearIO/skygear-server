@@ -17,6 +17,8 @@ func TestFileStore(t *testing.T) {
 			"http://skygear.dev/files",
 			"asset_secret",
 			false,
+			time.Minute * time.Duration(15),
+			time.Minute * time.Duration(5),
 		}
 		Convey("Sign the Parse Signature correctly", func() {
 			s, err := fsStore.SignedURL("index.html")

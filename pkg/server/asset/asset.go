@@ -49,3 +49,18 @@ type URLSigner interface {
 type SignatureParser interface {
 	ParseSignature(signed string, name string, expiredAt time.Time) (valid bool, err error)
 }
+
+// getPresignIntervalStartTime returns the asset expiration interval start time,
+// which is added to the expiry duration to calculate the asset expiration time.
+func getPresignIntervalStartTime(now time.Time, interval time.Duration) time.Time {
+	if int64(interval) == 0 {
+		return now
+	}
+	return time.Unix((now.Unix()/int64(interval))*int64(interval), 0)
+}
+
+// getPresignExpireTime returns the asset expiration time that is consistent
+// for the duration of the current presign interval.
+func getPresignExpireTime(now time.Time, interval, expiry time.Duration) time.Time {
+	return getPresignIntervalStartTime(now, interval).Add(expiry)
+}

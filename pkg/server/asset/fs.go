@@ -32,15 +32,24 @@ import (
 
 // fileStore implements Store by storing files on file system
 type fileStore struct {
-	dir    string
-	prefix string
-	secret string
-	public bool
+	dir             string
+	prefix          string
+	secret          string
+	public          bool
+	presignExpiry   time.Duration
+	presignInterval time.Duration
 }
 
 // NewFileStore creates a new fileStore
-func NewFileStore(dir, prefix, secret string, public bool) Store {
-	return &fileStore{dir, prefix, secret, public}
+func NewFileStore(dir, prefix, secret string, public bool, presignExpiry, presignInterval time.Duration) Store {
+	return &fileStore{
+		dir,
+		prefix,
+		secret,
+		public,
+		presignExpiry,
+		presignInterval,
+	}
 }
 
 // GetFileReader returns a reader for reading files
@@ -89,7 +98,7 @@ func (s *fileStore) SignedURL(name string) (string, error) {
 		return fmt.Sprintf("%s/%s", s.prefix, name), nil
 	}
 
-	expiredAt := time.Now().Add(time.Minute * time.Duration(15))
+	expiredAt := getPresignExpireTime(time.Now(), s.presignInterval, s.presignExpiry)
 	expiredAtStr := strconv.FormatInt(expiredAt.Unix(), 10)
 
 	h := hmac.New(sha256.New, []byte(s.secret))

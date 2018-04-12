@@ -44,6 +44,8 @@ func TestCloudStoreCreation(t *testing.T) {
 				"http://localhost:12345/public",
 				"http://localhost:12345/private",
 				true,
+				15*60,
+				5*60,
 			)
 			store := _store.(*cloudStore)
 			defer store.signer.refreshTicker.Stop()
@@ -70,6 +72,8 @@ func TestCloudStoreCreation(t *testing.T) {
 				"http://localhost:12345/public",
 				"http://localhost:12345/private",
 				false,
+				15*60,
+				5*60,
 			)
 			store := _store.(*cloudStore)
 			defer store.signer.refreshTicker.Stop()
@@ -96,6 +100,8 @@ func TestCloudStoreCreation(t *testing.T) {
 				"http://localhost:12345/public",
 				"http://localhost:12345/private",
 				true,
+				15*60,
+				5*60,
 			)
 
 			So(err, ShouldNotBeNil)
@@ -110,6 +116,8 @@ func TestCloudStoreCreation(t *testing.T) {
 				"http://localhost:12345/public",
 				"http://localhost:12345/private",
 				true,
+				15*60,
+				5*60,
 			)
 
 			So(err, ShouldNotBeNil)
@@ -124,6 +132,8 @@ func TestCloudStoreCreation(t *testing.T) {
 				"http://localhost:12345/public",
 				"http://localhost:12345/private",
 				true,
+				15*60,
+				5*60,
 			)
 
 			So(err, ShouldNotBeNil)
@@ -138,6 +148,8 @@ func TestCloudStoreCreation(t *testing.T) {
 				"",
 				"http://localhost:12345/private",
 				true,
+				15*60,
+				5*60,
 			)
 
 			So(err, ShouldNotBeNil)
@@ -152,6 +164,8 @@ func TestCloudStoreCreation(t *testing.T) {
 				"http://localhost:12345/public",
 				"",
 				false,
+				15*60,
+				5*60,
 			)
 
 			So(err, ShouldNotBeNil)
@@ -193,6 +207,8 @@ func TestCloudStoreGetSignedURL(t *testing.T) {
 				"http://localhost:12345/public",
 				"http://localhost:12345/private",
 				true,
+				15*60,
+				5*60,
 			)
 			publicStore := _publicStore.(*cloudStore)
 			defer publicStore.signer.refreshTicker.Stop()
@@ -215,6 +231,8 @@ func TestCloudStoreGetSignedURL(t *testing.T) {
 				"http://localhost:12345/public",
 				"http://localhost:12345/private",
 				false,
+				15*60,
+				5*60,
 			)
 			publicStore := _publicStore.(*cloudStore)
 			defer publicStore.signer.refreshTicker.Stop()
