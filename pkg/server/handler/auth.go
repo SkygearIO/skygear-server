@@ -353,6 +353,7 @@ func (h *LoginHandler) GetPreprocessors() []router.Processor {
 	return h.preprocessors
 }
 
+// nolint: gocyclo
 func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response) {
 	ip := h.getIP(payload)
 	info := skydb.AuthInfo{}
