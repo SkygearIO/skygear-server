@@ -127,7 +127,11 @@ func clearRedisTokenBucketStore(s *RedisTokenBucketStore) {
 }
 
 func TestRedisTokenBucketStore(t *testing.T) {
-	store := NewRedisTokenBucketStore(os.Getenv("REDISTEST"), "", 3*time.Second, nil)
+	redisURL := os.Getenv("REDISTEST")
+	if redisURL == "" {
+		redisURL = "redis://127.0.0.1:6379/15"
+	}
+	store := NewRedisTokenBucketStore(redisURL, "", 3*time.Second, nil)
 	defer clearRedisTokenBucketStore(store)
 
 	Convey("RedisTokenBucketStore get and set", t, func() {
