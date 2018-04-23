@@ -391,6 +391,10 @@ func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response
 		return
 	}
 	if !underRateLimit {
+		if p.CaptchaData == nil {
+			response.Err = skyerr.NewError(skyerr.CaptchaInvalid, "invalid captcha")
+			return
+		}
 		success, err := h.CaptchaService.Provider.Verify(captcha.VerificationPayload{
 			Data:      p.CaptchaData,
 			RequestIP: ip,

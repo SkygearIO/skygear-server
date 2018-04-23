@@ -775,7 +775,8 @@ func TestLoginHandler(t *testing.T) {
 					"auth_data": map[string]interface{}{
 						"username": "john.doe",
 					},
-					"password": "secret",
+					"password":     "secret",
+					"captcha_data": map[string]interface{}{},
 				},
 				DBConn:   conn,
 				Database: db,
