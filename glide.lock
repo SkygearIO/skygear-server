@@ -1,5 +1,5 @@
-hash: 5f048d9c0595dca99115e16396798d34cbf6d94ff0629bf54f400f7b45770fd2
-updated: 2017-05-05T18:51:54.405169836+08:00
+hash: f2758d824c5faa50fd76ef57bee33c47426f9091c6f878c027a9a918c2477ae5
+updated: 2018-05-04T13:33:17.195316+09:00
 imports:
 - name: github.com/dgrijalva/jwt-go
   version: 01aeca54ebda6e0fbfafd0a524d234159c05ec20
@@ -19,7 +19,7 @@ imports:
 - name: github.com/getsentry/raven-go
   version: 74c334d7b8aaa4fd1b4fc6aa428c36fed1699e28
 - name: github.com/golang/mock
-  version: bd3c8e81be01eef76d4b503f5e687d2d1354d2d9
+  version: 13f360950a79f5864a972c786a10a50e44b69541
   subpackages:
   - gomock
 - name: github.com/google/go-gcm
