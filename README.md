@@ -198,3 +198,6 @@ An additional grant of patent rights can be found in the PATENTS
 file in the same directory.
 
 ```
+
+## Support
+For questions and support, please go to [the official forum](https://discuss.skygear.io) or [community chat](https://slack.skygear.io); For bug reports and feature requests, you can simply open an issue in this repo.
