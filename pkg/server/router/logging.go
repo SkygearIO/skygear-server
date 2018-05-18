@@ -17,11 +17,18 @@ package router
 import (
 	"bufio"
 	"bytes"
+	"context"
+	"fmt"
 	"io/ioutil"
 	"mime"
 	"net"
 	"net/http"
 	"strings"
+
+	"github.com/sirupsen/logrus"
+
+	"github.com/skygeario/skygear-server/pkg/server/logging"
+	"github.com/skygeario/skygear-server/pkg/server/uuid"
 )
 
 type responseLogger struct {
@@ -76,45 +83,64 @@ type LoggingMiddleware struct {
 }
 
 func (l *LoggingMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	log.Debugf("%v %v", r.Method, r.RequestURI)
+	skipBody := l.skipBody(r.URL.Path)
 
-	log.Debugln("------ Header: ------")
-	for key, value := range r.Header {
-		log.Debugf("%s: %v", key, value)
-	}
+	requestID := uuid.New()
+	newContext := context.WithValue(r.Context(), RequestIDContextKey, requestID)
+	r = r.WithContext(newContext)
 
-	skipBody := false
-	for _, s := range l.Skips {
-		if strings.HasPrefix(r.URL.Path, s) {
-			skipBody = true
-			break
-		}
-	}
+	// Log request
+	requestFields := logrus.Fields{}
+
 	body, _ := ioutil.ReadAll(r.Body)
 	r.Body = ioutil.NopCloser(bytes.NewReader(body))
 
-	log.Debugln("------ Request: ------")
+	requestBodyLength := len(body)
+	requestFields["bodyLength"] = requestBodyLength
+	requestFields["requestID"] = requestID
+
+	var headers []string
+	for key, value := range r.Header {
+		headers = append(headers, fmt.Sprintf("%s: %v", key, value))
+	}
+	requestFields["headers"] = headers
+
 	var shouldLogRequestBody = !skipBody &&
 		l.isConcernType(r.Header.Get("Content-Type")) &&
-		(l.ByteLimit == nil || *l.ByteLimit >= len(body))
+		(l.ByteLimit == nil || *l.ByteLimit >= requestBodyLength)
 	if shouldLogRequestBody {
-		log.Debugln(string(body))
-	} else {
-		log.Debugf("%d bytes of request body", len(body))
+		requestFields["body"] = logging.StringValueFormatter(body)
 	}
 
+	log.WithFields(requestFields).Debugf("Request %v %v", r.Method, r.RequestURI)
+
+	// Serve request by passing to next middleware or router
+	w.Header().Set("X-Skygear-Request-Id", requestID)
 	rlogger := &responseLogger{w: w}
 	l.Next.ServeHTTP(rlogger, r)
 
-	log.Debugln("------ Response: ------")
+	// Log Response
+	responseFields := logrus.Fields{}
+	responseBodyLength := rlogger.Size()
+	responseFields["bodyLength"] = responseBodyLength
+	responseFields["requestID"] = requestID
+
 	var shouldLogResponseBody = !skipBody &&
 		l.isConcernType(w.Header().Get("Content-Type")) &&
-		(l.ByteLimit == nil || *l.ByteLimit >= rlogger.Size())
+		(l.ByteLimit == nil || *l.ByteLimit >= responseBodyLength)
 	if shouldLogResponseBody {
-		log.Debugln(rlogger.String())
-	} else {
-		log.Debugf("%d bytes of response body", rlogger.Size())
+		responseFields["body"] = logging.StringValueFormatter(rlogger.String())
 	}
+	log.WithFields(responseFields).Debugf("Response %v %v", r.Method, r.RequestURI)
+}
+
+func (l *LoggingMiddleware) skipBody(urlPath string) bool {
+	for _, s := range l.Skips {
+		if strings.HasPrefix(urlPath, s) {
+			return true
+		}
+	}
+	return false
 }
 
 func (l *LoggingMiddleware) isConcernType(contentType string) bool {
