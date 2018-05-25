@@ -47,10 +47,10 @@ func TestCreateHookFunc(t *testing.T) {
 
 		Convey("synced before save", func() {
 			hookFunc := CreateHookFunc(&plugin, pluginHookInfo{
-				Async:   false,
-				Trigger: string(hook.BeforeSave),
-				Type:    "note",
-				Name:    "note_beforeSave",
+				AsyncMode: false,
+				Trigger:   string(hook.BeforeSave),
+				Type:      "note",
+				Name:      "note_beforeSave",
 			})
 
 			called := false
@@ -74,10 +74,10 @@ func TestCreateHookFunc(t *testing.T) {
 
 		Convey("synced before save error result", func() {
 			hookFunc := CreateHookFunc(&plugin, pluginHookInfo{
-				Async:   false,
-				Trigger: string(hook.BeforeSave),
-				Type:    "note",
-				Name:    "note_beforeSave",
+				AsyncMode: false,
+				Trigger:   string(hook.BeforeSave),
+				Type:      "note",
+				Name:      "note_beforeSave",
 			})
 
 			transport.RunHookFunc = func(ctx context.Context, hookName string, record *skydb.Record, originalRecord *skydb.Record) (*skydb.Record, error) {
@@ -93,10 +93,10 @@ func TestCreateHookFunc(t *testing.T) {
 
 		Convey("synced after save", func() {
 			hookFunc := CreateHookFunc(&plugin, pluginHookInfo{
-				Async:   false,
-				Trigger: string(hook.AfterSave),
-				Type:    "note",
-				Name:    "note_afterSave",
+				AsyncMode: false,
+				Trigger:   string(hook.AfterSave),
+				Type:      "note",
+				Name:      "note_afterSave",
 			})
 
 			called := false

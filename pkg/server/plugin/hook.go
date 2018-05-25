@@ -28,8 +28,8 @@ import (
 // plugin
 func CreateHookFunc(p *Plugin, hookInfo pluginHookInfo) hook.Func {
 	hookFunc := func(ctx context.Context, record *skydb.Record, oldRecord *skydb.Record) skyerr.Error {
-		recordout, err := p.transport.RunHook(ctx, hookInfo.Name, record, oldRecord, hookInfo.Async)
-		if err == nil && hookInfo.Trigger == string(hook.BeforeSave) && !hookInfo.Async {
+		recordout, err := p.transport.RunHook(ctx, hookInfo.Name, record, oldRecord, hookInfo.IsAsyncMode())
+		if err == nil && hookInfo.Trigger == string(hook.BeforeSave) && !hookInfo.IsAsyncMode() {
 			*record = *recordout
 		}
 
@@ -43,7 +43,7 @@ func CreateHookFunc(p *Plugin, hookInfo pluginHookInfo) hook.Func {
 
 		return skyerr.MakeError(err)
 	}
-	if hookInfo.Async {
+	if hookInfo.IsAsyncMode() {
 		return func(ctx context.Context, record *skydb.Record, oldRecord *skydb.Record) skyerr.Error {
 			asyncContext, _ := context.WithTimeout(
 				context.Background(),

@@ -56,10 +56,19 @@ type pluginHandlerInfo struct {
 }
 
 type pluginHookInfo struct {
-	Async   bool   `json:"async"`   // execute hook asynchronously
-	Trigger string `json:"trigger"` // before_save etc.
-	Type    string `json:"type"`    // record type
-	Name    string `json:"name"`    // hook name
+	DeprecatedAsync bool   `json:"async,omitempty"` // execute hook asynchronously (deprecated)
+	AsyncMode       bool   `json:"async_mode"`      // execute hook asynchronously
+	Trigger         string `json:"trigger"`         // before_save etc.
+	Type            string `json:"type"`            // record type
+	Name            string `json:"name"`            // hook name
+}
+
+// IsAsyncMode returns whether the plugin hook should be run asynchronously
+// or not.
+func (info pluginHookInfo) IsAsyncMode() bool {
+	// The plugins runtime will be updated to use `async_mode` to replace
+	// `async`. This function checks both fields before the old name is removed.
+	return info.DeprecatedAsync || info.AsyncMode
 }
 
 type timerInfo struct {
