@@ -2,9 +2,20 @@
 
 DESC=$1
 DESC=${DESC// /_}
+MIGRATION_PATH=$2
 
 if [ -z "$DESC" ]; then
-  echo "Usage: add-revision.sh <description>"
+  echo "Usage: add-revision.sh <description> <migration_path>"
+  echo "Arguments:"
+  echo "    description       Migration description"
+  echo "    migration_path    Migration directory path, default is v1 skygear-sever"
+  echo ""
+  echo "Example:"
+  echo "    # Add migration revision to v1 skygear-server"
+  echo "    ./add-revision.sh add_username"
+  echo ""
+  echo "    # Add migration revision to next gateway"
+  echo "    ./add-revision.sh add_tenant_config ../pkg/gateway/db/migration"
   exit;
 fi
 
@@ -12,7 +23,7 @@ BASEDIR=$(dirname "$0")
 SKYDB_UUID=$(uuidgen | tr -d - | tr -d '\n' | tr '[:upper:]' '[:lower:]')
 SKYDB_REV=${SKYDB_UUID: -12}
 SKYDB_REV_FILENAME=${SKYDB_REV}_${DESC}.go
-SKYDB_MIGRATION_PATH=${BASEDIR}/../pkg/server/skydb/pq/migration
+SKYDB_MIGRATION_PATH=${MIGRATION_PATH:=${BASEDIR}/../pkg/server/skydb/pq/migration}
 SKYDB_REV_TEMPLATE=${SKYDB_MIGRATION_PATH}/revision.go.template
 SKYDB_REV_FILE_PATH=${SKYDB_MIGRATION_PATH}/${SKYDB_REV_FILENAME}
 

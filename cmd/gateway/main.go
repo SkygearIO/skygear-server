@@ -1,16 +1,18 @@
 package main
 
 import (
-	"fmt"
-	"log"
+	"context"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/gateway/middleware"
-
+	log "github.com/sirupsen/logrus"
 	"github.com/gorilla/mux"
+
+	"github.com/skygeario/skygear-server/pkg/gateway/middleware"
+	"github.com/skygeario/skygear-server/pkg/gateway/db"
+	"github.com/skygeario/skygear-server/pkg/gateway/db/pq"
 )
 
 var routerMap map[string]*url.URL
@@ -23,6 +25,8 @@ func init() {
 }
 
 func main() {
+	ensureDB()
+
 	r := mux.NewRouter()
 
 	r.Use(middleware.TenantMiddleware{}.Handle)
@@ -39,9 +43,11 @@ func main() {
 		Handler:      r, // Pass our instance of gorilla/mux in.
 	}
 
-	fmt.Println("Start gateway server")
+	logger := log.New()
+
+	logger.Info("Start gateway server")
 	if err := srv.ListenAndServe(); err != nil {
-		log.Println(err)
+		logger.Errorf("Fail to start gateway server %v", err)
 	}
 }
 
@@ -59,5 +65,36 @@ func rewriteHandler(p *httputil.ReverseProxy) func(http.ResponseWriter, *http.Re
 		r.Header.Set("X-Skygear-Gear", mux.Vars(r)["gear"])
 		r.URL.Path = "/" + mux.Vars(r)["rest"]
 		p.ServeHTTP(w, r)
+	}
+}
+
+func ensureDB() func() (db.Conn, error) {
+	logger := log.New()
+	// FIXME(carmenlau): Remove hard coded connection string
+	connOpener := func() (db.Conn, error) {
+		return pq.Open(
+			context.Background(),
+			"postgres://postgres:@localhost/postgres?sslmode=disable",
+		)
+	}
+
+	// Attempt to open connection to database. Retry for a number of
+	// times before giving up.
+	attempt := 0
+	for {
+		conn, connError := connOpener()
+		if connError == nil {
+			conn.Close()
+			return connOpener
+		}
+
+		attempt++
+		logger.Errorf("Failed to start skygear: %v", connError)
+		if attempt >= 5 {
+			logger.Fatalf("Failed to start skygear server because connection to database cannot be opened.")
+		}
+
+		logger.Info("Retrying in 1 second...")
+		time.Sleep(time.Second * time.Duration(1))
 	}
 }
