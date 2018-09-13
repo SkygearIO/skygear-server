@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth/provider"
-	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -46,8 +45,8 @@ func (h MeHandler) ProvideAuthzPolicy() authz.Policy {
 	)
 }
 
-func (h MeHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {
-	output, err := json.Marshal(authInfo.AuthInfo)
+func (h MeHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx handler.AuthContext) {
+	output, err := json.Marshal(ctx.AuthInfo)
 	if err != nil {
 		// TODO:
 		// handle error properly

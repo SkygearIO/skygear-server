@@ -4,15 +4,16 @@ import (
 	"context"
 
 	"github.com/skygeario/skygear-server/pkg/auth/db"
-	"github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	coreDB "github.com/skygeario/skygear-server/pkg/core/db"
 )
 
 type AuthProviders struct {
 	DB            *coreDB.DBProvider
-	TokenStore    *auth.TokenStoreProvider
-	AuthInfoStore *auth.AuthInfoStoreProvider
+	TokenStore    *authtoken.StoreProvider
+	AuthInfoStore *authinfo.StoreProvider
 }
 
 func (d AuthProviders) Provide(dependencyName string, ctx context.Context, tConfig config.TenantConfiguration) interface{} {
