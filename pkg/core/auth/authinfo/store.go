@@ -29,18 +29,3 @@ type Store interface {
 type StoreProvider struct {
 	CanMigrate bool
 }
-
-func (p StoreProvider) Provide(ctx context.Context, tConfig config.TenantConfiguration) interface{} {
-	// TODO:
-	// mock config
-	dbConn, err := pq.Open(ctx, tConfig.AppName, skydb.RoleBasedAccess, tConfig.DBConnectionStr, skydb.DBConfig{
-		CanMigrate: p.CanMigrate,
-	})
-	if err != nil {
-		// TODO:
-		// handle error properly
-		panic(err)
-	}
-
-	return dbConn
-}

@@ -14,12 +14,12 @@ import (
 )
 
 type AuthContextResolverFactory struct {
-	inject.ProviderGraph
+	DependencyMap inject.Map
 }
 
 func (f AuthContextResolverFactory) NewResolver(ctx context.Context, tenantConfig config.TenantConfiguration) authn.AuthContextResolver {
 	r := &DefaultAuthContextResolver{}
-	inject.DefaultInject(r, f.ProviderGraph, ctx, tenantConfig)
+	inject.DefaultInject(r, f.DependencyMap, ctx, tenantConfig)
 	return r
 }
 
