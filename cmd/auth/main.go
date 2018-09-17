@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	defaultAuthn "github.com/skygeario/skygear-server/pkg/core/auth/authn/default"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authn/resolver"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 
 	"github.com/kelseyhightower/envconfig"
@@ -51,7 +51,7 @@ func main() {
 	}
 
 	srv.SetAuthContextResolverFactory(
-		defaultAuthn.AuthContextResolverFactory{ProviderGraph: authDependency},
+		resolver.AuthContextResolverFactory{ProviderGraph: authDependency},
 	)
 
 	handler.AttachLoginHandler(&srv, authDependency)
