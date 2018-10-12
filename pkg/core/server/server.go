@@ -54,7 +54,7 @@ func NewServerWithOption(
 	}
 
 	if option.RecoverPanic {
-		srv.Use(middleware.RecoverMiddleware{
+		srv.Use(middleware.Recover{
 			RecoverHandler: option.RecoverPanicHandler,
 		}.Handle)
 	}

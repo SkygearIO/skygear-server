@@ -17,11 +17,11 @@ func (f ConfigurationProviderFunc) ProvideConfig(r *http.Request) (config.Tenant
 	return f(r)
 }
 
-type TenantConfigurationMiddleware struct {
+type TenantConfiguration struct {
 	ConfigurationProvider
 }
 
-func (m TenantConfigurationMiddleware) Handle(next http.Handler) http.Handler {
+func (m TenantConfiguration) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		configuration, err := m.ProvideConfig(r)
 		if err != nil {

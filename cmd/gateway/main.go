@@ -47,16 +47,16 @@ func main() {
 	r := mux.NewRouter()
 
 	// RecoverMiddleware must come first
-	r.Use(coreMiddleware.RecoverMiddleware{}.Handle)
+	r.Use(coreMiddleware.Recover{}.Handle)
 	// TODO:
 	// Currently both config and authz middleware both query store to get
 	// app, see how to reduce query to optimize the performance
-	r.Use(coreMiddleware.TenantConfigurationMiddleware{
+	r.Use(coreMiddleware.TenantConfiguration{
 		ConfigurationProvider: provider.GatewayTenantConfigurationProvider{
 			Store: store,
 		},
 	}.Handle)
-	r.Use(middleware.TenantAuthzMiddleware{
+	r.Use(middleware.TenantAuthz{
 		Store: store,
 	}.Handle)
 

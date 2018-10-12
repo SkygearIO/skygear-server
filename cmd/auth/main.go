@@ -43,12 +43,12 @@ func main() {
 	srv := server.NewServer("localhost:3000", authContextResolverFactory)
 
 	if configuration.DevMode {
-		srv.Use(middleware.TenantConfigurationMiddleware{
+		srv.Use(middleware.TenantConfiguration{
 			ConfigurationProvider: middleware.ConfigurationProviderFunc(config.NewTenantConfigurationFromEnv),
 		}.Handle)
 	}
 
-	srv.Use(middleware.RequestIDMiddleware{}.Handle)
+	srv.Use(middleware.RequestID{}.Handle)
 
 	handler.AttachSignupHandler(&srv, authDependency)
 	handler.AttachLoginHandler(&srv, authDependency)

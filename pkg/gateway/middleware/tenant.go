@@ -9,15 +9,15 @@ import (
 	gatewayModel "github.com/skygeario/skygear-server/pkg/gateway/model"
 )
 
-// TenantAuthzMiddleware is middleware to check if the current app can access
+// TenantAuthz is middleware to check if the current app can access
 // gear
-type TenantAuthzMiddleware struct {
+type TenantAuthz struct {
 	Store db.GatewayStore
 }
 
 // Handle reject the request if the current app doesn't have permission to
 // access gear
-func (a TenantAuthzMiddleware) Handle(next http.Handler) http.Handler {
+func (a TenantAuthz) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		host := r.Host
 		app := gatewayModel.App{}
