@@ -10,7 +10,7 @@ func NewMockUserProfileStore() *MockUserProfileStoreImpl {
 	}
 }
 
-func (u MockUserProfileStoreImpl) CreateUserProfile(userID string, data Data) (profile UserProfile, err error) {
+func (u MockUserProfileStoreImpl) CreateUserProfile(userID string, accessToken string, data Data) (profile UserProfile, err error) {
 	u.Data[userID] = make(map[string]interface{})
 	u.Data[userID] = data
 	now := timeNow()
@@ -32,7 +32,7 @@ func (u MockUserProfileStoreImpl) CreateUserProfile(userID string, data Data) (p
 	return
 }
 
-func (u MockUserProfileStoreImpl) GetUserProfile(userID string) (profile UserProfile, err error) {
+func (u MockUserProfileStoreImpl) GetUserProfile(userID string, accessToken string) (profile UserProfile, err error) {
 	data := u.Data[userID]
 	now := timeNow()
 	profile = UserProfile{
@@ -51,4 +51,8 @@ func (u MockUserProfileStoreImpl) GetUserProfile(userID string) (profile UserPro
 		Data: data,
 	}
 	return
+}
+
+func (u MockUserProfileStoreImpl) CanWithInTx() bool {
+	return true
 }

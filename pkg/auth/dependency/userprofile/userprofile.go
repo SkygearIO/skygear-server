@@ -2,7 +2,10 @@ package userprofile
 
 import (
 	"encoding/json"
+	"strings"
 	"time"
+
+	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
 var (
@@ -27,6 +30,9 @@ type Meta struct {
 // like username, email, age, phone number
 type Data map[string]interface{}
 
+// Record refers the data type of a record
+type Record map[string]interface{}
+
 // UserProfile refers user profile data type
 type UserProfile struct {
 	Meta
@@ -34,8 +40,9 @@ type UserProfile struct {
 }
 
 type Store interface {
-	CreateUserProfile(userID string, data Data) (UserProfile, error)
-	GetUserProfile(userID string) (UserProfile, error)
+	CreateUserProfile(userID string, accessToken string, data Data) (UserProfile, error)
+	GetUserProfile(userID string, accessToken string) (UserProfile, error)
+	CanWithInTx() bool
 }
 
 func (u UserProfile) MarshalJSON() ([]byte, error) {
@@ -45,4 +52,34 @@ func (u UserProfile) MarshalJSON() ([]byte, error) {
 	json.Unmarshal(metaJSON, &result)
 	json.Unmarshal(dataJSON, &result)
 	return json.Marshal(result)
+}
+
+func (u *UserProfile) UnmarshalJSON(b []byte) error {
+	var m map[string][]Record
+	err := json.Unmarshal(b, &m)
+	if err != nil {
+		return err
+	}
+	result, ok := m["result"]
+	if !ok || len(result) < 1 {
+		return skyerr.NewError(skyerr.UnexpectedError, "Unable to fetch user profile")
+	}
+
+	record := result[0]
+	recordJSON, err := json.Marshal(record)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(recordJSON, &u.Meta)
+	if err != nil {
+		return err
+	}
+	u.Data = make(map[string]interface{})
+	for k, v := range record {
+		if !strings.HasPrefix(k, "_") {
+			u.Data[k] = v
+		}
+	}
+
+	return nil
 }

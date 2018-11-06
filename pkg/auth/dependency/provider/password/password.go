@@ -7,4 +7,5 @@ type Provider interface {
 	GetPrincipalByAuthData(authData map[string]interface{}, principal *Principal) error
 	GetPrincipalByUserID(userID string, principal *Principal) error
 	UpdatePrincipal(principal Principal) error
+	DeletePrincipal(principalID string) error
 }

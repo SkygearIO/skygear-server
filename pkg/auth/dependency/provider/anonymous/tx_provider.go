@@ -26,3 +26,8 @@ func (p *safeProviderImpl) CreatePrincipal(principal Principal) error {
 	p.txContext.EnsureTx()
 	return p.impl.CreatePrincipal(principal)
 }
+
+func (p *safeProviderImpl) DeletePrincipal(principalID string) error {
+	p.txContext.EnsureTx()
+	return p.impl.DeletePrincipal(principalID)
+}

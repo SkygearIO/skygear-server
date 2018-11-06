@@ -119,7 +119,7 @@ type SignupHandler struct {
 }
 
 func (h SignupHandler) WithTx() bool {
-	return true
+	return false
 }
 
 func (h SignupHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
@@ -128,6 +128,8 @@ func (h SignupHandler) DecodeRequest(request *http.Request) (handler.RequestPayl
 	return payload, err
 }
 
+// Handle renders signup handler
+// nolint: gocyclo
 func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(SignupRequestPayload)
 
@@ -139,6 +141,22 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 	now := timeNow()
 	info := authinfo.NewAuthInfo()
 	info.LastLoginAt = &now
+
+	if err = h.TxContext.BeginTx(); err != nil {
+		return
+	}
+
+	defer func() {
+		if err != nil {
+			// if create user profile store is in tx, should rollback if any error exists.
+			if h.UserProfileStore.CanWithInTx() {
+				if rbErr := h.TxContext.RollbackTx(); rbErr != nil {
+					err = rbErr
+				}
+			}
+		}
+		return
+	}()
 
 	// Get default roles
 	defaultRoles, err := h.RoleStore.GetDefaultRoles()
@@ -163,17 +181,8 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 		return
 	}
 
-	// Create Profile
-	var userProfile userprofile.UserProfile
-	if userProfile, err = h.UserProfileStore.CreateUserProfile(info.ID, payload.mergedProfile()); err != nil {
-		// TODO:
-		// return proper error
-		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to save user profile")
-		return
-	}
-
 	// Create Principal
-	err = h.createPrincipal(payload, info)
+	principalID, err := h.createPrincipal(payload, info)
 	if err != nil {
 		return
 	}
@@ -188,8 +197,6 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 		panic(err)
 	}
 
-	resp = response.NewAuthResponse(info, userProfile, tkn.AccessToken)
-
 	// Populate the activity time to user
 	info.LastSeenAt = &now
 	if err = h.AuthInfoStore.UpdateAuth(&info); err != nil {
@@ -201,6 +208,38 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 		AuthID: info.ID,
 		Event:  coreAudit.EventSignup,
 	})
+
+	// if create profile store doesn't want be in not in tx, commit tx before create profile
+	if !h.UserProfileStore.CanWithInTx() {
+		if err = h.TxContext.CommitTx(); err != nil {
+			return
+		}
+	}
+
+	// Create Profile
+	var userProfile userprofile.UserProfile
+	if userProfile, err = h.UserProfileStore.CreateUserProfile(info.ID, tkn.AccessToken, payload.mergedProfile()); err != nil {
+		// TODO:
+		// return proper error
+		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to save user profile")
+
+		if err != nil && !h.UserProfileStore.CanWithInTx() {
+			// create profile failed, undo what the transaction has done
+			if rbErr := h.rollbackSignup(payload, principalID, info.ID); rbErr != nil {
+				err = rbErr
+			}
+		}
+
+		return
+	}
+
+	if h.UserProfileStore.CanWithInTx() {
+		if err = h.TxContext.CommitTx(); err != nil {
+			return
+		}
+	}
+
+	resp = response.NewAuthResponse(info, userProfile, tkn.AccessToken)
 
 	return
 }
@@ -223,19 +262,67 @@ func (h SignupHandler) verifyPayload(payload SignupRequestPayload) (err error) {
 	return
 }
 
-func (h SignupHandler) createPrincipal(payload SignupRequestPayload, info authinfo.AuthInfo) (err error) {
+func (h SignupHandler) createPrincipal(payload SignupRequestPayload, info authinfo.AuthInfo) (principalID string, err error) {
 	if !payload.isAnonymous() {
 		principal := password.NewPrincipal()
 		principal.UserID = info.ID
 		principal.AuthData = payload.AuthData
 		principal.PlainPassword = payload.Password
-
 		err = h.PasswordAuthProvider.CreatePrincipal(principal)
+		if err != nil {
+			return
+		}
+		principalID = principal.ID
 	} else {
 		principal := anonymous.NewPrincipal()
 		principal.UserID = info.ID
 
 		err = h.AnonymousAuthProvider.CreatePrincipal(principal)
+		if err != nil {
+			return
+		}
+		principalID = principal.ID
+	}
+
+	return
+}
+
+func (h SignupHandler) deletePrincipal(payload SignupRequestPayload, principalID string) (err error) {
+	if !payload.isAnonymous() {
+		err = h.PasswordAuthProvider.DeletePrincipal(principalID)
+	} else {
+		err = h.AnonymousAuthProvider.DeletePrincipal(principalID)
+	}
+
+	return
+}
+
+func (h SignupHandler) rollbackSignup(payload SignupRequestPayload, principalID string, authInfoID string) (err error) {
+	if err = h.TxContext.BeginTx(); err != nil {
+		return
+	}
+
+	defer func() {
+		if err != nil {
+			err = h.TxContext.RollbackTx()
+		}
+	}()
+
+	// delete principal
+	if err = h.deletePrincipal(payload, principalID); err != nil {
+		return
+	}
+	// delete auth token
+	if err = h.TokenStore.Delete(authInfoID); err != nil {
+		return
+	}
+	// delete authInfo
+	if err = h.AuthInfoStore.DeleteAuth(authInfoID); err != nil {
+		return
+	}
+
+	if err = h.TxContext.CommitTx(); err != nil {
+		return
 	}
 
 	return

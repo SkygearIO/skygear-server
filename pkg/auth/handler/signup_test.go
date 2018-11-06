@@ -15,6 +15,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/role"
+	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/server/audit"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
@@ -113,6 +114,7 @@ func TestSingupHandler(t *testing.T) {
 		h.RoleStore = roleStore
 		h.AuditTrail = coreAudit.NewMockTrail(t)
 		h.UserProfileStore = userprofile.NewMockUserProfileStore()
+		h.TxContext = db.NewMockTxContext()
 
 		Convey("signup user with auth data", func() {
 			authData := map[string]interface{}{

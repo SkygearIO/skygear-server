@@ -189,6 +189,25 @@ func (p providerImpl) UpdatePrincipal(principal Principal) (err error) {
 	return
 }
 
+func (p providerImpl) DeletePrincipal(principalID string) (err error) {
+	// TODO: log
+
+	builder := p.sqlBuilder.Delete(p.sqlBuilder.FullTableName("provider_password")).
+		Where("principal_id = ?", principalID)
+
+	_, err = p.sqlExecutor.ExecWith(builder)
+	if err != nil {
+		return
+	}
+
+	builder = p.sqlBuilder.Delete(p.sqlBuilder.FullTableName("principal")).
+		Where("id = ?", principalID)
+
+	_, err = p.sqlExecutor.ExecWith(builder)
+
+	return
+}
+
 // this ensures that our structure conform to certain interfaces.
 var (
 	_ Provider = &providerImpl{}

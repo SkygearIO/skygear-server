@@ -72,6 +72,13 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 		switch tConfig.UserProfile.ImplName {
 		default:
 			panic("unrecgonized user profile store implementation: " + tConfig.UserProfile.ImplName)
+		case "record":
+			// use record based profile store
+			return userprofile.NewUserProfileRecordStore(
+				tConfig.UserProfile.ImplStoreURL,
+				tConfig.APIKey,
+				logging.CreateLogger(r, "auth_user_profile", createLoggerMaskFormatter(r)),
+			)
 		case "":
 			// use auth default profile store
 			return userprofile.NewSafeProvider(

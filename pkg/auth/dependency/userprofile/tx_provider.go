@@ -10,6 +10,7 @@ type safeUserProfileImpl struct {
 	txContext db.SafeTxContext
 }
 
+// NewSafeProvider returns a auth gear user profile store implementation
 func NewSafeProvider(
 	builder db.SQLBuilder,
 	executor db.SQLExecutor,
@@ -22,12 +23,17 @@ func NewSafeProvider(
 	}
 }
 
-func (s *safeUserProfileImpl) CreateUserProfile(userID string, data Data) (profile UserProfile, err error) {
+func (s *safeUserProfileImpl) CreateUserProfile(userID string, accessToken string, data Data) (profile UserProfile, err error) {
 	s.txContext.EnsureTx()
 	return s.impl.CreateUserProfile(userID, data)
 }
 
-func (s *safeUserProfileImpl) GetUserProfile(userID string) (profile UserProfile, err error) {
+func (s *safeUserProfileImpl) GetUserProfile(userID string, accessToken string) (profile UserProfile, err error) {
 	s.txContext.EnsureTx()
 	return s.impl.GetUserProfile(userID)
+}
+
+func (s *safeUserProfileImpl) CanWithInTx() (withIn bool) {
+	withIn = true
+	return
 }

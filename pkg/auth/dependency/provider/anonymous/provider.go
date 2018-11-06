@@ -44,3 +44,15 @@ func (p providerImpl) CreatePrincipal(principal Principal) (err error) {
 
 	return
 }
+
+func (p providerImpl) DeletePrincipal(principalID string) (err error) {
+	// TODO: log
+
+	// Delete principal
+	builder := p.sqlBuilder.Delete(p.sqlBuilder.FullTableName("principal")).
+		Where("id = ?", principalID)
+
+	_, err = p.sqlExecutor.ExecWith(builder)
+
+	return
+}
