@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"strings"
 	"time"
-
-	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
 var (
@@ -55,21 +53,17 @@ func (u UserProfile) MarshalJSON() ([]byte, error) {
 }
 
 func (u *UserProfile) UnmarshalJSON(b []byte) error {
-	var m map[string][]Record
-	err := json.Unmarshal(b, &m)
+	var record Record
+	err := json.Unmarshal(b, &record)
 	if err != nil {
 		return err
 	}
-	result, ok := m["result"]
-	if !ok || len(result) < 1 {
-		return skyerr.NewError(skyerr.UnexpectedError, "Unable to fetch user profile")
-	}
 
-	record := result[0]
 	recordJSON, err := json.Marshal(record)
 	if err != nil {
 		return err
 	}
+
 	err = json.Unmarshal(recordJSON, &u.Meta)
 	if err != nil {
 		return err

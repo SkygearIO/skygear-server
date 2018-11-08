@@ -1,8 +1,11 @@
 package userprofile
 
 import (
+	"encoding/json"
+
 	"github.com/franela/goreq"
 	"github.com/sirupsen/logrus"
+	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
 type recordStoreImpl struct {
@@ -56,15 +59,21 @@ func (u *recordStoreImpl) CreateUserProfile(userID string, accessToken string, d
 }
 
 func (u *recordStoreImpl) GetUserProfile(userID string, accessToken string) (profile UserProfile, err error) {
-	var ids []string
-	ids = append(ids, "user/"+userID)
-
-	body := make(map[string][]string)
-	body["ids"] = ids
+	body := make(map[string]interface{})
+	body["record_type"] = "user"
+	predicate := []interface{}{
+		"eq",
+		map[string]interface{}{
+			"$val":  "_id",
+			"$type": "keypath",
+		},
+		userID,
+	}
+	body["predicate"] = predicate
 
 	resp, err := goreq.Request{
 		Method: "POST",
-		Uri:    u.storeURL + "fetch",
+		Uri:    u.storeURL + "query",
 		Body:   body,
 	}.
 		WithHeader("X-Skygear-Api-Key", u.apiKey).
@@ -75,7 +84,20 @@ func (u *recordStoreImpl) GetUserProfile(userID string, accessToken string) (pro
 		return
 	}
 
-	err = resp.Body.FromJsonTo(&profile)
+	var bodyMap map[string]map[string][]Record
+	err = resp.Body.FromJsonTo(&bodyMap)
+	if err != nil {
+		return
+	}
+
+	records, ok := bodyMap["result"]["records"]
+	if !ok || len(records) < 1 {
+		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to fetch user profile")
+		return
+	}
+
+	jsonRecord, err := json.Marshal(records[0])
+	err = json.Unmarshal(jsonRecord, &profile)
 	if err != nil {
 		return
 	}
