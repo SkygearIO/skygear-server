@@ -67,6 +67,7 @@ func main() {
 	handler.AttachForgotPasswordHandler(&srv, authDependency)
 	ssohandler.AttachLoginAuthURLHandler(&srv, authDependency)
 	ssohandler.AttachConfigHandler(&srv, authDependency)
+	ssohandler.AttachCustomTokenLoginHandler(&srv, authDependency)
 
 	go func() {
 		log.Printf("Auth gear boot")
