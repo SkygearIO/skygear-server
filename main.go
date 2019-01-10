@@ -408,10 +408,17 @@ func initPushSender(config skyconfig.Configuration, connOpener func() (skydb.Con
 		routeSender.Route("aps", apns)
 		routeSender.Route("ios", apns)
 	}
+	if config.FCM.Enable {
+		fcm := initFCMPusher(config)
+		routeSender.Route("fcm", fcm)
+		routeSender.Route("android", fcm)
+	}
 	if config.GCM.Enable {
 		gcm := initGCMPusher(config)
 		routeSender.Route("gcm", gcm)
-		routeSender.Route("android", gcm)
+		if !config.FCM.Enable {
+			routeSender.Route("android", gcm)
+		}
 	}
 	return routeSender
 }
@@ -498,6 +505,22 @@ func initTokenBasedAPNSPusher(
 
 func initGCMPusher(config skyconfig.Configuration) *push.GCMPusher {
 	return &push.GCMPusher{APIKey: config.GCM.APIKey}
+}
+
+func initFCMPusher(config skyconfig.Configuration) *push.FCMPusher {
+	key := config.FCM.ServiceAccount.Key
+	keyPath := config.FCM.ServiceAccount.KeyPath
+	if key == "" && keyPath != "" {
+		keyBytes, err := ioutil.ReadFile(keyPath)
+		if err != nil {
+			log.Fatalf("Failed to load fcm service account key: %v", err)
+		}
+		key = string(keyBytes)
+	}
+
+	return &push.FCMPusher{
+		ServiceAccountKey: key,
+	}
 }
 
 func initSubscription(config skyconfig.Configuration, connOpener func() (skydb.Conn, error), hub *pubsub.Hub, pushSender push.Sender) {
