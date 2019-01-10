@@ -28,6 +28,7 @@ RUN go get golang.org/x/tools/cmd/stringer \
            golang.org/x/tools/cmd/cover \
            github.com/golang/lint/golint \
            github.com/golang/mock/mockgen \
+           golang.org/x/sys/unix \
            github.com/rickmak/gocyclo \
            github.com/oursky/gogocyclo \
            github.com/mitchellh/gox \

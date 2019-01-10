@@ -64,7 +64,7 @@ import:
   - http2/hpack
   - lex/httplex
 - package: golang.org/x/sys
-  version: 5eaf0df67e70d6997a9fe0ed24383fa1b01638d3
+  version: 1c9583448a9c3aa0f9a6a5241bf73c0bd8aafded
   subpackages:
   - unix
 - package: gopkg.in/amz.v3
