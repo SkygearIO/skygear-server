@@ -17,8 +17,6 @@ import:
   - redis
 - package: github.com/getsentry/raven-go
   version: 74c334d7b8aaa4fd1b4fc6aa428c36fed1699e28
-- package: github.com/google/go-gcm
-  version: 423613e2e8f11e71023c75ae2dd7e27105326cbf
 - package: github.com/gorilla/websocket
   version: b6ab76f1fe9803ee1d59e7e5b2a797c1fe897ce5
 - package: github.com/jmoiron/sqlx
@@ -87,6 +85,8 @@ import:
   version: v3.5.0
 - package: google.golang.org/api
   version: v0.1.0
+- package: gopkg.in/maddevsio/fcm.v1
+  version: v1.0.4
 testImport:
 - package: github.com/jarcoal/httpmock
 - package: github.com/smartystreets/goconvey

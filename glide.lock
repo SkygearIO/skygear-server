@@ -1,5 +1,5 @@
-hash: bdca26b8fce6d02794ff252643eb4165a4397fd9457f9cdbc183505586840e89
-updated: 2019-02-27T17:08:21.816335+08:00
+hash: 09609baa0720a79ef00d4e7af282c63943194e5d6a6e69ee5c75498820a8f9d8
+updated: 2019-02-27T17:27:17.655239+08:00
 imports:
 - name: cloud.google.com/go
   version: 3fdd33db6173a128e4cdaf4fd9a91b3ee1e95589
@@ -57,8 +57,6 @@ imports:
   - ptypes/struct
   - ptypes/timestamp
   - ptypes/wrappers
-- name: github.com/google/go-gcm
-  version: 423613e2e8f11e71023c75ae2dd7e27105326cbf
 - name: github.com/googleapis/gax-go
   version: ddfab93c3faef4935403ac75a7c11f0e731dc181
   subpackages:
@@ -231,6 +229,8 @@ imports:
   subpackages:
   - aws
   - s3
+- name: gopkg.in/maddevsio/fcm.v1
+  version: 4130b76cf1809bfa9d94bcb2aeecc687fa3ead35
 testImports:
 - name: github.com/gopherjs/gopherjs
   version: e34a5cd6a1bc7c4fde759f2d3039852fc68b5fcc
