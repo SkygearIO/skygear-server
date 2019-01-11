@@ -589,6 +589,7 @@ func initCertBasedAPNSPusher(
 		push.GatewayType(config.APNS.Env),
 		cert,
 		key,
+		config.APNS.Keepalive,
 	)
 	if err != nil {
 		logger.Fatalf("Failed to set up push sender: %v", err)
@@ -619,6 +620,7 @@ func initTokenBasedAPNSPusher(
 		config.APNS.TokenConfig.TeamID,
 		config.APNS.TokenConfig.KeyID,
 		key,
+		config.APNS.Keepalive,
 	)
 	if err != nil {
 		logger.Fatalf("Failed to set up push sender: %v", err)

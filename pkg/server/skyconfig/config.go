@@ -175,9 +175,10 @@ type Configuration struct {
 		} `json:"cloud"`
 	} `json:"asset_store"`
 	APNS struct {
-		Enable bool   `json:"enable"`
-		Type   string `json:"type"`
-		Env    string `json:"env"`
+		Enable    bool   `json:"enable"`
+		Type      string `json:"type"`
+		Env       string `json:"env"`
+		Keepalive int    `json:"keepalive"`
 
 		CertConfig struct {
 			Cert     string `json:"cert"`
@@ -258,6 +259,7 @@ func NewConfiguration() Configuration {
 	config.APNS.Enable = false
 	config.APNS.Type = "cert"
 	config.APNS.Env = "sandbox"
+	config.APNS.Keepalive = 180
 	config.GCM.Enable = false
 	config.Baidu.Enable = false
 	config.LOG.Level = "debug"
@@ -520,6 +522,11 @@ func (config *Configuration) readAPNS() {
 	apnsType := os.Getenv("APNS_TYPE")
 	if apnsType != "" {
 		config.APNS.Type = apnsType
+	}
+
+	// Default to 180s, set to zero to disable tcp keepalive
+	if v, err := strconv.ParseInt(os.Getenv("APNS_KEEPALIVE"), 10, 0); err == nil && v >= 0 {
+		config.APNS.Keepalive = int(v)
 	}
 
 	switch strings.ToLower(config.APNS.Type) {

@@ -73,7 +73,7 @@ g723fJntDb71I1IS31Vd2wqqpVB4kDp8OiPnPp8ats/cNUFk77Jhxw==
 -----END RSA PRIVATE KEY-----`
 
 	Convey("create cert based APNS from cert and key", t, func() {
-		pusher, err := NewCertBasedAPNSPusher(nil, Sandbox, APNSCert, APNSKey)
+		pusher, err := NewCertBasedAPNSPusher(nil, Sandbox, APNSCert, APNSKey, 0)
 		So(err, ShouldBeNil)
 		So(pusher, ShouldNotBeNil)
 		So(pusher.(*certBasedAPNSPusher).topic, ShouldEqual, "com.example.App")

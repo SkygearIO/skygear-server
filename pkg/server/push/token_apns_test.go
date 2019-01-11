@@ -39,6 +39,7 @@ func TestTokenBaseAPNSPusherCreate(t *testing.T) {
 			"test-team-id",
 			"test-key-id",
 			testTokenKey,
+			0,  // tcp keepalive
 		)
 		So(err, ShouldBeNil)
 		So(pusher, ShouldNotBeNil)
@@ -56,6 +57,7 @@ func TestTokenBaseAPNSPusherSend(t *testing.T) {
 			"test-team-id",
 			"test-key-id",
 			testTokenKey,
+			0,  // tcp keepalive
 		)
 		So(err, ShouldBeNil)
 
@@ -207,6 +209,7 @@ func TestTokenBaseAPNSPusherFeedbackInterface(t *testing.T) {
 			"test-team-id",
 			"test-key-id",
 			testTokenKey,
+			0,  // tcp keepalive
 		)
 		So(err, ShouldBeNil)
 

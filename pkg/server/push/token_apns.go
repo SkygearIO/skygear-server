@@ -24,7 +24,9 @@ import (
 	"net/http"
 	"sync"
 	"time"
-
+	"net"
+	"golang.org/x/net/http2"
+	
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/buford/push"
@@ -58,6 +60,21 @@ type token struct {
 	expiredAt time.Time
 }
 
+// newHTTPClient returns a properly configured http client
+func newHTTPClientWithConfig(tlsconfig *tls.Config, keepalive int) (*http.Client, error) {
+	transport := &http.Transport{
+		TLSClientConfig: tlsconfig,
+		DialContext: (&net.Dialer{
+			KeepAlive: time.Duration(keepalive) * time.Second,
+			DualStack: true,
+		}).DialContext,
+	}
+	if err := http2.ConfigureTransport(transport); err != nil {
+		return nil, err
+	}
+	return &http.Client{Transport: transport}, nil
+}
+
 // NewTokenBasedAPNSPusher creates a new APNSPusher from the content of auth key
 func NewTokenBasedAPNSPusher(
 	connOpener func() (skydb.Conn, error),
@@ -65,6 +82,7 @@ func NewTokenBasedAPNSPusher(
 	teamID string,
 	keyID string,
 	key string,
+	keepalive int,
 ) (APNSPusher, error) {
 	keyBlock, _ := pem.Decode([]byte(key))
 	if keyBlock == nil {
@@ -76,7 +94,7 @@ func NewTokenBasedAPNSPusher(
 		return nil, err
 	}
 
-	client, err := push.NewTLSClient(&tls.Config{})
+	client, err := newHTTPClientWithConfig(&tls.Config{}, keepalive)
 	if err != nil {
 		return nil, err
 	}

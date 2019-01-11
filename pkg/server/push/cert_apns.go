@@ -22,7 +22,9 @@ import (
 	"errors"
 	"net/http"
 	"time"
-
+	"net"
+	"golang.org/x/net/http2"
+	
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/buford/push"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
@@ -91,6 +93,25 @@ func findDefaultAPNSTopic(certificate tls.Certificate) (string, error) {
 	return "", errors.New("push/apns: cannot find UID in APNS certificate subject name")
 }
 
+// newHTTPClient returns a properly configured http client
+func newHTTPClientWithCert(cert tls.Certificate, keepalive int) (*http.Client, error) {
+	config := &tls.Config{
+		Certificates: []tls.Certificate{cert},
+	}
+	config.BuildNameToCertificate()
+	transport := &http.Transport{
+		TLSClientConfig: config,
+		DialContext: (&net.Dialer{
+			KeepAlive: time.Duration(keepalive) * time.Second,
+			DualStack: true,
+		}).DialContext,
+	}
+	if err := http2.ConfigureTransport(transport); err != nil {
+		return nil, err
+	}
+	return &http.Client{Transport: transport}, nil
+}
+
 // NewCertBasedAPNSPusher returns a new APNSPusher from content of certificate
 // and private key as string
 func NewCertBasedAPNSPusher(
@@ -98,6 +119,7 @@ func NewCertBasedAPNSPusher(
 	gatewayType GatewayType,
 	cert string,
 	key string,
+	keepalive int,
 ) (APNSPusher, error) {
 	certificate, err := tls.X509KeyPair([]byte(cert), []byte(key))
 	if err != nil {
@@ -109,7 +131,7 @@ func NewCertBasedAPNSPusher(
 		return nil, err
 	}
 
-	client, err := push.NewClient(certificate)
+	client, err := newHTTPClientWithCert(certificate, keepalive)
 	if err != nil {
 		return nil, err
 	}
