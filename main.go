@@ -533,7 +533,7 @@ func initPushSender(config skyconfig.Configuration, connOpener func() (skydb.Con
 		routeSender.Route("ios", apns)
 	}
 	if config.FCM.Enable {
-		fcm := initFCMPusher(config)
+		fcm := initFCMPusher(config, connOpener)
 		routeSender.Route("gcm", fcm)
 		routeSender.Route("fcm", fcm)
 		routeSender.Route("android", fcm)
@@ -630,14 +630,14 @@ func initTokenBasedAPNSPusher(
 	return pushSender
 }
 
-func initFCMPusher(config skyconfig.Configuration) push.Sender {
+func initFCMPusher(config skyconfig.Configuration, connOpener func() (skydb.Conn, error)) push.Sender {
 	logger := logging.LoggerEntryWithTag("main", "push")
 
 	switch config.FCM.Type {
 	case "server_key":
 		return initKeyBasedFCMPusher(config)
 	case "service_account":
-		return initServiceAccountBasedFCMPusher(config)
+		return initServiceAccountBasedFCMPusher(config, connOpener)
 	default:
 		logger.Fatalf("Unknown FCM Type: %s", config.APNS.Type)
 	}
@@ -651,7 +651,7 @@ func initKeyBasedFCMPusher(config skyconfig.Configuration) push.Sender {
 	}
 }
 
-func initServiceAccountBasedFCMPusher(config skyconfig.Configuration) push.Sender {
+func initServiceAccountBasedFCMPusher(config skyconfig.Configuration, connOpener func() (skydb.Conn, error)) push.Sender {
 	logger := logging.LoggerEntryWithTag("main", "push")
 	key := config.FCM.ServiceAccount.Key
 	keyPath := config.FCM.ServiceAccount.KeyPath
@@ -663,9 +663,12 @@ func initServiceAccountBasedFCMPusher(config skyconfig.Configuration) push.Sende
 		key = string(keyBytes)
 	}
 
-	return &push.FCMPusher{
-		ServiceAccountKey: key,
+	pusher, err := push.NewFCMPusher(connOpener, key)
+	if err != nil {
+		logger.WithError(err).Fatal("Fail to init fcm pusher")
 	}
+
+	return pusher
 }
 
 func initBaiduPusher(config skyconfig.Configuration) *push.BaiduPusher {

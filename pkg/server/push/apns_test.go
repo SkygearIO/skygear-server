@@ -45,6 +45,7 @@ func (s *naiveService) Push(deviceToken string, headers *push.Headers, payload [
 }
 
 type deleteCall struct {
+	id    string
 	token string
 	t     time.Time
 }
@@ -56,7 +57,12 @@ type mockConn struct {
 }
 
 func (c *mockConn) DeleteDevicesByToken(token string, t time.Time) error {
-	c.calls = append(c.calls, deleteCall{token, t})
+	c.calls = append(c.calls, deleteCall{"", token, t})
+	return c.err
+}
+
+func (c *mockConn) DeleteDevice(id string) error {
+	c.calls = append(c.calls, deleteCall{id, "", time.Time{}})
 	return c.err
 }
 

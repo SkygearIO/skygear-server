@@ -27,13 +27,38 @@ type mockFCMHTTPPushClient struct {
 }
 
 func (c *mockFCMHTTPPushClient) Send(message interface{}) (interface{}, error) {
+	fcmMessage, ok := message.(*messaging.Message)
+	if ok {
+		switch fcmMessage.Token {
+		case "not-registered-token":
+			return nil, &mockFCMError{
+				Code: "registration-token-not-registered",
+			}
+		case "invalid-token":
+			return nil, &mockFCMError{
+				Code: "invalid-registration-token",
+			}
+		}
+	}
 	c.lastMessage = message
 	return nil, nil
 }
 
+type mockFCMError struct {
+	Code   string
+	String string
+}
+
+func (me *mockFCMError) Error() string {
+	return me.String
+}
+
 func TestFCMSend(t *testing.T) {
 	Convey("FCMPusher", t, func() {
+		conn := &mockConn{}
 		mockClient := &mockFCMHTTPPushClient{}
+
+		// mock fcm http push client
 		createFCMHTTPPushClient = func(serviceAccountKey string) (fcmPushClient, error) {
 			return mockClient, nil
 		}
@@ -41,11 +66,24 @@ func TestFCMSend(t *testing.T) {
 			createFCMHTTPPushClient = newFCMHTTPPushClient
 		}()
 
+		// mock isRegistrationTokenNotRegistered checking
+		isRegistrationTokenNotRegistered = func(err error) bool {
+			mockErr, ok := err.(*mockFCMError)
+			if ok && mockErr.Code == "registration-token-not-registered" {
+				return true
+			}
+			return false
+		}
+		defer func() {
+			isRegistrationTokenNotRegistered = messaging.IsRegistrationTokenNotRegistered
+		}()
+
 		pusher := FCMPusher{
+			conn:              conn,
 			ServiceAccountKey: "fakeServiceAccount",
 		}
 		device := skydb.Device{
-			Token: "deviceToken",
+			Token: "device-token",
 		}
 
 		Convey("sends notification", func() {
@@ -66,7 +104,7 @@ func TestFCMSend(t *testing.T) {
 
 			So(err, ShouldBeNil)
 			So(mockClient.lastMessage, ShouldResemble, &messaging.Message{
-				Token: "deviceToken",
+				Token: "device-token",
 				Android: &messaging.AndroidConfig{
 					Notification: &messaging.AndroidNotification{
 						Title: "You have got a message",
@@ -100,6 +138,57 @@ func TestFCMSend(t *testing.T) {
 			}, device)
 
 			So(err, ShouldNotBeNil)
+		})
+
+		Convey("should delete device if device is not registered", func() {
+			notRegisteredDevice := skydb.Device{
+				ID:    "not-registered-token-id",
+				Token: "not-registered-token",
+			}
+
+			err := pusher.Send(MapMapper{
+				"fcm": map[string]interface{}{
+					"notification": map[string]interface{}{
+						"title": "You have got a message",
+						"body":  "This is a message.",
+						"icon":  "myicon",
+						"sound": "default",
+						"badge": "5",
+					},
+					"data": map[string]interface{}{
+						"string": "value",
+					},
+				},
+			}, notRegisteredDevice)
+
+			So(err, ShouldNotBeNil)
+			So(len(conn.calls), ShouldEqual, 1)
+			So(conn.calls[0].id, ShouldEqual, "not-registered-token-id")
+		})
+
+		Convey("should not delete device with other error", func() {
+			invalidDevice := skydb.Device{
+				ID:    "invalid-token-id",
+				Token: "invalid-token",
+			}
+
+			err := pusher.Send(MapMapper{
+				"fcm": map[string]interface{}{
+					"notification": map[string]interface{}{
+						"title": "You have got a message",
+						"body":  "This is a message.",
+						"icon":  "myicon",
+						"sound": "default",
+						"badge": "5",
+					},
+					"data": map[string]interface{}{
+						"string": "value",
+					},
+				},
+			}, invalidDevice)
+
+			So(err, ShouldNotBeNil)
+			So(len(conn.calls), ShouldEqual, 0)
 		})
 	})
 

@@ -22,6 +22,7 @@ import (
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/messaging"
 	"github.com/mitchellh/mapstructure"
+	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"google.golang.org/api/option"
 )
@@ -61,10 +62,23 @@ func (c *fcmHTTPPushClient) Send(message interface{}) (interface{}, error) {
 }
 
 var createFCMHTTPPushClient = newFCMHTTPPushClient
+var isRegistrationTokenNotRegistered = messaging.IsRegistrationTokenNotRegistered
 
 // FCMPusher sends push notifications via FCM.
 type FCMPusher struct {
+	conn              skydb.Conn
 	ServiceAccountKey string
+}
+
+func NewFCMPusher(connOpener func() (skydb.Conn, error), serviceAccountKey string) (*FCMPusher, error) {
+	conn, err := connOpener()
+	if err != nil {
+		return nil, err
+	}
+	return &FCMPusher{
+		conn:              conn,
+		ServiceAccountKey: serviceAccountKey,
+	}, nil
 }
 
 // Send sends the dictionary represented by m to device.
@@ -91,13 +105,33 @@ func (p *FCMPusher) Send(m Mapper, device skydb.Device) error {
 
 	response, err := client.Send(&message)
 	if err != nil {
-		log.Errorf("fcm: failed to call message api: %v", response)
+		log.Errorf("fcm: failed to call message api: %v", err)
+		p.handleFailedNotification(device, err)
 		return err
 	}
 
 	log.Info("fcm: push notification is sent: %v", response)
 
 	return nil
+}
+
+func (p *FCMPusher) handleFailedNotification(device skydb.Device, err error) {
+	if isRegistrationTokenNotRegistered(err) {
+		log.WithFields(logrus.Fields{
+			"deviceID":    device.ID,
+			"deviceToken": device.Token,
+			"error":       err,
+		}).Info("fcm: delete device token")
+		if err := p.conn.DeleteDevice(device.ID); err != nil && err != skydb.ErrDeviceNotFound {
+			log.WithFields(logrus.Fields{
+				"deviceID":    device.ID,
+				"deviceToken": device.Token,
+				"error":       err,
+			}).Error("fcm: failed to delete device token")
+			return
+		}
+	}
+	return
 }
 
 func mapFCMMessage(mapper Mapper, msg interface{}) error {
