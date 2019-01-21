@@ -194,10 +194,18 @@ type Configuration struct {
 			KeyPath string `json:"-"`
 		} `json:"token_config"`
 	} `json:"apns"`
-	GCM struct {
+	FCM struct {
 		Enable bool   `json:"enable"`
-		APIKey string `json:"api_key"`
-	} `json:"gcm"`
+		Type   string `json:"type"`
+
+		ServiceAccount struct {
+			Key     string `json:"key"`
+			KeyPath string `json:"-"`
+		} `json:"service_account"`
+		Server struct {
+			Key string `json:"key"`
+		}
+	} `json:"fcm"`
 	Baidu struct {
 		Enable    bool   `json:"enable"`
 		APIKey    string `json:"api_key"`
@@ -260,8 +268,9 @@ func NewConfiguration() Configuration {
 	config.APNS.Type = "cert"
 	config.APNS.Env = "sandbox"
 	config.APNS.Keepalive = 180
-	config.GCM.Enable = false
 	config.Baidu.Enable = false
+	config.FCM.Enable = false
+	config.FCM.Type = "server_key"
 	config.LOG.Level = "debug"
 	config.LOG.LoggersLevel = map[string]string{
 		"plugin": "info",
@@ -391,7 +400,7 @@ func (config *Configuration) ReadFromEnv() {
 	config.readTokenStore()
 	config.readAssetStore()
 	config.readAPNS()
-	config.readGCM()
+	config.readFCM()
 	config.readBaidu()
 	config.readLog()
 	config.readPlugins()
@@ -577,14 +586,54 @@ func (config *Configuration) readAPNSToken() {
 	}
 }
 
-func (config *Configuration) readGCM() {
-	if shouldEnableGCM, err := parseBool(os.Getenv("GCM_ENABLE")); err == nil {
-		config.GCM.Enable = shouldEnableGCM
+func (config *Configuration) readFCM() {
+	if shouldEnableFCM, err := parseBool(os.Getenv("FCM_ENABLE")); err == nil {
+		config.FCM.Enable = shouldEnableFCM
 	}
 
-	gcmAPIKey := os.Getenv("GCM_APIKEY")
-	if gcmAPIKey != "" {
-		config.GCM.APIKey = gcmAPIKey
+	fcmType := os.Getenv("FCM_TYPE")
+	if fcmType != "" {
+		config.FCM.Type = fcmType
+	}
+
+	if config.FCM.Enable {
+		switch strings.ToLower(config.FCM.Type) {
+		case "server_key":
+			config.readFCMServerKey()
+		case "service_account":
+			config.readFCMServiceAccount()
+		}
+	} else {
+		// legacy gcm config
+		if shouldEnableGCM, err := parseBool(os.Getenv("GCM_ENABLE")); err == nil {
+			config.FCM.Enable = shouldEnableGCM
+		}
+
+		gcmAPIKey := os.Getenv("GCM_APIKEY")
+		if gcmAPIKey != "" {
+			config.FCM.Type = "server_key"
+			config.FCM.Server.Key = gcmAPIKey
+		}
+	}
+
+}
+
+func (config *Configuration) readFCMServerKey() {
+	fcmServerKey := os.Getenv("FCM_SERVER_KEY")
+	if fcmServerKey != "" {
+		config.FCM.Server.Key = fcmServerKey
+	}
+}
+
+func (config *Configuration) readFCMServiceAccount() {
+	fcmServiceAccountKey := os.Getenv("FCM_SERVICE_ACCOUNT_KEY")
+	if fcmServiceAccountKey != "" {
+		config.FCM.ServiceAccount.Key = fcmServiceAccountKey
+	}
+
+	fcmServiceAccountKeyPath := os.Getenv("FCM_SERVICE_ACCOUNT_KEY_PATH")
+	if fcmServiceAccountKeyPath != "" {
+		config.FCM.ServiceAccount.KeyPath = fcmServiceAccountKeyPath
 	}
 }
 

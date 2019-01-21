@@ -24,7 +24,8 @@ required = [
   "golang.org/x/tools/cmd/stringer",
   "golang.org/x/tools/cmd/cover",
   "github.com/mitchellh/gox",
-  "github.com/golang/mock/mockgen"
+  "github.com/golang/mock/mockgen",
+  "golang.org/x/sys/unix"
 ]
 
 [[constraint]]
@@ -58,10 +59,6 @@ required = [
 [[constraint]]
   name = "github.com/golang/mock"
   version = "~1.0.0"
-
-[[constraint]]
-  name = "github.com/google/go-gcm"
-  revision = "423613e2e8f11e71023c75ae2dd7e27105326cbf"
 
 [[constraint]]
   name = "github.com/gorilla/websocket"
@@ -138,3 +135,19 @@ required = [
 [[constraint]]
   branch = "master"
   name = "github.com/kr/text"
+
+[[constraint]]
+  name = "firebase.google.com/go"
+  version = "v3.5.0"
+
+[[constraint]]
+  name = "google.golang.org/api"
+  version = "v0.1.0"
+
+[[constraint]]
+  name = "gopkg.in/maddevsio/fcm.v1"
+  version = "v1.0.4"
+
+[[constraint]]
+  revision = "1c9583448a9c3aa0f9a6a5241bf73c0bd8aafded"
+  name = "golang.org/x/sys"
