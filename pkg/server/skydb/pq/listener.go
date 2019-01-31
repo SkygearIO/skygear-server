@@ -119,6 +119,13 @@ func (l *recordListener) Listen() {
 		case pqNotification := <-listener.Notify:
 			l.logger.WithField("pqNotification", pqNotification).Infoln("Received a notify")
 
+			if pqNotification == nil {
+				// After reconnected db, a
+				// nil pq.Notification is sent on the Listener.Notify channel.
+				l.logger.Warnln("pq/listener: got nil notification")
+				continue
+			}
+
 			n := notification{}
 			if err := l.fetchNotification(pqNotification.Extra, &n); err != nil {
 				l.logger.WithFields(logrus.Fields{
