@@ -338,19 +338,16 @@
   revision = "eafdab6b0663b4b528c35975c8b0e78be6e25261"
 
 [[projects]]
-  digest = "1:8b4b7a90de0fd96f41327fb48cc47a9616337ac5c6c1a4f0c54315d39309d1d8"
-  name = "github.com/paulmach/go.geo"
-  packages = ["."]
+  digest = "1:b2f5db87e644ab3778dda5020935fbaf5bb532c6391531acd8f69457b1c57028"
+  name = "github.com/paulmach/orb"
+  packages = [
+    ".",
+    "encoding/wkb",
+    "encoding/wkt",
+  ]
   pruneopts = ""
-  revision = "c84b6002b0f727d4a2d40e05466dfc3cc54eb329"
-
-[[projects]]
-  digest = "1:a648ca7f6c1430313327fa340e819808db0e17d009c985d31b837c7d16cd7632"
-  name = "github.com/paulmach/go.geojson"
-  packages = ["."]
-  pruneopts = ""
-  revision = "aa3713dea4327980f5891ac781c6f1a45ea75c0f"
-  version = "v1.3.1"
+  revision = "edbcee2084dd7d15b2ab0cae97fd23acac93dccd"
+  version = "v0.1.2"
 
 [[projects]]
   branch = "master"
@@ -697,7 +694,9 @@
     "github.com/mitchellh/gox",
     "github.com/mitchellh/mapstructure",
     "github.com/nbutton23/zxcvbn-go",
-    "github.com/paulmach/go.geo",
+    "github.com/paulmach/orb",
+    "github.com/paulmach/orb/encoding/wkb",
+    "github.com/paulmach/orb/encoding/wkt",
     "github.com/pebbe/zmq4",
     "github.com/rifflock/lfshook",
     "github.com/robfig/cron",
@@ -707,6 +706,7 @@
     "github.com/smartystreets/goconvey/convey",
     "github.com/twinj/uuid",
     "golang.org/x/crypto/bcrypt",
+    "golang.org/x/net/http2",
     "golang.org/x/sys/unix",
     "golang.org/x/tools/cmd/cover",
     "golang.org/x/tools/cmd/stringer",

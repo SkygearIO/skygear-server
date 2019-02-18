@@ -21,7 +21,9 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/paulmach/go.geo"
+	"github.com/paulmach/orb"
+	"github.com/paulmach/orb/encoding/wkb"
+	"github.com/paulmach/orb/encoding/wkt"
 	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
@@ -180,7 +182,8 @@ func (nl *nullLocation) Scan(value interface{}) error {
 		return fmt.Errorf("failed to scan Location: malformed wkb")
 	}
 
-	err = (*geo.Point)(&nl.Location).Scan(decoded)
+	s := wkb.Scanner((*orb.Point)(&nl.Location))
+	err = s.Scan(decoded)
 	nl.Valid = err == nil
 	return err
 }
@@ -230,7 +233,7 @@ func (acl aclValue) Value() (driver.Value, error) {
 type locationValue skydb.Location
 
 func (loc locationValue) Value() (driver.Value, error) {
-	return geo.Point(loc).ToWKT(), nil
+	return wkt.MarshalString(orb.Point(loc)), nil
 }
 
 type geometryValue skydb.Geometry

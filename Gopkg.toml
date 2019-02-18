@@ -89,8 +89,8 @@ required = [
   revision = "281073eb9eb092240d33ef253c404f1cca550309"
 
 [[constraint]]
-  name = "github.com/paulmach/go.geo"
-  revision = "c84b6002b0f727d4a2d40e05466dfc3cc54eb329"
+  name = "github.com/paulmach/orb"
+  version = "0.1.2"
 
 [[constraint]]
   name = "github.com/robfig/cron"
