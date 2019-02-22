@@ -350,12 +350,11 @@
   version = "v0.1.2"
 
 [[projects]]
-  branch = "master"
-  digest = "1:5b3ee154244efd016930911b43007ecd72ba1b064b1268a4fa95d4335330e4f6"
+  digest = "1:9d78da88d0041a08dc40d2ce157f710bc0d4f8dd85633bce71f7da142dc38961"
   name = "github.com/pebbe/zmq4"
   packages = ["."]
   pruneopts = ""
-  revision = "230ecd8dddd0f31ec76da33d8ff4277887ca773e"
+  revision = "7a493a642e7acbd03045d4f5fe9516908a62f86f"
 
 [[projects]]
   digest = "1:210286d0cb60ffe28f1ca00b664029e8943009f95d06d8f8c336301b28e1aee5"
