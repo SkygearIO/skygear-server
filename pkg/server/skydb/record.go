@@ -123,7 +123,7 @@ func (reference *Reference) IsEmpty() bool {
 // Location represent a point of geometry.
 //
 // It being an array of two floats is intended to provide no-copy conversion
-// between paulmach/go.geo.Point.
+// between paulmach/orb.
 type Location [2]float64
 
 // NewLocation returns a new Location
