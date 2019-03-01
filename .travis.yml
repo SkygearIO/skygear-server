@@ -1,6 +1,6 @@
 language: go
 
-go: 1.8.1
+go: 1.9.3
 
 addons:
   postgresql: "9.5"
@@ -71,7 +71,7 @@ deploy:
     on:
       repo: SkygearIO/skygear-server
       tags: true
-      go: 1.8.1
+      go: 1.9.3
 # Disable deploy to docker hub and quay because the builder image is no
 # longer applicable for this version.
 #  - provider: script
