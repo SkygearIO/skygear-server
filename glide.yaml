@@ -85,6 +85,8 @@ import:
   version: v3.5.0
 - package: google.golang.org/api
   version: v0.1.0
+- package: google.golang.org/grpc
+  version: v1.15.0
 - package: gopkg.in/maddevsio/fcm.v1
   version: v1.0.4
 testImport:
