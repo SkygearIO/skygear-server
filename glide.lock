@@ -1,12 +1,12 @@
-hash: 84f8e03a687c8b5d29257cbf8c82d78a0a0be7709bd3a7b9f1adb780a1769e87
-updated: 2019-02-27T17:32:51.436552+08:00
+hash: 022698e2349c6cf0ca174b8bcb4cb665bd786bd7b781094c7351e315f1e556bb
+updated: 2019-03-01T16:18:57.832362+08:00
 imports:
 - name: cloud.google.com/go
-  version: 3fdd33db6173a128e4cdaf4fd9a91b3ee1e95589
+  version: 7602c08c66ccf0729b4f373ed8d87c91a8e48e22
   subpackages:
   - compute/metadata
   - firestore
-  - firestore/apiv1
+  - firestore/apiv1beta1
   - iam
   - internal
   - internal/btree
@@ -46,7 +46,7 @@ imports:
   subpackages:
   - gomock
 - name: github.com/golang/protobuf
-  version: c823c79ea1570fb5ff454033735a8e68575d1d0f
+  version: b5d812f8a3706043e23a9cd5babf2e5423744d30
   subpackages:
   - proto
   - protoc-gen-go/descriptor
@@ -58,13 +58,11 @@ imports:
   - ptypes/timestamp
   - ptypes/wrappers
 - name: github.com/googleapis/gax-go
-  version: ddfab93c3faef4935403ac75a7c11f0e731dc181
-  subpackages:
-  - v2
+  version: b001040cd31805261cbd978842099e326dfa857b
 - name: github.com/gorilla/websocket
   version: b6ab76f1fe9803ee1d59e7e5b2a797c1fe897ce5
 - name: github.com/hashicorp/golang-lru
-  version: 20f1fb78b0740ba8c3cb143a61e86ba5c8669768
+  version: 7087cb70de9f7a8bc0a10c375cb0d2280a8edf9c
   subpackages:
   - simplelru
 - name: github.com/jmoiron/sqlx
@@ -106,9 +104,9 @@ imports:
 - name: github.com/twinj/uuid
   version: b505f2cca343b7b21416b27b1f2ad88469800892
 - name: github.com/zeromq/goczmq
-  version: 91476d8f9ec24f1c2b7d35d459a9d2b32376e450
+  version: faef36c9feea28111fd413ea29ea99d80ef54e7b
 - name: go.opencensus.io
-  version: 62b306abc9d664e1185f921a82872cb9e5bf586b
+  version: 22a302cdd30bb5e3c0c894c70decd0b53e96eda0
   subpackages:
   - exemplar
   - internal
@@ -141,7 +139,7 @@ imports:
   - lex/httplex
   - trace
 - name: golang.org/x/oauth2
-  version: e64efc72b421e893cbf63f17ba2221e7d6d0b0f3
+  version: e0f2c55a7fc7d04742e0eef7918aa2389b0e1919
   subpackages:
   - google
   - internal
@@ -182,37 +180,32 @@ imports:
   - socket
   - urlfetch
 - name: google.golang.org/genproto
-  version: fc2db5cae922db113989ef87b5b859cc8a179f59
+  version: 4f5b463f9597cbe0dd13a6a2cd4f85e788d27508
   subpackages:
   - googleapis/api/annotations
-  - googleapis/firestore/v1
+  - googleapis/firestore/v1beta1
   - googleapis/iam/v1
   - googleapis/rpc/code
   - googleapis/rpc/status
   - googleapis/type/latlng
 - name: google.golang.org/grpc
-  version: 3aaef9f0c1b114366cb4507ba4f3c083b17d2f4e
+  version: 8dea3dc473e90c8179e519d91302d0597c0ca1d1
   subpackages:
   - balancer
   - balancer/base
   - balancer/roundrobin
-  - binarylog/grpc_binarylog_v1
   - codes
   - connectivity
   - credentials
-  - credentials/internal
   - credentials/oauth
   - encoding
   - encoding/proto
   - grpclog
   - internal
   - internal/backoff
-  - internal/binarylog
   - internal/channelz
   - internal/envconfig
   - internal/grpcrand
-  - internal/grpcsync
-  - internal/syscall
   - internal/transport
   - keepalive
   - metadata
