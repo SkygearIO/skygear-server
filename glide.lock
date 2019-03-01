@@ -1,5 +1,5 @@
-hash: fd0496dfdd09e70bfa807ca2d85b4d99e425b22f6154236badd448e8d27a5f2a
-updated: 2019-03-01T16:35:15.032446+08:00
+hash: d03848d9d9e689e580d411ca990af69d996e15443adacc9f7520f27bdb7b2c38
+updated: 2019-03-01T17:52:22.835115+08:00
 imports:
 - name: cloud.google.com/go
   version: 7602c08c66ccf0729b4f373ed8d87c91a8e48e22
@@ -42,7 +42,7 @@ imports:
 - name: github.com/getsentry/raven-go
   version: 74c334d7b8aaa4fd1b4fc6aa428c36fed1699e28
 - name: github.com/golang/mock
-  version: 13f360950a79f5864a972c786a10a50e44b69541
+  version: 51421b967af1f557f93a59e0057aaf15ca02e29c
   subpackages:
   - gomock
 - name: github.com/golang/protobuf

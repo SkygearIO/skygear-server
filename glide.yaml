@@ -73,7 +73,7 @@ import:
   - aws
   - s3
 - package: github.com/golang/mock
-  version: 1.0.0
+  version: 1.2.0
   subpackages:
   - gomock
 - package: github.com/franela/goreq
