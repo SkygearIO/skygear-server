@@ -1,3 +1,15 @@
+## 0.25.0 (2019-03-04)
+
+### Features
+
+- Migrate android push notification from gcm to fcm on v0
+
+### Other Notes
+
+- Fix unable to build v0-branch on travis
+- Update log level on apns token invalid error #536
+- Do not allow API KEY to be the same as MASTER_KEY #373
+
 ## 0.24.0 (2017-05-23)
 
 ### Features
