@@ -77,6 +77,7 @@ func main() {
 		RestPathIdentifier: "rest",
 		Store:              store,
 	}.Handle)
+	cr.Use(coreMiddleware.CORSMiddleware{}.Handle)
 
 	cr.HandleFunc("/{rest:.*}", handler.NewCloudCodeHandler(config.Router))
 
