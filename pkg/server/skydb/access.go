@@ -124,7 +124,11 @@ func NewRecordACL(entries []RecordACLEntry) RecordACL {
 func (acl RecordACL) Accessible(authinfo *AuthInfo, level RecordACLLevel) bool {
 	if len(acl) == 0 {
 		// default behavior of empty ACL
-		return true
+		defaultACL := RecordACL{
+			NewRecordACLEntryRole("admin", level),
+		}
+
+		return defaultACL.Accessible(authinfo, level)
 	}
 
 	accessible := false
