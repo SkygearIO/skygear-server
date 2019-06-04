@@ -114,14 +114,24 @@ func TestRecordACL(t *testing.T) {
 			So(note.Accessible(stranger, ReadLevel), ShouldBeFalse)
 		})
 
-		Convey("Deny access if empty ACL", func() {
+		Convey("Deny any access if empty (not null) ACL", func() {
 			note := Record{
 				ID:         NewRecordID("note", "0"),
 				DatabaseID: "",
 				ACL:        RecordACL{},
 			}
-			So(note.Accessible(authinfo, ReadLevel), ShouldBeTrue)
+			So(note.Accessible(authinfo, ReadLevel), ShouldBeFalse)
 			So(note.Accessible(stranger, ReadLevel), ShouldBeFalse)
+		})
+
+		Convey("Allow public access if null ACL", func() {
+			note := Record{
+				ID:         NewRecordID("note", "0"),
+				DatabaseID: "",
+				ACL:        nil,
+			}
+			So(note.Accessible(authinfo, ReadLevel), ShouldBeTrue)
+			So(note.Accessible(stranger, ReadLevel), ShouldBeTrue)
 		})
 
 		Convey("Check access right base on direct ace", func() {
