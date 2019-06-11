@@ -113,6 +113,11 @@ type RecordACL []RecordACLEntry
 
 // NewRecordACL returns a new RecordACL
 func NewRecordACL(entries []RecordACLEntry) RecordACL {
+	// Defaults ACL to nil instead of empty slice. nil indicates public access, and [] indicates admin-only
+	if entries == nil {
+		return nil
+	}
+
 	acl := make(RecordACL, len(entries))
 	for i, v := range entries {
 		acl[i] = v
@@ -122,8 +127,7 @@ func NewRecordACL(entries []RecordACLEntry) RecordACL {
 
 // Accessible checks whether provided user info has certain access level
 func (acl RecordACL) Accessible(authinfo *AuthInfo, level RecordACLLevel) bool {
-	if len(acl) == 0 {
-		// default behavior of empty ACL
+	if acl == nil {
 		return true
 	}
 
