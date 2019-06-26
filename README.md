@@ -3,14 +3,14 @@
 Skygear Server is a cloud backend for making web, mobile and IoT app development easier.
 
 It provides the following features for common app development:
-* Skygear Auth - User Auth, [Forgot Password](https://github.com/SkygearIO/forgot_password) [Social Login](https://github.com/SkygearIO/skygear-sso) (Coming soon), Security
+* Skygear Auth - User Auth, [Forgot Password](https://github.com/SkygearIO/forgot_password) [Social Login](https://github.com/SkygearIO/skygear-sso) (Coming some day), Security
 * Skygear Cloud DB - Document-like API/SDK with auto-migration based on PostgreSQL
 * Skygear Chat - Build full-featured messaging into your app fast
   [Server](https://github.com/SkygearIO/chat)
 * Skygear Cloud Functions - Run event-trigger functions without thinking about
   server
 * Skygear CMS - Drop-in CMS for business users integrated with Skygear Auth and
-  Cloud DB [Opensource soon](https://github.com/oursky/skygear-cms)
+  Cloud DB [Opensource some day](https://github.com/oursky/skygear-cms)
 * Skygear Pubsub - Cloud Pub/sub API for real-time and reliable messaging and
   connection.
 * Skygear Push - Push Notification
