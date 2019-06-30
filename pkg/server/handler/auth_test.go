@@ -910,7 +910,7 @@ func (conn *singleUserConn) GetAuthByPrincipalID(principalID string, authinfo *s
 }
 
 func (conn *singleUserConn) GetRecordAccess(recordType string) (skydb.RecordACL, error) {
-	return skydb.NewRecordACL([]skydb.RecordACLEntry{}), nil
+	return skydb.NewRecordACL(nil), nil
 }
 
 func (conn *singleUserConn) GetRecordDefaultAccess(recordType string) (skydb.RecordACL, error) {

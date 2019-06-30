@@ -67,7 +67,8 @@ func (c *conn) GetRecordAccess(recordType string) (skydb.RecordACL, error) {
 
 	defer rows.Close()
 
-	currentCreationRoles := []skydb.RecordACLEntry{}
+	// Default roles to nil instead of empty slice to indicate public access
+	var currentCreationRoles []skydb.RecordACLEntry
 	for rows.Next() {
 		roleStr := ""
 		if err := rows.Scan(&roleStr); err != nil {

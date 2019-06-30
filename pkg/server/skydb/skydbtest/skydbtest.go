@@ -141,7 +141,7 @@ func (conn *MapConn) SetRecordDefaultAccess(recordType string, acl skydb.RecordA
 func (conn *MapConn) GetRecordAccess(recordType string) (skydb.RecordACL, error) {
 	acl, gotIt := conn.recordAccessMap[recordType]
 	if !gotIt {
-		acl = skydb.NewRecordACL([]skydb.RecordACLEntry{})
+		acl = skydb.NewRecordACL(nil)
 	}
 
 	return acl, nil

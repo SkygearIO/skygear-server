@@ -769,7 +769,7 @@ type bogusFieldDatabaseConnection struct {
 }
 
 func (db bogusFieldDatabaseConnection) GetRecordAccess(recordType string) (skydb.RecordACL, error) {
-	return skydb.NewRecordACL([]skydb.RecordACLEntry{}), nil
+	return skydb.NewRecordACL(nil), nil
 }
 
 func (db bogusFieldDatabaseConnection) GetRecordDefaultAccess(recordType string) (skydb.RecordACL, error) {
