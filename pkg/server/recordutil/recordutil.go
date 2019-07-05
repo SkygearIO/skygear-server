@@ -84,6 +84,9 @@ type RecordModifyRequest struct {
 
 	// Delete Only
 	RecordIDsToDelete []skydb.RecordID
+
+	// Bypass ACL even if it is restricted in _record_creation
+	BypassCreationAccess bool
 }
 
 type RecordModifyResponse struct {
@@ -168,7 +171,7 @@ func (f RecordFetcher) FetchRecord(recordID skydb.RecordID, authInfo *skydb.Auth
 	return
 }
 
-func (f RecordFetcher) FetchOrCreateRecord(recordID skydb.RecordID, authInfo *skydb.AuthInfo) (record skydb.Record, created bool, err skyerr.Error) {
+func (f RecordFetcher) FetchOrCreateRecord(recordID skydb.RecordID, authInfo *skydb.AuthInfo, bypassAccess bool) (record skydb.Record, created bool, err skyerr.Error) {
 	fetchedRecord, err := f.FetchRecord(recordID, authInfo, skydb.WriteLevel)
 	if err == nil {
 		record = *fetchedRecord
@@ -177,6 +180,10 @@ func (f RecordFetcher) FetchOrCreateRecord(recordID skydb.RecordID, authInfo *sk
 
 	if err.Code() == skyerr.ResourceNotFound {
 		allowCreation := func() bool {
+			if bypassAccess {
+				return true
+			}
+
 			if f.withMasterKey {
 				return true
 			}
@@ -231,7 +238,7 @@ func RecordSaveHandler(req *RecordModifyRequest, resp *RecordModifyResponse) sky
 	// fetch records
 	originalRecordMap := map[skydb.RecordID]*skydb.Record{}
 	records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) (err skyerr.Error) {
-		dbRecord, created, err := fetcher.FetchOrCreateRecord(record.ID, req.AuthInfo)
+		dbRecord, created, err := fetcher.FetchOrCreateRecord(record.ID, req.AuthInfo, req.BypassCreationAccess)
 		if err != nil {
 			return err
 		}

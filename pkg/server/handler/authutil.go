@@ -214,6 +214,7 @@ func (ctx *authUserRecordContext) execute(info *skydb.AuthInfo, authData skydb.A
 			RecordsToSave: []*skydb.Record{
 				&userRecord,
 			},
+			BypassCreationAccess: true,
 		}
 
 		recordResp := recordutil.RecordModifyResponse{

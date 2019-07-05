@@ -26,6 +26,10 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skydb/pq/builder"
 	. "github.com/skygeario/skygear-server/pkg/server/skytest"
+	"github.com/skygeario/skygear-server/pkg/server/authtoken/authtokentest"
+	. "github.com/skygeario/skygear-server/pkg/server/handler"
+	"github.com/skygeario/skygear-server/pkg/server/audit"
+	"github.com/skygeario/skygear-server/pkg/server/router"
 )
 
 func TestGet(t *testing.T) {
@@ -276,6 +280,35 @@ func TestSave(t *testing.T) {
 				Scan(&count)
 			So(err, ShouldBeNil)
 			So(count, ShouldEqual, 0)
+		})
+
+		Convey("allow sign up new account even when user type access is restricted", func() {
+			tokenStore := authtokentest.SingleTokenStore{}
+			handler := &SignupHandler{
+				TokenStore:      &tokenStore,
+				AuthRecordKeys:  [][]string{[]string{"username"}, []string{"email"}},
+				PasswordChecker: &audit.PasswordChecker{},
+			}
+
+			insertRow(t, c.Db(), `INSERT INTO "_record_creation" ` +
+				`(record_type, role_id) ` +
+				`VALUES ('user', 'Admin')`)
+
+			req := router.Payload{
+				Data: map[string]interface{}{
+					"auth_data": map[string]interface{}{
+						"username": "bilibala",
+						"email":    "bilibala@example.com",
+					},
+					"password": "secret",
+				},
+				DBConn:   c,
+				Database: db,
+			}
+			resp := router.Response{}
+			handler.Handle(&req, &resp)
+
+			So(resp.Result, ShouldHaveSameTypeAs, AuthResponse{})
 		})
 
 		Convey("REGRESSION: update record with attribute having capital letters", func() {
