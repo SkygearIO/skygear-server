@@ -1,0 +1,303 @@
+openapi: 3.0.0
+info:
+  title: Asset Gear
+  version: 1.0.0
+servers:
+- url: '{base_url}/_asset'
+  description: Asset Gear URL
+  variables:
+    base_url:
+      default: https://my_app.skygearapis.com
+      description: Skygear App URL
+paths:
+  /assets:
+    get:
+      summary: List assets.
+      description: List assets.
+      parameters:
+      - $ref: '#/components/parameters/ListAssetPaginationToken'
+      - $ref: '#/components/parameters/ListAssetPrefix'
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListAssetResponse'
+      security:
+      - master_key: []
+  /delete/{asset_name}:
+    delete:
+      summary: Delete the given asset.
+      description: Delete the given asset.
+      parameters:
+      - name: asset_name
+        in: path
+        description: Name of asset
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: ""
+      security:
+      - master_key: []
+  /get/{asset_name}:
+    get:
+      summary: Retrieve the asset
+      description: Retrieve the asset.
+      parameters:
+      - name: asset_name
+        in: path
+        description: Name of asset
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The asset.
+  /get_signed_url:
+    post:
+      summary: Get signed URL
+      description: Get signed URL of private assets.
+      requestBody:
+        description: A list of asset names to be signed.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignAssetRequest'
+      responses:
+        "200":
+          description: A list of signed asset urls.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignAssetResponse'
+      security:
+      - master_key: []
+  /presign_upload:
+    post:
+      summary: Presign an upload request.
+      description: Presign an upload request.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PresignUploadRequest'
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PresignUploadResponse'
+      security:
+      - access_key: []
+      - access_token: []
+  /presign_upload_form:
+    post:
+      summary: Presign an upload form request.
+      description: Presign an upload form request.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PresignUploadFormRequest'
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PresignUploadFormResponse'
+      security:
+      - access_key: []
+      - access_token: []
+components:
+  schemas:
+    ListAssetItem:
+      properties:
+        asset_name:
+          type: string
+        size:
+          type: integer
+      required:
+      - asset_name
+      - size
+      type: object
+    ListAssetResponse:
+      properties:
+        result:
+          properties:
+            assets:
+              items:
+                $ref: '#/components/schemas/ListAssetItem'
+              type: array
+            pagination_token:
+              type: string
+          required:
+          - assets
+          type: object
+      type: object
+    PresignUploadFormRequest:
+      additionalProperties: false
+      type: object
+    PresignUploadFormResponse:
+      properties:
+        result:
+          properties:
+            url:
+              type: string
+          required:
+          - url
+          type: object
+      type: object
+    PresignUploadRequest:
+      additionalProperties: false
+      properties:
+        access:
+          enum:
+          - public
+          - private
+          type: string
+        headers:
+          additionalProperties: false
+          properties:
+            access-control-allow-credentials:
+              type: string
+            access-control-allow-headers:
+              type: string
+            access-control-allow-methods:
+              type: string
+            access-control-allow-origin:
+              type: string
+            access-control-expose-headers:
+              type: string
+            access-control-max-age:
+              type: string
+            cache-control:
+              type: string
+            content-disposition:
+              type: string
+            content-encoding:
+              type: string
+            content-length:
+              type: string
+            content-md5:
+              type: string
+            content-type:
+              type: string
+          required:
+          - content-length
+          type: object
+        prefix:
+          pattern: ^[-_.a-zA-Z0-9]*$
+          type: string
+      required:
+      - headers
+      type: object
+    PresignUploadResponse:
+      properties:
+        result:
+          properties:
+            asset_name:
+              type: string
+            headers:
+              items:
+                properties:
+                  name:
+                    type: string
+                  value:
+                    type: string
+                required:
+                - name
+                - value
+                type: object
+              type: array
+            method:
+              type: string
+            url:
+              type: string
+          required:
+          - asset_name
+          - url
+          - method
+          - headers
+          type: object
+      type: object
+    SignAssetItem:
+      properties:
+        asset_name:
+          type: string
+        expire:
+          type: integer
+        url:
+          type: string
+      required:
+      - asset_name
+      - url
+      type: object
+    SignAssetRequest:
+      additionalProperties: false
+      properties:
+        assets:
+          items:
+            additionalProperties: false
+            properties:
+              asset_name:
+                minLength: 1
+                type: string
+              expire:
+                maximum: 604800
+                minimum: 0
+                type: integer
+            required:
+            - asset_name
+            type: object
+          type: array
+      required:
+      - assets
+      type: object
+    SignAssetResponse:
+      properties:
+        result:
+          properties:
+            assets:
+              items:
+                $ref: '#/components/schemas/SignAssetItem'
+              type: array
+          required:
+          - assets
+          type: object
+      type: object
+  parameters:
+    ListAssetPaginationToken:
+      name: pagination_token
+      in: query
+      description: The opaque pagination token.
+      schema:
+        type: string
+    ListAssetPrefix:
+      name: prefix
+      in: query
+      description: List on asset with the given prefix.
+      schema:
+        type: string
+  securitySchemes:
+    access_key:
+      type: apiKey
+      description: Access key used by client app
+      name: X-Skygear-API-Key
+      in: header
+    access_token:
+      type: http
+      description: Access token of user
+      scheme: bearer
+      bearerFormat: token
+    master_key:
+      type: apiKey
+      description: |-
+        Master key used by admins, can perform administrative operations.
+        Can be used as access key as well.
+      name: X-Skygear-API-Key
+      in: header
