@@ -16,6 +16,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/server"
 
 	"github.com/skygeario/skygear-server/pkg/authui"
+	"github.com/skygeario/skygear-server/pkg/authui/handler"
+	"github.com/skygeario/skygear-server/pkg/authui/inject"
 )
 
 const ModuleName = "authui"
@@ -32,7 +34,7 @@ func main() {
 		logger.WithError(err).Debug("cannot load .env file")
 	}
 
-	configuration := authui.Configuration{}
+	configuration := inject.Configuration{}
 	envconfig.Process("", &configuration)
 
 	var err error
@@ -42,7 +44,7 @@ func main() {
 		logger.Fatalf("fail to create redis pool: %v", err.Error())
 	}
 
-	var tenantConfig *config.TenantConfiguration
+	var standaloneConfig *config.TenantConfiguration
 	if configuration.Standalone {
 		filename := configuration.StandaloneTenantConfigurationFile
 		reader, err := os.Open(filename)
@@ -53,10 +55,20 @@ func main() {
 		if err != nil {
 			logger.WithError(err).Fatal("Cannot parse standalone config")
 		}
-		tenantConfig = tConfig
+		standaloneConfig = tConfig
 	}
 
-	router := authui.NewRouter(dbPool, redisPool, tenantConfig)
+	dep := &inject.BootTimeDependency{
+		Configuration:                 configuration,
+		DBPool:                        dbPool,
+		RedisPool:                     redisPool,
+		StandaloneTenantConfiguration: standaloneConfig,
+	}
+	router := authui.NewRouter(dep)
+
+	handler.AttachRootHandler(router)
+	handler.AttachAuthorizeHandler(router, dep)
+
 	srv := &http.Server{
 		Addr:    configuration.Host,
 		Handler: router,

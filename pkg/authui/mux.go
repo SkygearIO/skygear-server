@@ -5,15 +5,12 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/gomodule/redigo/redis"
-
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/middleware"
 	"github.com/skygeario/skygear-server/pkg/core/sentry"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 
-	"github.com/skygeario/skygear-server/pkg/authui/handler"
+	"github.com/skygeario/skygear-server/pkg/authui/inject"
 )
 
 func InjectTenantConfigMiddleware(tenantConfig *config.TenantConfiguration) func(http.Handler) http.Handler {
@@ -25,27 +22,23 @@ func InjectTenantConfigMiddleware(tenantConfig *config.TenantConfiguration) func
 	}
 }
 
-func NewRouter(dbPool db.Pool, redisPool *redis.Pool, tenantConfig *config.TenantConfiguration) *mux.Router {
+func NewRouter(dep *inject.BootTimeDependency) *mux.Router {
 	router := mux.NewRouter()
 	router.HandleFunc("/healthz", server.HealthCheckHandler)
 
 	router.Use(sentry.Middleware(sentry.DefaultClient.Hub))
 	router.Use(middleware.RecoverMiddleware{}.Handle)
 
-	if tenantConfig != nil {
-		router.Use(InjectTenantConfigMiddleware(tenantConfig))
+	if dep.StandaloneTenantConfiguration != nil {
+		router.Use(InjectTenantConfigMiddleware(dep.StandaloneTenantConfiguration))
 		router.Use(middleware.RequestIDMiddleware{}.Handle)
 		router.Use(middleware.CORSMiddleware{}.Handle)
 	} else {
 		router.Use(middleware.ReadTenantConfigMiddleware{}.Handle)
 	}
 
-	router.Use(middleware.DBMiddleware{Pool: dbPool}.Handle)
-	router.Use(middleware.RedisMiddleware{Pool: redisPool}.Handle)
-
-	router.Path("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		handler.InjectRootHandler(r).ServeHTTP(w, r)
-	})
+	router.Use(middleware.DBMiddleware{Pool: dep.DBPool}.Handle)
+	router.Use(middleware.RedisMiddleware{Pool: dep.RedisPool}.Handle)
 
 	return router
 }

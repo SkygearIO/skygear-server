@@ -1,4 +1,4 @@
-package authui
+package inject
 
 import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
