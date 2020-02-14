@@ -50,15 +50,15 @@ func (e *Engine) Register(spec Spec) {
 	e.TemplateSpecs[spec.Type] = spec
 }
 
-func (e *Engine) RenderTemplate(templateType config.TemplateItemType, context map[string]interface{}, option RenderOptions) (out string, err error) {
-	templateBody, spec, err := e.resolveTemplate(templateType, option)
+func (e *Engine) RenderTemplate(templateType config.TemplateItemType, context map[string]interface{}, renderOptions RenderOptions, validateOpts ...func(*Validator)) (out string, err error) {
+	templateBody, spec, err := e.resolveTemplate(templateType, renderOptions)
 	if err != nil {
 		return
 	}
 	if spec.IsHTML {
-		return RenderHTMLTemplate(string(templateType), templateBody, context)
+		return RenderHTMLTemplate(string(templateType), templateBody, context, validateOpts...)
 	}
-	return RenderTextTemplate(string(templateType), templateBody, context)
+	return RenderTextTemplate(string(templateType), templateBody, context, validateOpts...)
 }
 
 func (e *Engine) resolveTemplate(templateType config.TemplateItemType, options RenderOptions) (string, Spec, error) {

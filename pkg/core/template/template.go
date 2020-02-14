@@ -87,7 +87,7 @@ func SetContextToURLQuery(u *url.URL, context map[string]interface{}) error {
 	return nil
 }
 
-func RenderTextTemplate(id string, templateString string, context map[string]interface{}) (out string, err error) {
+func RenderTextTemplate(id string, templateString string, context map[string]interface{}, opts ...func(*Validator)) (out string, err error) {
 	if templateString == "" {
 		return
 	}
@@ -98,7 +98,7 @@ func RenderTextTemplate(id string, templateString string, context map[string]int
 		return
 	}
 
-	err = ValidateTextTemplate(template)
+	err = NewValidator(opts...).ValidateTextTemplate(template)
 	if err != nil {
 		err = errors.Newf("failed to validate template: %w", err)
 		return
@@ -114,7 +114,7 @@ func RenderTextTemplate(id string, templateString string, context map[string]int
 	return
 }
 
-func RenderHTMLTemplate(id string, templateString string, context map[string]interface{}) (out string, err error) {
+func RenderHTMLTemplate(id string, templateString string, context map[string]interface{}, opts ...func(*Validator)) (out string, err error) {
 	if templateString == "" {
 		return
 	}
@@ -125,7 +125,7 @@ func RenderHTMLTemplate(id string, templateString string, context map[string]int
 		return
 	}
 
-	err = ValidateHTMLTemplate(template)
+	err = NewValidator(opts...).ValidateHTMLTemplate(template)
 	if err != nil {
 		err = errors.Newf("failed to validate template: %w", err)
 		return
