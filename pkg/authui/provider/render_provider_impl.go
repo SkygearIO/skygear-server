@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/phone"
 	"github.com/skygeario/skygear-server/pkg/core/template"
 )
 
@@ -24,8 +25,11 @@ func NewRenderProvider(tConfig *config.TenantConfiguration, templateEngine *temp
 
 func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, templateType config.TemplateItemType, data map[string]interface{}) {
 	data["appname"] = p.AppName
+	// TODO(authui): configure logo URL
 	data["logo_url"] = "https://via.placeholder.com/150"
+	// TODO(authui): asset skygear logo URL
 	data["skygear_logo_url"] = "https://via.placeholder.com/65x15?text=Skygear"
+	data["x_calling_codes"] = phone.CountryCallingCodes
 	out, err := p.TemplateEngine.RenderTemplate(templateType, data, template.RenderOptions{}, func(v *template.Validator) {
 		v.AllowRangeNode = true
 	})
