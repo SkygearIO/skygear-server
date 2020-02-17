@@ -182,7 +182,7 @@ html, body {
 			<input type="hidden" name="x_login_id_type" value="{{ .x_login_id_type }}">
 
 			<input type="hidden" name="x_step" value="input_login_id">
-			{{ if (and (eq .x_login_id_type "phone") .x_login_id_type_has_phone) }}
+			{{ if (and .x_login_id_type (eq .x_login_id_type "phone") .x_login_id_type_has_phone) }}
 				<select class="input select" name="x_calling_code">
 					<option value="">Code</option>
 					{{ range .x_calling_codes }}
@@ -191,7 +191,7 @@ html, body {
 				</select>
 				<input class="input text-input" type="tel" name="x_nation_number" placeholder="Phone number">
 			{{ end }}
-			{{ if (and (not (eq .x_login_id_type "phone")) .x_login_id_type_has_text) }}
+			{{ if (and .x_login_id_type (not (eq .x_login_id_type "phone")) .x_login_id_type_has_text) }}
 				<input class="input text-input" type="email" name="x_login_id" placeholder="Email or Username">
 			{{ end }}
 
@@ -200,10 +200,10 @@ html, body {
 			{{ end }}
 		</form>
 		<div class="authorize-loginid-links">
-		{{ if (and (eq .x_login_id_type "phone") .x_login_id_type_has_text) }}
+		{{ if (and .x_login_id_type (eq .x_login_id_type "phone") .x_login_id_type_has_text) }}
 			<a class="anchor" href="{{ .x_use_text_url }}">Use an email or username instead</a>
 		{{ end }}
-		{{ if (and (not (eq .x_login_id_type "phone")) .x_login_id_type_has_phone) }}
+		{{ if (and .x_login_id_type (not (eq .x_login_id_type "phone")) .x_login_id_type_has_phone) }}
 			<a class="anchor" href="{{ .x_use_phone_url }}">Use a phone number instead</a>
 		{{ end }}
 		</div>

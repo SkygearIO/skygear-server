@@ -79,17 +79,11 @@ func (h *AuthorizeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	if _, ok := r.Form["x_login_id_type"]; !ok {
-		// TODO(authui): use first login id type
-		r.Form.Set("x_login_id_type", "phone")
-	}
+	h.RenderProvider.PrevalidateForm(r.Form)
 
 	switch r.Method {
 	case "GET":
 		request, _ := Validate(h.Validator, "#AuthorizeRequest", r.Form)
-		// TODO(authui): look at login id key config to derive the following flags.
-		request["x_login_id_type_has_phone"] = true
-		request["x_login_id_type_has_text"] = true
 		h.RenderProvider.WritePage(w, template.TemplateItemTypeAuthUIAuthorizeHTML, request)
 	case "POST":
 		break
