@@ -5,6 +5,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 type EnableFileSystemTemplate bool
@@ -14,4 +15,5 @@ type BootTimeDependency struct {
 	DBPool                        db.Pool
 	RedisPool                     *redis.Pool
 	StandaloneTenantConfiguration *config.TenantConfiguration
+	Validator                     *validation.Validator
 }

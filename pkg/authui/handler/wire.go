@@ -9,8 +9,10 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	coreTemplate "github.com/skygeario/skygear-server/pkg/core/template"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 
 	"github.com/skygeario/skygear-server/pkg/authui/inject"
+	"github.com/skygeario/skygear-server/pkg/authui/provider"
 	"github.com/skygeario/skygear-server/pkg/authui/template"
 )
 
@@ -33,10 +35,18 @@ func ProvideEnableFileSystemTemplate(dep *inject.BootTimeDependency) inject.Enab
 	return inject.EnableFileSystemTemplate(dep.Configuration.Template.EnableFileLoader)
 }
 
+func ProvideValidator(dep *inject.BootTimeDependency) *validation.Validator {
+	return dep.Validator
+}
+
 var DefaultSet = wire.NewSet(
 	ProvideTenantConfig,
 	ProvideAssetGearLoader,
 	ProvideEnableFileSystemTemplate,
+	ProvideValidator,
+	template.NewEngine,
+	wire.Bind(new(provider.RenderProvider), new(*provider.RenderProviderImpl)),
+	provider.NewRenderProvider,
 )
 
 func InjectRootHandler(r *http.Request) *RootHandler {
@@ -45,10 +55,6 @@ func InjectRootHandler(r *http.Request) *RootHandler {
 }
 
 func InjectAuthorizeHandler(r *http.Request, dep *inject.BootTimeDependency) *AuthorizeHandler {
-	wire.Build(
-		DefaultSet,
-		template.NewEngine,
-		NewAuthorizeHandler,
-	)
+	wire.Build(DefaultSet, NewAuthorizeHandler)
 	return &AuthorizeHandler{}
 }

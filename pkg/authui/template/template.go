@@ -208,19 +208,19 @@ html, body {
 		{{ end }}
 		</div>
 
-{{ if .error }}
-	{{ if eq .error.reason "ValidationFailed" }}
-	<ul>
-	{{ range .error.info.causes }}
-	<li>{{ .message }}</li>
-	{{ end }}
-	</ul>
-	{{ else }}
-	<ul>
-	<li>{{ .error.message }}</li>
-	</ul>
-	{{ end }}
-{{ end }}
+		{{ if .error }}
+			{{ if eq .error.reason "ValidationFailed" }}
+			<ul>
+			{{ range .error.info.causes }}
+			<li>{{ .message }}</li>
+			{{ end }}
+			</ul>
+			{{ else }}
+			<ul>
+			<li>{{ .error.message }}</li>
+			</ul>
+			{{ end }}
+		{{ end }}
 
 		<div class="skygear-logo" style="background-image: url('{{ .skygear_logo_url }}')"></div>
 	</div>

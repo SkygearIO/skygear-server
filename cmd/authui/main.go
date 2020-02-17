@@ -14,6 +14,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/redis"
 	"github.com/skygeario/skygear-server/pkg/core/sentry"
 	"github.com/skygeario/skygear-server/pkg/core/server"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 
 	"github.com/skygeario/skygear-server/pkg/authui"
 	"github.com/skygeario/skygear-server/pkg/authui/handler"
@@ -58,11 +59,17 @@ func main() {
 		standaloneConfig = tConfig
 	}
 
+	validator := validation.NewValidator("http://authui.skygear.io")
+	validator.AddSchemaFragments(
+		handler.AuthorizeRequestSchema,
+	)
+
 	dep := &inject.BootTimeDependency{
 		Configuration:                 configuration,
 		DBPool:                        dbPool,
 		RedisPool:                     redisPool,
 		StandaloneTenantConfiguration: standaloneConfig,
+		Validator:                     validator,
 	}
 	router := authui.NewRouter(dep)
 

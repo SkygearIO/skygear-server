@@ -8,9 +8,11 @@ package handler
 import (
 	"github.com/google/wire"
 	"github.com/skygeario/skygear-server/pkg/authui/inject"
+	"github.com/skygeario/skygear-server/pkg/authui/provider"
 	"github.com/skygeario/skygear-server/pkg/authui/template"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	template2 "github.com/skygeario/skygear-server/pkg/core/template"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 	"net/http"
 )
 
@@ -26,7 +28,9 @@ func InjectAuthorizeHandler(r *http.Request, dep *inject.BootTimeDependency) *Au
 	enableFileSystemTemplate := ProvideEnableFileSystemTemplate(dep)
 	assetGearLoader := ProvideAssetGearLoader(dep)
 	engine := template.NewEngine(tenantConfiguration, enableFileSystemTemplate, assetGearLoader)
-	authorizeHandler := NewAuthorizeHandler(engine)
+	validator := ProvideValidator(dep)
+	renderProviderImpl := provider.NewRenderProvider(tenantConfiguration, engine)
+	authorizeHandler := NewAuthorizeHandler(engine, validator, renderProviderImpl)
 	return authorizeHandler
 }
 
@@ -51,8 +55,13 @@ func ProvideEnableFileSystemTemplate(dep *inject.BootTimeDependency) inject.Enab
 	return inject.EnableFileSystemTemplate(dep.Configuration.Template.EnableFileLoader)
 }
 
+func ProvideValidator(dep *inject.BootTimeDependency) *validation.Validator {
+	return dep.Validator
+}
+
 var DefaultSet = wire.NewSet(
 	ProvideTenantConfig,
 	ProvideAssetGearLoader,
 	ProvideEnableFileSystemTemplate,
+	ProvideValidator, template.NewEngine, wire.Bind(new(provider.RenderProvider), new(*provider.RenderProviderImpl)), provider.NewRenderProvider,
 )
