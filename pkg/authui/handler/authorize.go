@@ -44,7 +44,7 @@ const AuthorizeRequestSchema = `
 		"redirect_uri": { "type": "string" },
 		"code_challenge_method": { "type": "string", "const": "S256" },
 		"code_challenge": { "type": "string" },
-		"x_login_id_type": { "type": "string", "enum": ["raw", "phone", "email", "username"] }
+		"x_login_id_input_type": { "type": "string", "enum": ["phone", "text"] }
 	},
 	"if": {
 		"properties": {
@@ -84,7 +84,7 @@ func (h *AuthorizeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 		request, _ := Validate(h.Validator, "#AuthorizeRequest", r.Form)
-		h.RenderProvider.WritePage(w, template.TemplateItemTypeAuthUIAuthorizeHTML, request)
+		h.RenderProvider.WritePage(w, r, template.TemplateItemTypeAuthUIAuthorizeHTML, request)
 	case "POST":
 		break
 	}

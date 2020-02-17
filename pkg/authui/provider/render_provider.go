@@ -9,5 +9,5 @@ import (
 
 type RenderProvider interface {
 	PrevalidateForm(values url.Values)
-	WritePage(w http.ResponseWriter, templateType config.TemplateItemType, data map[string]interface{})
+	WritePage(w http.ResponseWriter, r *http.Request, templateType config.TemplateItemType, data map[string]interface{})
 }
