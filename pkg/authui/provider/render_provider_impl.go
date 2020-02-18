@@ -8,6 +8,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/phone"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	"github.com/skygeario/skygear-server/pkg/core/template"
 )
 
@@ -44,6 +45,7 @@ func (p *RenderProviderImpl) WritePage(
 	r *http.Request,
 	templateType config.TemplateItemType,
 	data map[string]interface{},
+	inputErr error,
 ) {
 	data["appname"] = p.AppName
 
@@ -63,14 +65,19 @@ func (p *RenderProviderImpl) WritePage(
 		}
 	}
 
-	r.Form.Set("x_login_id_input_type", "phone")
-	data["x_use_phone_url"] = fmt.Sprintf("?%s", r.Form.Encode())
+	// Use r.URL.RawQuery instead of r.Form
+	// because r.Form includes form fields.
+	q := r.URL.Query()
+	q.Set("x_login_id_input_type", "phone")
+	data["x_use_phone_url"] = fmt.Sprintf("?%s", q.Encode())
 
-	r.Form.Set("x_login_id_input_type", "text")
-	data["x_use_text_url"] = fmt.Sprintf("?%s", r.Form.Encode())
+	q = r.URL.Query()
+	q.Set("x_login_id_input_type", "text")
+	data["x_use_text_url"] = fmt.Sprintf("?%s", q.Encode())
 
 	out, err := p.TemplateEngine.RenderTemplate(templateType, data, template.RenderOptions{}, func(v *template.Validator) {
 		v.AllowRangeNode = true
+		v.MaxDepth = 10
 	})
 	if err != nil {
 		panic(err)
@@ -78,6 +85,8 @@ func (p *RenderProviderImpl) WritePage(
 	body := []byte(out)
 	w.Header().Set("Content-Type", "text/html")
 	w.Header().Set("Content-Length", strconv.Itoa(len(body)))
-	w.WriteHeader(200)
+	if apiError := skyerr.AsAPIError(inputErr); apiError != nil {
+		w.WriteHeader(apiError.Code)
+	}
 	w.Write(body)
 }

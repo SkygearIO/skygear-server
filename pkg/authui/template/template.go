@@ -161,7 +161,7 @@ html, body {
 	margin: 0 3px 0 10px;
 }
 
-.authorize-loginid-form [name="x_nation_number"] {
+.authorize-loginid-form [name="x_national_number"] {
 	flex: 1;
 	margin: 0 10px 0 3px;
 }
@@ -181,45 +181,52 @@ html, body {
 
 			<input type="hidden" name="x_login_id_input_type" value="{{ .x_login_id_input_type }}">
 
-			<input type="hidden" name="x_step" value="input_login_id">
-			{{ if (and .x_login_id_input_type (eq .x_login_id_input_type "phone") .x_login_id_input_type_has_phone) }}
-				<select class="input select" name="x_calling_code">
-					<option value="">Code</option>
-					{{ range .x_calling_codes }}
-					<option value="+{{ . }}">+{{ . }}</option>
-					{{ end }}
-				</select>
-				<input class="input text-input" type="tel" name="x_nation_number" placeholder="Phone number">
-			{{ end }}
-			{{ if (and .x_login_id_input_type (not (eq .x_login_id_input_type "phone")) .x_login_id_input_type_has_text) }}
-				<input class="input text-input" type="email" name="x_login_id" placeholder="Email or Username">
-			{{ end }}
+			{{ if .x_login_id_input_type }}{{ if and (eq .x_login_id_input_type "phone") .x_login_id_input_type_has_phone }}
+			<select class="input select" name="x_calling_code">
+				<option value="">Code</option>
+				{{ range .x_calling_codes }}
+				<option
+					value="{{ . }}"
+					{{ if $.x_calling_code }}{{ if eq $.x_calling_code . }}
+					selected
+					{{ end }}{{ end }}
+					>
+					+{{ . }}
+				</option>
+				{{ end }}
+			</select>
+			<input class="input text-input" type="tel" name="x_national_number" placeholder="Phone number" value="{{ .x_national_number }}">
+			{{ end }}{{ end }}
 
-			{{ if (or .x_login_id_input_type_has_phone .x_login_id_input_type_has_text) }}
-				<button class="btn primary-btn" type="submit" name="_">Login</button>
+			{{ if .x_login_id_input_type }}{{ if and (not (eq .x_login_id_input_type "phone")) .x_login_id_input_type_has_text }}
+			<input class="input text-input" type="text" name="x_login_id" placeholder="Email or Username" value="{{ .x_login_id }}">
+			{{ end }}{{ end }}
+
+			{{ if or .x_login_id_input_type_has_phone .x_login_id_input_type_has_text }}
+			<button class="btn primary-btn" type="submit" name="x_step" value="submit_login_id">Login</button>
 			{{ end }}
 		</form>
 		<div class="authorize-loginid-links">
-		{{ if (and .x_login_id_input_type (eq .x_login_id_input_type "phone") .x_login_id_input_type_has_text) }}
+		{{ if .x_login_id_input_type }}{{ if and (eq .x_login_id_input_type "phone") .x_login_id_input_type_has_text }}
 			<a class="anchor" href="{{ .x_use_text_url }}">Use an email or username instead</a>
-		{{ end }}
-		{{ if (and .x_login_id_input_type (not (eq .x_login_id_input_type "phone")) .x_login_id_input_type_has_phone) }}
+		{{ end }}{{ end }}
+		{{ if .x_login_id_input_type }}{{ if and (not (eq .x_login_id_input_type "phone")) .x_login_id_input_type_has_phone }}
 			<a class="anchor" href="{{ .x_use_phone_url }}">Use a phone number instead</a>
-		{{ end }}
+		{{ end }}{{ end }}
 		</div>
 
 		{{ if .error }}
-			{{ if eq .error.reason "ValidationFailed" }}
-			<ul>
-			{{ range .error.info.causes }}
+		{{ if eq .error.reason "ValidationFailed" }}
+		<ul>
+		{{ range .error.info.causes }}
 			<li>{{ .message }}</li>
-			{{ end }}
-			</ul>
-			{{ else }}
-			<ul>
+		{{ end }}
+		</ul>
+		{{ else }}
+		<ul>
 			<li>{{ .error.message }}</li>
-			</ul>
-			{{ end }}
+		</ul>
+		{{ end }}
 		{{ end }}
 
 		<div class="skygear-logo" style="background-image: url('{{ .skygear_logo_url }}')"></div>
