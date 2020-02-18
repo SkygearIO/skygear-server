@@ -79,7 +79,7 @@ func (p *RenderProviderImpl) WritePage(
 		data["error"] = eJSON["error"]
 	}
 
-	out, err := p.TemplateEngine.RenderTemplate(templateType, data, template.RenderOptions{}, func(v *template.Validator) {
+	out, err := p.TemplateEngine.RenderTemplate(templateType, data, template.ResolveOptions{}, func(v *template.Validator) {
 		v.AllowRangeNode = true
 		v.MaxDepth = 10
 	})

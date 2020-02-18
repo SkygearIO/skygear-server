@@ -8,7 +8,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
-type RenderOptions struct {
+type ResolveOptions struct {
 	Required bool
 	Key      string
 }
@@ -50,8 +50,8 @@ func (e *Engine) Register(spec Spec) {
 	e.TemplateSpecs[spec.Type] = spec
 }
 
-func (e *Engine) RenderTemplate(templateType config.TemplateItemType, context map[string]interface{}, renderOptions RenderOptions, validateOpts ...func(*Validator)) (out string, err error) {
-	templateBody, spec, err := e.resolveTemplate(templateType, renderOptions)
+func (e *Engine) RenderTemplate(templateType config.TemplateItemType, context map[string]interface{}, resolveOptions ResolveOptions, validateOpts ...func(*Validator)) (out string, err error) {
+	templateBody, spec, err := e.resolveTemplate(templateType, resolveOptions)
 	if err != nil {
 		return
 	}
@@ -61,7 +61,7 @@ func (e *Engine) RenderTemplate(templateType config.TemplateItemType, context ma
 	return RenderTextTemplate(string(templateType), templateBody, context, validateOpts...)
 }
 
-func (e *Engine) resolveTemplate(templateType config.TemplateItemType, options RenderOptions) (string, Spec, error) {
+func (e *Engine) resolveTemplate(templateType config.TemplateItemType, options ResolveOptions) (string, Spec, error) {
 	spec, found := e.TemplateSpecs[templateType]
 	if !found {
 		panic("template: unregistered template type: " + templateType)
