@@ -44,9 +44,14 @@ var DefaultSet = wire.NewSet(
 	ProvideAssetGearLoader,
 	ProvideEnableFileSystemTemplate,
 	ProvideValidator,
+
 	template.NewEngine,
+
 	wire.Bind(new(provider.RenderProvider), new(*provider.RenderProviderImpl)),
 	provider.NewRenderProvider,
+
+	wire.Bind(new(provider.ValidateProvider), new(*provider.ValidateProviderImpl)),
+	provider.NewValidateProvider,
 )
 
 func InjectRootHandler(r *http.Request) *RootHandler {

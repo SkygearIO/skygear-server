@@ -6,7 +6,6 @@ import (
 	"github.com/gorilla/mux"
 
 	coreTemplate "github.com/skygeario/skygear-server/pkg/core/template"
-	"github.com/skygeario/skygear-server/pkg/core/validation"
 
 	"github.com/skygeario/skygear-server/pkg/authui/inject"
 	"github.com/skygeario/skygear-server/pkg/authui/provider"
@@ -14,16 +13,16 @@ import (
 )
 
 type AuthorizeHandler struct {
-	TemplateEngine *coreTemplate.Engine
-	Validator      *validation.Validator
-	RenderProvider provider.RenderProvider
+	TemplateEngine   *coreTemplate.Engine
+	ValidateProvider provider.ValidateProvider
+	RenderProvider   provider.RenderProvider
 }
 
-func NewAuthorizeHandler(templateEngine *coreTemplate.Engine, validator *validation.Validator, renderProvider provider.RenderProvider) *AuthorizeHandler {
+func NewAuthorizeHandler(templateEngine *coreTemplate.Engine, validateProvider provider.ValidateProvider, renderProvider provider.RenderProvider) *AuthorizeHandler {
 	return &AuthorizeHandler{
-		TemplateEngine: templateEngine,
-		Validator:      validator,
-		RenderProvider: renderProvider,
+		TemplateEngine:   templateEngine,
+		ValidateProvider: validateProvider,
+		RenderProvider:   renderProvider,
 	}
 }
 
@@ -83,8 +82,8 @@ func (h *AuthorizeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case "GET":
-		request, _ := Validate(h.Validator, "#AuthorizeRequest", r.Form)
-		h.RenderProvider.WritePage(w, r, template.TemplateItemTypeAuthUIAuthorizeHTML, request)
+		data, _ := h.ValidateProvider.Validate("#AuthorizeRequest", r.Form)
+		h.RenderProvider.WritePage(w, r, template.TemplateItemTypeAuthUIAuthorizeHTML, data)
 	case "POST":
 		break
 	}

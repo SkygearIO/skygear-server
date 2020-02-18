@@ -29,8 +29,9 @@ func InjectAuthorizeHandler(r *http.Request, dep *inject.BootTimeDependency) *Au
 	assetGearLoader := ProvideAssetGearLoader(dep)
 	engine := template.NewEngine(tenantConfiguration, enableFileSystemTemplate, assetGearLoader)
 	validator := ProvideValidator(dep)
+	validateProviderImpl := provider.NewValidateProvider(tenantConfiguration, validator)
 	renderProviderImpl := provider.NewRenderProvider(tenantConfiguration, engine)
-	authorizeHandler := NewAuthorizeHandler(engine, validator, renderProviderImpl)
+	authorizeHandler := NewAuthorizeHandler(engine, validateProviderImpl, renderProviderImpl)
 	return authorizeHandler
 }
 
@@ -63,5 +64,5 @@ var DefaultSet = wire.NewSet(
 	ProvideTenantConfig,
 	ProvideAssetGearLoader,
 	ProvideEnableFileSystemTemplate,
-	ProvideValidator, template.NewEngine, wire.Bind(new(provider.RenderProvider), new(*provider.RenderProviderImpl)), provider.NewRenderProvider,
+	ProvideValidator, template.NewEngine, wire.Bind(new(provider.RenderProvider), new(*provider.RenderProviderImpl)), provider.NewRenderProvider, wire.Bind(new(provider.ValidateProvider), new(*provider.ValidateProviderImpl)), provider.NewValidateProvider,
 )
