@@ -10,6 +10,7 @@ import (
 
 type Validator struct {
 	AllowRangeNode bool
+	MaxDepth       int
 }
 
 func NewValidator(opts ...func(*Validator)) *Validator {
@@ -50,7 +51,11 @@ func (v *Validator) ValidateHTMLTemplate(template *html.Template) error {
 
 func (v *Validator) validateTree(tree *parse.Tree) (err error) {
 	validateFn := func(n parse.Node, depth int) (cont bool) {
-		if depth > 4 {
+		maxDepth := v.MaxDepth
+		if maxDepth == 0 {
+			maxDepth = 4
+		}
+		if depth > maxDepth {
 			err = fmt.Errorf("%s: template nested too deep", formatLocation(tree, n))
 		} else {
 			switch n := n.(type) {
