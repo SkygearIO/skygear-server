@@ -15,6 +15,7 @@ func NewEngine(tConfig *config.TenantConfiguration, fs inject.EnableFileSystemTe
 	})
 
 	e.Register(TemplateAuthUIAuthorizeHTML)
+	e.Register(TemplateAuthUIEnterPasswordHTML)
 
 	return e
 }

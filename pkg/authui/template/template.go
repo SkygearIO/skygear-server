@@ -7,6 +7,8 @@ import (
 
 const (
 	TemplateItemTypeAuthUIAuthorizeHTML config.TemplateItemType = "auth_ui_authorize.html"
+	// nolint
+	TemplateItemTypeAuthUIEnterPasswordHTML config.TemplateItemType = "auth_ui_enter_password.html"
 )
 
 // TODO(authui): Apply autoprefixer on CSS and externalize it.
@@ -24,18 +26,24 @@ html, body {
 	min-height: 100vh;
 }
 
+html {
+	font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;
+}
+
 *, *::before, *::after {
 	box-sizing: border-box;
 }
 
-.primary-txt {}
+.primary-txt {
+	color: #333333;
+}
 
 .secondary-txt {}
 
 .errors {
 	list-style-type: none;
 	margin: 0;
-	padding: 10px 20px;
+	padding: 0;
 }
 
 .error-txt {
@@ -121,6 +129,13 @@ html, body {
 	background-repeat: no-repeat;
 }
 
+.back-button {
+	width: 36px;
+	height: 36px;
+	background-color: #f3f2f1;
+	border-radius: 18px;
+}
+
 @media (min-width: 320px) {
 }
 
@@ -139,38 +154,69 @@ html, body {
 	}
 }
 
-.authorize-loginid-links {
-	display: flex;
-	flex-direction: column;
-	padding: 10px 24px;
-}
-
-.authorize-loginid-links .anchor {
-	display: block;
-}
-
 .authorize-loginid-form {
 	display: flex;
-	flex-direction: row;
-	padding: 10px;
+	flex-direction: column;
+	padding: 20px;
 }
 
-.authorize-loginid-form [name="x_login_id"] {
-	flex: 1;
-	margin: 0 15px 0 10px;
+.authorize-loginid-form .phone-input {
+	display: flex;
+	flex-direction: row;
+}
+
+.authorize-loginid-form .anchor {
+	display: block;
+	padding: 4px 0;
 }
 
 .authorize-loginid-form [type="submit"] {
-	margin: 0 10px 0 15px;
+	align-self: flex-end;
 }
 
 .authorize-loginid-form [name="x_calling_code"] {
-	margin: 0 3px 0 10px;
+	margin: 0 3px 0 0;
 }
 
 .authorize-loginid-form [name="x_national_number"] {
 	flex: 1;
-	margin: 0 10px 0 3px;
+	margin: 0 0 0 3px;
+}
+
+.enter-password-form {
+	display: flex;
+	flex-direction: column;
+	padding: 20px;
+}
+
+.enter-password-form .title {
+	font-size: 24px;
+	font-weight: 600;
+	padding: 8px 0;
+	margin: 0 0 30px 0;
+}
+
+.enter-password-form .login-id {
+	padding: 0 10px;
+}
+
+.enter-password-form .nav-bar {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+}
+
+.enter-password-form .anchor {
+	display: block;
+	padding: 4px 0;
+}
+
+.enter-password-form #password {
+	display: block;
+}
+
+.enter-password-form [type="submit"] {
+	align-self: flex-end;
 }
 
 </style>
@@ -218,61 +264,115 @@ const defineSkygearLogo = `
 {{ end }}
 `
 
+var defines = []string{
+	defineHead,
+	defineHidden,
+	defineLogo,
+	defineError,
+	defineSkygearLogo,
+}
+
 var TemplateAuthUIAuthorizeHTML = template.Spec{
-	Type:   TemplateItemTypeAuthUIAuthorizeHTML,
-	IsHTML: true,
-	Defines: []string{
-		defineHead,
-		defineHidden,
-		defineLogo,
-		defineError,
-		defineSkygearLogo,
-	},
+	Type:    TemplateItemTypeAuthUIAuthorizeHTML,
+	IsHTML:  true,
+	Defines: defines,
 	Default: `<!DOCTYPE html>
 <html>
 {{ template "HEAD" . }}
 <body class="page">
 	<div class="content">
 		{{ template "LOGO" . }}
-		{{ template "ERROR" . }}
 		<form class="authorize-loginid-form" method="post">
 			{{ template "HIDDEN" . }}
 
+			{{ template "ERROR" . }}
+
 			{{ if .x_login_id_input_type }}{{ if and (eq .x_login_id_input_type "phone") .x_login_id_input_type_has_phone }}
-			<select class="input select" name="x_calling_code">
-				<option value="">Code</option>
-				{{ range .x_calling_codes }}
-				<option
-					value="{{ . }}"
-					{{ if $.x_calling_code }}{{ if eq $.x_calling_code . }}
-					selected
-					{{ end }}{{ end }}
-					>
-					+{{ . }}
-				</option>
-				{{ end }}
-			</select>
-			<input class="input text-input" type="tel" name="x_national_number" placeholder="Phone number" value="{{ .x_national_number }}">
+			<div class="phone-input">
+				<select class="input select" name="x_calling_code">
+					<option value="">Code</option>
+					{{ range .x_calling_codes }}
+					<option
+						value="{{ . }}"
+						{{ if $.x_calling_code }}{{ if eq $.x_calling_code . }}
+						selected
+						{{ end }}{{ end }}
+						>
+						+{{ . }}
+					</option>
+					{{ end }}
+				</select>
+				<input class="input text-input" type="tel" name="x_national_number" placeholder="Phone number" value="{{ .x_national_number }}">
+			</div>
 			{{ end }}{{ end }}
 
 			{{ if .x_login_id_input_type }}{{ if and (not (eq .x_login_id_input_type "phone")) .x_login_id_input_type_has_text }}
 			<input class="input text-input" type="text" name="x_login_id" placeholder="Email or Username" value="{{ .x_login_id }}">
 			{{ end }}{{ end }}
 
+			{{ if .x_login_id_input_type }}{{ if and (eq .x_login_id_input_type "phone") .x_login_id_input_type_has_text }}
+			<a class="anchor" href="{{ .x_use_text_url }}">Use an email or username instead</a>
+			{{ end }}{{ end }}
+			{{ if .x_login_id_input_type }}{{ if and (not (eq .x_login_id_input_type "phone")) .x_login_id_input_type_has_phone }}
+			<a class="anchor" href="{{ .x_use_phone_url }}">Use a phone number instead</a>
+			{{ end }}{{ end }}
+
 			{{ if or .x_login_id_input_type_has_phone .x_login_id_input_type_has_text }}
-			<button class="btn primary-btn" type="submit" name="x_step" value="submit_login_id">Login</button>
+			<button class="btn primary-btn" type="submit" name="x_step" value="submit_login_id">Next</button>
 			{{ end }}
 		</form>
-		<div class="authorize-loginid-links">
-		{{ if .x_login_id_input_type }}{{ if and (eq .x_login_id_input_type "phone") .x_login_id_input_type_has_text }}
-			<a class="anchor" href="{{ .x_use_text_url }}">Use an email or username instead</a>
-		{{ end }}{{ end }}
-		{{ if .x_login_id_input_type }}{{ if and (not (eq .x_login_id_input_type "phone")) .x_login_id_input_type_has_phone }}
-			<a class="anchor" href="{{ .x_use_phone_url }}">Use a phone number instead</a>
-		{{ end }}{{ end }}
-		</div>
 		{{ template "SKYGEAR_LOGO" . }}
 	</div>
+</body>
+</html>
+`,
+}
+
+var TemplateAuthUIEnterPasswordHTML = template.Spec{
+	Type:    TemplateItemTypeAuthUIEnterPasswordHTML,
+	IsHTML:  true,
+	Defines: defines,
+	Default: `<!DOCTYPE html>
+<html>
+{{ template "HEAD" . }}
+<body class="page">
+<div class="content">
+
+{{ template "LOGO" . }}
+
+<form class="enter-password-form" method="post">
+
+{{ template "HIDDEN" . }}
+
+<div class="nav-bar">
+	<div class="back-button"></div>
+	<div class="login-id primary-txt">
+	{{ if .x_calling_code }}
+		+{{ .x_calling_code}} {{ .x_national_number }}
+	{{ else }}
+		{{ .x_login_id }}
+	{{ end }}
+	</div>
+</div>
+
+<div class="title primary-txt">Enter password</div>
+
+{{ template "ERROR" . }}
+
+<input type="hidden" name="x_calling_code" value="{{ .x_calling_code }}">
+<input type="hidden" name="x_national_number" value="{{ .x_national_number }}">
+<input type="hidden" name="x_login_id" value="{{ .x_login_id }}">
+
+<input id="password" class="input text-input" type="password" name="x_password" placeholder="Password" value="{{ .x_password }}">
+
+<a class="anchor" href="">Forgot Password?</a>
+
+<button class="btn primary-btn" type="submit" name="x_step" value="submit_password">Next</button>
+
+</form>
+{{ template "SKYGEAR_LOGO" . }}
+
+</div>
 </body>
 </html>
 `,

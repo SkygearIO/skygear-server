@@ -62,6 +62,8 @@ func main() {
 	validator := validation.NewValidator("http://authui.skygear.io")
 	validator.AddSchemaFragments(
 		handler.AuthorizeRequestSchema,
+		handler.AuthorizeLoginIDRequestSchema,
+		handler.AuthorizeEnterPasswordRequestSchema,
 	)
 
 	dep := &inject.BootTimeDependency{
