@@ -12,11 +12,8 @@ const (
 // TODO(authui): Apply autoprefixer on CSS and externalize it.
 // TODO(authui): Introduce a build pipeline to upload asset.
 
-var TemplateAuthUIAuthorizeHTML = template.Spec{
-	Type:   TemplateItemTypeAuthUIAuthorizeHTML,
-	IsHTML: true,
-	Default: `<!DOCTYPE html>
-<html>
+const defineHead = `
+{{ define "HEAD" }}
 <head>
 <title>{{ .appname }}</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -34,6 +31,16 @@ html, body {
 .primary-txt {}
 
 .secondary-txt {}
+
+.errors {
+	list-style-type: none;
+	margin: 0;
+	padding: 10px 20px;
+}
+
+.error-txt {
+	color: #e30f0f;
+}
 
 .btn {
 	-webkit-appearance: none;
@@ -135,7 +142,7 @@ html, body {
 .authorize-loginid-links {
 	display: flex;
 	flex-direction: column;
-	padding: 10px 20px;
+	padding: 10px 24px;
 }
 
 .authorize-loginid-links .anchor {
@@ -168,18 +175,68 @@ html, body {
 
 </style>
 </head>
+{{ end }}
+`
+
+const defineHidden = `
+{{ define "HIDDEN" }}
+<input type="hidden" name="scope" value="{{ .scope }}">
+<input type="hidden" name="response_type" value="{{ .response_type }}">
+<input type="hidden" name="client_id" value="{{ .client_id }}">
+<input type="hidden" name="redirect_uri" value="{{ .redirect_uri }}">
+<input type="hidden" name="code_challenge_method" value="{{ .code_challenge_method }}">
+<input type="hidden" name="code_challenge" value="{{ .code_challenge }}">
+<input type="hidden" name="x_login_id_input_type" value="{{ .x_login_id_input_type }}">
+{{ end }}
+`
+
+const defineLogo = `
+{{ define "LOGO" }}
+<div class="logo" style="background-image: url('{{ .logo_url }}')"></div>
+{{ end }}
+`
+
+const defineError = `
+{{ define "ERROR" }}
+{{ if .error }}{{ if eq .error.reason "ValidationFailed" }}
+<ul class="errors">
+{{ range .error.info.causes }}
+<li class="error-txt">{{ .message }}</li>
+{{ end }}
+</ul>
+{{ else }}
+<ul>
+<li class="error-txt">{{ .error.message }}</li>
+</ul>
+{{ end }}{{ end }}
+{{ end }}
+`
+
+const defineSkygearLogo = `
+{{ define "SKYGEAR_LOGO" }}
+<div class="skygear-logo" style="background-image: url('{{ .skygear_logo_url }}')"></div>
+{{ end }}
+`
+
+var TemplateAuthUIAuthorizeHTML = template.Spec{
+	Type:   TemplateItemTypeAuthUIAuthorizeHTML,
+	IsHTML: true,
+	Defines: []string{
+		defineHead,
+		defineHidden,
+		defineLogo,
+		defineError,
+		defineSkygearLogo,
+	},
+	Default: `<!DOCTYPE html>
+<html>
+{{ template "HEAD" . }}
 <body class="page">
 	<div class="content">
-		<div class="logo" style="background-image: url('{{ .logo_url }}')"></div>
+		{{ template "LOGO" . }}
+		{{ template "ERROR" . }}
 		<form class="authorize-loginid-form" method="post">
-			<input type="hidden" name="scope" value="{{ .scope }}">
-			<input type="hidden" name="response_type" value="{{ .response_type }}">
-			<input type="hidden" name="client_id" value="{{ .client_id }}">
-			<input type="hidden" name="redirect_uri" value="{{ .redirect_uri }}">
-			<input type="hidden" name="code_challenge_method" value="{{ .code_challenge_method }}">
-			<input type="hidden" name="code_challenge" value="{{ .code_challenge }}">
-
-			<input type="hidden" name="x_login_id_input_type" value="{{ .x_login_id_input_type }}">
+			{{ template "HIDDEN" . }}
 
 			{{ if .x_login_id_input_type }}{{ if and (eq .x_login_id_input_type "phone") .x_login_id_input_type_has_phone }}
 			<select class="input select" name="x_calling_code">
@@ -214,22 +271,7 @@ html, body {
 			<a class="anchor" href="{{ .x_use_phone_url }}">Use a phone number instead</a>
 		{{ end }}{{ end }}
 		</div>
-
-		{{ if .error }}
-		{{ if eq .error.reason "ValidationFailed" }}
-		<ul>
-		{{ range .error.info.causes }}
-			<li>{{ .message }}</li>
-		{{ end }}
-		</ul>
-		{{ else }}
-		<ul>
-			<li>{{ .error.message }}</li>
-		</ul>
-		{{ end }}
-		{{ end }}
-
-		<div class="skygear-logo" style="background-image: url('{{ .skygear_logo_url }}')"></div>
+		{{ template "SKYGEAR_LOGO" . }}
 	</div>
 </body>
 </html>
