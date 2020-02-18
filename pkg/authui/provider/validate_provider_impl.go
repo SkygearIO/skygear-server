@@ -2,12 +2,9 @@ package provider
 
 import (
 	"crypto/subtle"
-	"encoding/json"
 	"net/url"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/errors"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -53,26 +50,5 @@ func (p *ValidateProviderImpl) Validate(schemaID string, form url.Values) (map[s
 		}
 	}
 
-	if err != nil {
-		originalErr := err
-
-		b, err := json.Marshal(struct {
-			Error *skyerr.APIError `json:"error"`
-		}{skyerr.AsAPIError(err)})
-		if err != nil {
-			return nil, errors.WithSecondaryError(originalErr, err)
-		}
-
-		var eJSON map[string]interface{}
-		err = json.Unmarshal(b, &eJSON)
-		if err != nil {
-			return nil, errors.WithSecondaryError(originalErr, err)
-		}
-
-		j["error"] = eJSON["error"]
-
-		return j, originalErr
-	}
-
-	return j, nil
+	return j, err
 }

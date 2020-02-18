@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -74,6 +75,22 @@ func (p *RenderProviderImpl) WritePage(
 	q = r.URL.Query()
 	q.Set("x_login_id_input_type", "text")
 	data["x_use_text_url"] = fmt.Sprintf("?%s", q.Encode())
+
+	// Populate inputErr into data
+	if inputErr != nil {
+		b, err := json.Marshal(struct {
+			Error *skyerr.APIError `json:"error"`
+		}{skyerr.AsAPIError(inputErr)})
+		if err != nil {
+			panic(err)
+		}
+		var eJSON map[string]interface{}
+		err = json.Unmarshal(b, &eJSON)
+		if err != nil {
+			panic(err)
+		}
+		data["error"] = eJSON["error"]
+	}
 
 	out, err := p.TemplateEngine.RenderTemplate(templateType, data, template.RenderOptions{}, func(v *template.Validator) {
 		v.AllowRangeNode = true
