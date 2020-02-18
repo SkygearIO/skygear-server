@@ -56,9 +56,21 @@ func (e *Engine) RenderTemplate(templateType config.TemplateItemType, context ma
 		return
 	}
 	if spec.IsHTML {
-		return RenderHTMLTemplate(string(templateType), templateBody, context, validateOpts...)
+		return RenderHTMLTemplate(RenderOptions{
+			Name:          string(templateType),
+			TemplateBody:  templateBody,
+			Defines:       spec.Defines,
+			Context:       context,
+			ValidatorOpts: validateOpts,
+		})
 	}
-	return RenderTextTemplate(string(templateType), templateBody, context, validateOpts...)
+	return RenderTextTemplate(RenderOptions{
+		Name:          string(templateType),
+		TemplateBody:  templateBody,
+		Defines:       spec.Defines,
+		Context:       context,
+		ValidatorOpts: validateOpts,
+	})
 }
 
 func (e *Engine) resolveTemplate(templateType config.TemplateItemType, options ResolveOptions) (string, Spec, error) {

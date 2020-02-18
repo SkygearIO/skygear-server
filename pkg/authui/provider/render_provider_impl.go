@@ -81,6 +81,7 @@ func (p *RenderProviderImpl) WritePage(
 
 	out, err := p.TemplateEngine.RenderTemplate(templateType, data, template.ResolveOptions{}, func(v *template.Validator) {
 		v.AllowRangeNode = true
+		v.AllowTemplateNode = true
 		v.MaxDepth = 10
 	})
 	if err != nil {

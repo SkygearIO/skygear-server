@@ -9,8 +9,9 @@ import (
 )
 
 type Validator struct {
-	AllowRangeNode bool
-	MaxDepth       int
+	AllowRangeNode    bool
+	AllowTemplateNode bool
+	MaxDepth          int
 }
 
 func NewValidator(opts ...func(*Validator)) *Validator {
@@ -78,6 +79,12 @@ func (v *Validator) validateTree(tree *parse.Tree) (err error) {
 				}
 			case *parse.RangeNode:
 				if v.AllowRangeNode {
+					break
+				} else {
+					err = fmt.Errorf("%s: forbidden construct %T", formatLocation(tree, n), n)
+				}
+			case *parse.TemplateNode:
+				if v.AllowTemplateNode {
 					break
 				} else {
 					err = fmt.Errorf("%s: forbidden construct %T", formatLocation(tree, n), n)
