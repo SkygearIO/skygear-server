@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url"
 	"strconv"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -26,18 +25,6 @@ func NewRenderProvider(tConfig *config.TenantConfiguration, templateEngine *temp
 		AppName:        tConfig.AppConfig.DisplayAppName,
 		TemplateEngine: templateEngine,
 		LoginIDKeys:    tConfig.AppConfig.Auth.LoginIDKeys,
-	}
-}
-
-func (p *RenderProviderImpl) PrevalidateForm(form url.Values) {
-	if _, ok := form["x_login_id_input_type"]; !ok {
-		if len(p.LoginIDKeys) > 0 {
-			if string(p.LoginIDKeys[0].Type) == "phone" {
-				form.Set("x_login_id_input_type", "phone")
-			} else {
-				form.Set("x_login_id_input_type", "text")
-			}
-		}
 	}
 }
 

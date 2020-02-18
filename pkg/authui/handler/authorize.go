@@ -87,7 +87,7 @@ func (h *AuthorizeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	h.RenderProvider.PrevalidateForm(r.Form)
+	h.ValidateProvider.Prevalidate(r.Form)
 
 	step := r.Form.Get("x_step")
 

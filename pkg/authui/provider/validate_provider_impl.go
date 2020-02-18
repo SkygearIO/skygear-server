@@ -9,14 +9,36 @@ import (
 )
 
 type ValidateProviderImpl struct {
-	APIClients []config.APIClientConfiguration
-	Validator  *validation.Validator
+	APIClients  []config.APIClientConfiguration
+	LoginIDKeys []config.LoginIDKeyConfiguration
+	Validator   *validation.Validator
 }
 
 func NewValidateProvider(tConfig *config.TenantConfiguration, validator *validation.Validator) *ValidateProviderImpl {
 	return &ValidateProviderImpl{
-		APIClients: tConfig.AppConfig.Clients,
-		Validator:  validator,
+		APIClients:  tConfig.AppConfig.Clients,
+		LoginIDKeys: tConfig.AppConfig.Auth.LoginIDKeys,
+		Validator:   validator,
+	}
+}
+
+func (p *ValidateProviderImpl) Prevalidate(form url.Values) {
+	// Remove empty fields
+	for name := range form {
+		if form.Get(name) == "" {
+			delete(form, name)
+		}
+	}
+
+	// Set defaults
+	if _, ok := form["x_login_id_input_type"]; !ok {
+		if len(p.LoginIDKeys) > 0 {
+			if string(p.LoginIDKeys[0].Type) == "phone" {
+				form.Set("x_login_id_input_type", "phone")
+			} else {
+				form.Set("x_login_id_input_type", "text")
+			}
+		}
 	}
 }
 
