@@ -99,7 +99,7 @@ html {
 
 .secondary-btn {}
 
-.anchor {
+.link, .anchor {
 	text-decoration: none;
 	font-size: 12px;
 }
@@ -165,7 +165,7 @@ html {
 	flex-direction: row;
 }
 
-.authorize-loginid-form .anchor {
+.authorize-loginid-form .link {
 	display: block;
 	padding: 4px 0;
 }
@@ -181,6 +181,46 @@ html {
 .authorize-loginid-form [name="x_national_number"] {
 	flex: 1;
 	margin: 0 0 0 3px;
+}
+
+.sso-btn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 36px;
+	border-radius: 2px;
+	border: solid 1px #d8d8d8;
+	margin: 4px 0;
+}
+
+.sso-btn.apple {
+	color: white;
+	background-color: black;
+}
+
+.sso-btn.google {
+	color: #333333;
+	background-color: white;
+}
+
+.sso-btn.facebook {
+	color: white;
+	background-color: #3b5998;
+}
+
+.sso-btn.linkedin {
+	color: white;
+	background-color: #187fb8;
+}
+
+.sso-btn.azuread {
+	color: #333333;
+	background-color: #e2e2e2;
+}
+
+.sso-loginid-separator {
+	text-align: center;
+	margin: 6px 0 30px 0;
 }
 
 .enter-password-form {
@@ -285,6 +325,14 @@ var TemplateAuthUIAuthorizeHTML = template.Spec{
 		<form class="authorize-loginid-form" method="post">
 			{{ template "HIDDEN" . }}
 
+			<a class="btn sso-btn apple">Sign in with Apple</a>
+			<a class="btn sso-btn google">Sign in with Google</a>
+			<a class="btn sso-btn facebook">Sign in with Facebook</a>
+			<a class="btn sso-btn linkedin">Sign in with Linkedin</a>
+			<a class="btn sso-btn azuread">Sign in with Azure AD</a>
+
+			<div class="primary-txt sso-loginid-separator">or</div>
+
 			{{ template "ERROR" . }}
 
 			{{ if .x_login_id_input_type }}{{ if and (eq .x_login_id_input_type "phone") .x_login_id_input_type_has_phone }}
@@ -311,11 +359,14 @@ var TemplateAuthUIAuthorizeHTML = template.Spec{
 			{{ end }}{{ end }}
 
 			{{ if .x_login_id_input_type }}{{ if and (eq .x_login_id_input_type "phone") .x_login_id_input_type_has_text }}
-			<a class="anchor" href="{{ .x_use_text_url }}">Use an email or username instead</a>
+			<a class="link anchor" href="{{ .x_use_text_url }}">Use an email or username instead</a>
 			{{ end }}{{ end }}
 			{{ if .x_login_id_input_type }}{{ if and (not (eq .x_login_id_input_type "phone")) .x_login_id_input_type_has_phone }}
-			<a class="anchor" href="{{ .x_use_phone_url }}">Use a phone number instead</a>
+			<a class="link anchor" href="{{ .x_use_phone_url }}">Use a phone number instead</a>
 			{{ end }}{{ end }}
+
+			<div class="link"><span class="primary-text">Don't have an account yet? </span><a class="anchor" href="#">Create one!</a></div>
+			<a class="link anchor" href="#">Can't access your account?</a>
 
 			{{ if or .x_login_id_input_type_has_phone .x_login_id_input_type_has_text }}
 			<button class="btn primary-btn" type="submit" name="x_step" value="submit_login_id">Next</button>
