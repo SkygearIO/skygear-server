@@ -10,6 +10,8 @@ import (
 
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/logging"
+	"github.com/skygeario/skygear-server/pkg/core/sentry"
 	coreTemplate "github.com/skygeario/skygear-server/pkg/core/template"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 
@@ -47,6 +49,12 @@ func ProvideValidator(dep *inject.BootTimeDependency) *validation.Validator {
 	return dep.Validator
 }
 
+func ProvideLoggingFactory(tConfig *config.TenantConfiguration, ctx context.Context, r *http.Request) *logging.FactoryImpl {
+	logHook := logging.NewDefaultLogHook(tConfig.DefaultSensitiveLoggerValues())
+	sentryHook := sentry.NewLogHookFromContext(ctx)
+	return logging.NewFactoryFromRequest(r, logHook, sentryHook)
+}
+
 var DefaultSet = wire.NewSet(
 	ProvideTenantConfig,
 	ProvideContext,
@@ -65,6 +73,9 @@ var DefaultSet = wire.NewSet(
 	wire.Bind(new(coreAuth.ContextGetter), new(*provider.AuthContextProviderImpl)),
 	wire.Bind(new(provider.AuthContextProvider), new(*provider.AuthContextProviderImpl)),
 	provider.NewAuthContextProvider,
+
+	wire.Bind(new(logging.Factory), new(*logging.FactoryImpl)),
+	ProvideLoggingFactory,
 )
 
 func InjectRootHandler(r *http.Request) *RootHandler {
