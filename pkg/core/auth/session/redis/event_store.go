@@ -15,14 +15,15 @@ const maxEventStreamLength = 1000
 const eventTypeAccessEvent = "access"
 
 type EventStoreImpl struct {
-	ctx   context.Context
-	appID string
+	ctx           context.Context
+	appID         string
+	streamKeyFunc EventStreamKeyFunc
 }
 
 var _ session.EventStore = &EventStoreImpl{}
 
-func NewEventStore(ctx context.Context, appID string) *EventStoreImpl {
-	return &EventStoreImpl{ctx: ctx, appID: appID}
+func NewEventStore(ctx context.Context, appID string, streamKeyFunc EventStreamKeyFunc) *EventStoreImpl {
+	return &EventStoreImpl{ctx: ctx, appID: appID, streamKeyFunc: streamKeyFunc}
 }
 
 func (s *EventStoreImpl) AppendAccessEvent(session *auth.Session, event *auth.SessionAccessEvent) (err error) {
@@ -32,7 +33,7 @@ func (s *EventStoreImpl) AppendAccessEvent(session *auth.Session, event *auth.Se
 	}
 
 	conn := redis.GetConn(s.ctx)
-	key := eventStreamKey(s.appID, session.ID)
+	key := s.streamKeyFunc(s.appID, session.ID)
 
 	args := []interface{}{key}
 	if maxEventStreamLength >= 0 {

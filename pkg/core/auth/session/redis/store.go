@@ -18,16 +18,32 @@ import (
 )
 
 type StoreImpl struct {
-	ctx    context.Context
-	appID  string
-	time   time.Provider
-	logger *logrus.Entry
+	ctx         context.Context
+	appID       string
+	time        time.Provider
+	logger      *logrus.Entry
+	keyFunc     SessionKeyFunc
+	listKeyFunc SessionListKeyFunc
 }
 
 var _ session.Store = &StoreImpl{}
 
-func NewStore(ctx context.Context, appID string, time time.Provider, loggerFactory logging.Factory) *StoreImpl {
-	return &StoreImpl{ctx: ctx, appID: appID, time: time, logger: loggerFactory.NewLogger("redis-session-store")}
+func NewStore(
+	ctx context.Context,
+	appID string,
+	time time.Provider,
+	loggerFactory logging.Factory,
+	keyFunc SessionKeyFunc,
+	listKeyFunc SessionListKeyFunc,
+) *StoreImpl {
+	return &StoreImpl{
+		ctx:         ctx,
+		appID:       appID,
+		time:        time,
+		logger:      loggerFactory.NewLogger("redis-session-store"),
+		keyFunc:     keyFunc,
+		listKeyFunc: listKeyFunc,
+	}
 }
 
 func (s *StoreImpl) Create(sess *auth.Session, expireAt gotime.Time) (err error) {
@@ -42,8 +58,8 @@ func (s *StoreImpl) Create(sess *auth.Session, expireAt gotime.Time) (err error)
 
 	conn := redis.GetConn(s.ctx)
 	ttl := expireAt.Sub(s.time.NowUTC())
-	listKey := sessionListKey(s.appID, sess.UserID)
-	key := sessionKey(s.appID, sess.ID)
+	listKey := s.listKeyFunc(s.appID, sess.UserID)
+	key := s.keyFunc(s.appID, sess.ID)
 
 	_, err = conn.Do("HSET", listKey, key, expiry)
 	if err != nil {
@@ -72,8 +88,8 @@ func (s *StoreImpl) Update(sess *auth.Session, expireAt gotime.Time) (err error)
 
 	conn := redis.GetConn(s.ctx)
 	ttl := expireAt.Sub(s.time.NowUTC())
-	listKey := sessionListKey(s.appID, sess.UserID)
-	key := sessionKey(s.appID, sess.ID)
+	listKey := s.listKeyFunc(s.appID, sess.UserID)
+	key := s.keyFunc(s.appID, sess.ID)
 
 	_, err = conn.Do("HSET", listKey, key, expiry)
 	if err != nil {
@@ -90,7 +106,7 @@ func (s *StoreImpl) Update(sess *auth.Session, expireAt gotime.Time) (err error)
 
 func (s *StoreImpl) Get(id string) (sess *auth.Session, err error) {
 	conn := redis.GetConn(s.ctx)
-	key := sessionKey(s.appID, id)
+	key := s.keyFunc(s.appID, id)
 	data, err := goredis.Bytes(conn.Do("GET", key))
 	if errors.Is(err, goredis.ErrNil) {
 		err = session.ErrSessionNotFound
@@ -104,8 +120,8 @@ func (s *StoreImpl) Get(id string) (sess *auth.Session, err error) {
 
 func (s *StoreImpl) Delete(session *auth.Session) (err error) {
 	conn := redis.GetConn(s.ctx)
-	key := sessionKey(s.appID, session.ID)
-	listKey := sessionListKey(s.appID, session.UserID)
+	key := s.keyFunc(s.appID, session.ID)
+	listKey := s.listKeyFunc(s.appID, session.UserID)
 
 	_, err = conn.Do("DEL", key)
 	if err == nil {
@@ -128,8 +144,8 @@ func (s *StoreImpl) DeleteBatch(sessions []*auth.Session) (err error) {
 	sessionKeys := []interface{}{}
 	listKeys := map[string]struct{}{}
 	for _, session := range sessions {
-		sessionKeys = append(sessionKeys, sessionKey(s.appID, session.ID))
-		listKeys[sessionListKey(s.appID, session.UserID)] = struct{}{}
+		sessionKeys = append(sessionKeys, s.keyFunc(s.appID, session.ID))
+		listKeys[s.listKeyFunc(s.appID, session.UserID)] = struct{}{}
 	}
 	if len(sessionKeys) == 0 {
 		return nil
@@ -155,7 +171,7 @@ func (s *StoreImpl) DeleteBatch(sessions []*auth.Session) (err error) {
 
 func (s *StoreImpl) DeleteAll(userID string, sessionID string) error {
 	conn := redis.GetConn(s.ctx)
-	listKey := sessionListKey(s.appID, userID)
+	listKey := s.listKeyFunc(s.appID, userID)
 
 	sessionKeys, err := goredis.Strings(conn.Do("HKEYS", listKey))
 	if err != nil {
@@ -163,7 +179,7 @@ func (s *StoreImpl) DeleteAll(userID string, sessionID string) error {
 	}
 
 	sessionKeysDel := []interface{}{}
-	excludeSessionkey := sessionKey(s.appID, sessionID)
+	excludeSessionkey := s.keyFunc(s.appID, sessionID)
 	for _, sessionKey := range sessionKeys {
 		if excludeSessionkey == sessionKey {
 			continue
@@ -193,7 +209,7 @@ func (s *StoreImpl) DeleteAll(userID string, sessionID string) error {
 func (s *StoreImpl) List(userID string) (sessions []*auth.Session, err error) {
 	now := s.time.NowUTC()
 	conn := redis.GetConn(s.ctx)
-	listKey := sessionListKey(s.appID, userID)
+	listKey := s.listKeyFunc(s.appID, userID)
 
 	sessionList, err := goredis.StringMap(conn.Do("HGETALL", listKey))
 	if err != nil {
