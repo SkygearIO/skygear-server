@@ -6,6 +6,7 @@
 package handler
 
 import (
+	"context"
 	"github.com/google/wire"
 	"github.com/skygeario/skygear-server/pkg/authui/inject"
 	"github.com/skygeario/skygear-server/pkg/authui/provider"
@@ -43,6 +44,11 @@ func ProvideTenantConfig(r *http.Request) *config.TenantConfiguration {
 	return config.GetTenantConfig(r.Context())
 }
 
+func ProvideContext(r *http.Request) context.Context {
+
+	return r.Context()
+}
+
 func ProvideAssetGearLoader(dep *inject.BootTimeDependency) *template2.AssetGearLoader {
 	configuration := dep.Configuration
 	if configuration.Template.AssetGearEndpoint != "" && configuration.Template.AssetGearMasterKey != "" {
@@ -64,6 +70,7 @@ func ProvideValidator(dep *inject.BootTimeDependency) *validation.Validator {
 
 var DefaultSet = wire.NewSet(
 	ProvideTenantConfig,
+	ProvideContext,
 	ProvideAssetGearLoader,
 	ProvideEnableFileSystemTemplate,
 	ProvideValidator, template.NewEngine, wire.Bind(new(provider.RenderProvider), new(*provider.RenderProviderImpl)), provider.NewRenderProvider, wire.Bind(new(provider.ValidateProvider), new(*provider.ValidateProviderImpl)), provider.NewValidateProvider, wire.Bind(new(auth.ContextGetter), new(*provider.AuthContextProviderImpl)), wire.Bind(new(provider.AuthContextProvider), new(*provider.AuthContextProviderImpl)), provider.NewAuthContextProvider,

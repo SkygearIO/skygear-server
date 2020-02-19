@@ -3,6 +3,7 @@
 package handler
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/google/wire"
@@ -19,6 +20,12 @@ import (
 
 func ProvideTenantConfig(r *http.Request) *config.TenantConfiguration {
 	return config.GetTenantConfig(r.Context())
+}
+
+func ProvideContext(r *http.Request) context.Context {
+	// NOTE(louis): This context must be used to store or retrieve values.
+	// It is only intended to provide deadline associated with the request.
+	return r.Context()
 }
 
 func ProvideAssetGearLoader(dep *inject.BootTimeDependency) *coreTemplate.AssetGearLoader {
@@ -42,6 +49,7 @@ func ProvideValidator(dep *inject.BootTimeDependency) *validation.Validator {
 
 var DefaultSet = wire.NewSet(
 	ProvideTenantConfig,
+	ProvideContext,
 	ProvideAssetGearLoader,
 	ProvideEnableFileSystemTemplate,
 	ProvideValidator,
