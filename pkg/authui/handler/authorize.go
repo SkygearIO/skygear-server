@@ -128,14 +128,12 @@ const AuthorizeEnterPasswordRequestSchema = `
 
 func (h *AuthorizeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		// TODO(authui): Render error
 		panic(err)
 	}
 
 	h.ValidateProvider.Prevalidate(r.Form)
 
 	step := r.Form.Get("x_step")
-
 	switch step {
 	case "submit_password":
 		data, err := h.ValidateProvider.Validate("#AuthorizeEnterPasswordRequest", r.Form)
