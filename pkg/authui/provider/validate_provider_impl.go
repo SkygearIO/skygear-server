@@ -1,24 +1,28 @@
 package provider
 
 import (
-	"crypto/subtle"
 	"net/url"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/model"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 type ValidateProviderImpl struct {
-	APIClients  []config.APIClientConfiguration
-	LoginIDKeys []config.LoginIDKeyConfiguration
-	Validator   *validation.Validator
+	LoginIDKeys         []config.LoginIDKeyConfiguration
+	Validator           *validation.Validator
+	AuthContextProvider AuthContextProvider
 }
 
-func NewValidateProvider(tConfig *config.TenantConfiguration, validator *validation.Validator) *ValidateProviderImpl {
+func NewValidateProvider(
+	tConfig *config.TenantConfiguration,
+	validator *validation.Validator,
+	authContextProvider AuthContextProvider,
+) *ValidateProviderImpl {
 	return &ValidateProviderImpl{
-		APIClients:  tConfig.AppConfig.Clients,
-		LoginIDKeys: tConfig.AppConfig.Auth.LoginIDKeys,
-		Validator:   validator,
+		LoginIDKeys:         tConfig.AppConfig.Auth.LoginIDKeys,
+		Validator:           validator,
+		AuthContextProvider: authContextProvider,
 	}
 }
 
@@ -52,14 +56,9 @@ func (p *ValidateProviderImpl) Validate(schemaID string, form url.Values) (map[s
 
 	// Validate client_id
 	if err == nil {
-		if clientID, ok := j["client_id"].(string); ok {
-			found := false
-			for _, clientConfig := range p.APIClients {
-				if subtle.ConstantTimeCompare([]byte(clientID), []byte(clientConfig.APIKey)) == 1 {
-					found = true
-				}
-			}
-			if !found {
+		if _, ok := j["client_id"].(string); ok {
+			accessKey := p.AuthContextProvider.AccessKey()
+			if accessKey.Type != model.APIAccessKeyType {
 				causes := []validation.ErrorCause{
 					validation.ErrorCause{
 						Kind:    validation.ErrorGeneral,
@@ -71,6 +70,8 @@ func (p *ValidateProviderImpl) Validate(schemaID string, form url.Values) (map[s
 			}
 		}
 	}
+
+	// TODO(authui): validate redirect_uri
 
 	return j, err
 }

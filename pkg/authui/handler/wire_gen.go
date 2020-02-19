@@ -10,6 +10,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/authui/inject"
 	"github.com/skygeario/skygear-server/pkg/authui/provider"
 	"github.com/skygeario/skygear-server/pkg/authui/template"
+	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	template2 "github.com/skygeario/skygear-server/pkg/core/template"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
@@ -29,9 +30,10 @@ func InjectAuthorizeHandler(r *http.Request, dep *inject.BootTimeDependency) *Au
 	assetGearLoader := ProvideAssetGearLoader(dep)
 	engine := template.NewEngine(tenantConfiguration, enableFileSystemTemplate, assetGearLoader)
 	validator := ProvideValidator(dep)
-	validateProviderImpl := provider.NewValidateProvider(tenantConfiguration, validator)
+	authContextProviderImpl := provider.NewAuthContextProvider(tenantConfiguration, r)
+	validateProviderImpl := provider.NewValidateProvider(tenantConfiguration, validator, authContextProviderImpl)
 	renderProviderImpl := provider.NewRenderProvider(tenantConfiguration, engine)
-	authorizeHandler := NewAuthorizeHandler(engine, validateProviderImpl, renderProviderImpl)
+	authorizeHandler := NewAuthorizeHandler(engine, validateProviderImpl, renderProviderImpl, authContextProviderImpl)
 	return authorizeHandler
 }
 
@@ -64,5 +66,5 @@ var DefaultSet = wire.NewSet(
 	ProvideTenantConfig,
 	ProvideAssetGearLoader,
 	ProvideEnableFileSystemTemplate,
-	ProvideValidator, template.NewEngine, wire.Bind(new(provider.RenderProvider), new(*provider.RenderProviderImpl)), provider.NewRenderProvider, wire.Bind(new(provider.ValidateProvider), new(*provider.ValidateProviderImpl)), provider.NewValidateProvider,
+	ProvideValidator, template.NewEngine, wire.Bind(new(provider.RenderProvider), new(*provider.RenderProviderImpl)), provider.NewRenderProvider, wire.Bind(new(provider.ValidateProvider), new(*provider.ValidateProviderImpl)), provider.NewValidateProvider, wire.Bind(new(auth.ContextGetter), new(*provider.AuthContextProviderImpl)), wire.Bind(new(provider.AuthContextProvider), new(*provider.AuthContextProviderImpl)), provider.NewAuthContextProvider,
 )

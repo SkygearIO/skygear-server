@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/wire"
 
+	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	coreTemplate "github.com/skygeario/skygear-server/pkg/core/template"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
@@ -52,6 +53,10 @@ var DefaultSet = wire.NewSet(
 
 	wire.Bind(new(provider.ValidateProvider), new(*provider.ValidateProviderImpl)),
 	provider.NewValidateProvider,
+
+	wire.Bind(new(coreAuth.ContextGetter), new(*provider.AuthContextProviderImpl)),
+	wire.Bind(new(provider.AuthContextProvider), new(*provider.AuthContextProviderImpl)),
+	provider.NewAuthContextProvider,
 )
 
 func InjectRootHandler(r *http.Request) *RootHandler {

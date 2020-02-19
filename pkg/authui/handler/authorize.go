@@ -14,16 +14,23 @@ import (
 )
 
 type AuthorizeHandler struct {
-	TemplateEngine   *coreTemplate.Engine
-	ValidateProvider provider.ValidateProvider
-	RenderProvider   provider.RenderProvider
+	TemplateEngine      *coreTemplate.Engine
+	ValidateProvider    provider.ValidateProvider
+	RenderProvider      provider.RenderProvider
+	AuthContextProvider provider.AuthContextProvider
 }
 
-func NewAuthorizeHandler(templateEngine *coreTemplate.Engine, validateProvider provider.ValidateProvider, renderProvider provider.RenderProvider) *AuthorizeHandler {
+func NewAuthorizeHandler(
+	templateEngine *coreTemplate.Engine,
+	validateProvider provider.ValidateProvider,
+	renderProvider provider.RenderProvider,
+	authContextProvider provider.AuthContextProvider,
+) *AuthorizeHandler {
 	return &AuthorizeHandler{
-		TemplateEngine:   templateEngine,
-		ValidateProvider: validateProvider,
-		RenderProvider:   renderProvider,
+		TemplateEngine:      templateEngine,
+		ValidateProvider:    validateProvider,
+		RenderProvider:      renderProvider,
+		AuthContextProvider: authContextProvider,
 	}
 }
 
@@ -131,6 +138,8 @@ func (h *AuthorizeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
+	h.AuthContextProvider.Init(r)
+
 	h.ValidateProvider.Prevalidate(r.Form)
 
 	step := r.Form.Get("x_step")
@@ -159,5 +168,4 @@ func (h *AuthorizeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		data, err := h.ValidateProvider.Validate("#AuthorizeRequest", r.Form)
 		h.RenderProvider.WritePage(w, r, template.TemplateItemTypeAuthUIAuthorizeHTML, data, err)
 	}
-
 }
