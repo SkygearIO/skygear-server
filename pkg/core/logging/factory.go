@@ -12,30 +12,30 @@ type Factory interface {
 	NewLogger(name string) *logrus.Entry
 }
 
-func NewFactory(hooks ...logrus.Hook) Factory {
-	return factoryImpl{hooks: hooks}
+func NewFactory(hooks ...logrus.Hook) *FactoryImpl {
+	return &FactoryImpl{hooks: hooks}
 }
 
-func NewFactoryFromRequest(r *http.Request, hooks ...logrus.Hook) Factory {
-	return factoryImpl{
+func NewFactoryFromRequest(r *http.Request, hooks ...logrus.Hook) *FactoryImpl {
+	return &FactoryImpl{
 		requestID: r.Header.Get(corehttp.HeaderRequestID),
 		hooks:     hooks,
 	}
 }
 
-func NewFactoryFromRequestID(requestID string, hooks ...logrus.Hook) Factory {
-	return factoryImpl{
+func NewFactoryFromRequestID(requestID string, hooks ...logrus.Hook) *FactoryImpl {
+	return &FactoryImpl{
 		requestID: requestID,
 		hooks:     hooks,
 	}
 }
 
-type factoryImpl struct {
+type FactoryImpl struct {
 	requestID string
 	hooks     []logrus.Hook
 }
 
-func (f factoryImpl) NewLogger(name string) *logrus.Entry {
+func (f *FactoryImpl) NewLogger(name string) *logrus.Entry {
 	entry := LoggerEntry(name)
 	if f.requestID != "" {
 		entry = entry.WithField("request_id", f.requestID)

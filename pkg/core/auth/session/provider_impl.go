@@ -28,7 +28,7 @@ const (
 
 const extraDataSizeLimit = 1024
 
-type providerImpl struct {
+type ProviderImpl struct {
 	req           *http.Request
 	store         Store
 	eventStore    EventStore
@@ -39,8 +39,10 @@ type providerImpl struct {
 	rand *rand.Rand
 }
 
-func NewProvider(req *http.Request, store Store, eventStore EventStore, authContext auth.ContextGetter, clientConfigs []config.APIClientConfiguration) Provider {
-	return &providerImpl{
+var _ Provider = &ProviderImpl{}
+
+func NewProvider(req *http.Request, store Store, eventStore EventStore, authContext auth.ContextGetter, clientConfigs []config.APIClientConfiguration) *ProviderImpl {
+	return &ProviderImpl{
 		req:           req,
 		store:         store,
 		eventStore:    eventStore,
@@ -51,7 +53,7 @@ func NewProvider(req *http.Request, store Store, eventStore EventStore, authCont
 	}
 }
 
-func (p *providerImpl) Create(authnSess *auth.AuthnSession, beforeCreate func(*auth.Session) error) (*auth.Session, auth.SessionTokens, error) {
+func (p *ProviderImpl) Create(authnSess *auth.AuthnSession, beforeCreate func(*auth.Session) error) (*auth.Session, auth.SessionTokens, error) {
 	now := p.time.NowUTC()
 	clientID := p.authContext.AccessKey().ClientID
 	clientConfig, _ := model.GetClientConfig(p.clientConfigs, clientID)
@@ -101,7 +103,7 @@ func (p *providerImpl) Create(authnSess *auth.AuthnSession, beforeCreate func(*a
 	return &sess, tok, nil
 }
 
-func (p *providerImpl) GetByToken(token string, kind auth.SessionTokenKind) (*auth.Session, error) {
+func (p *ProviderImpl) GetByToken(token string, kind auth.SessionTokenKind) (*auth.Session, error) {
 	id, ok := decodeTokenSessionID(token)
 	if !ok {
 		return nil, ErrSessionNotFound
@@ -152,7 +154,7 @@ func (p *providerImpl) GetByToken(token string, kind auth.SessionTokenKind) (*au
 	return s, nil
 }
 
-func (p *providerImpl) Get(id string) (*auth.Session, error) {
+func (p *ProviderImpl) Get(id string) (*auth.Session, error) {
 	session, err := p.store.Get(id)
 	if err != nil {
 		if !errors.Is(err, ErrSessionNotFound) {
@@ -170,7 +172,7 @@ func (p *providerImpl) Get(id string) (*auth.Session, error) {
 	return session, nil
 }
 
-func (p *providerImpl) Access(s *auth.Session) error {
+func (p *ProviderImpl) Access(s *auth.Session) error {
 	now := p.time.NowUTC()
 	accessEvent := newAccessEvent(now, p.req)
 
@@ -192,7 +194,7 @@ func (p *providerImpl) Access(s *auth.Session) error {
 	return nil
 }
 
-func (p *providerImpl) Invalidate(session *auth.Session) error {
+func (p *ProviderImpl) Invalidate(session *auth.Session) error {
 	err := p.store.Delete(session)
 	if err != nil {
 		return errors.HandledWithMessage(err, "failed to invalidate session")
@@ -200,7 +202,7 @@ func (p *providerImpl) Invalidate(session *auth.Session) error {
 	return nil
 }
 
-func (p *providerImpl) InvalidateBatch(sessions []*auth.Session) error {
+func (p *ProviderImpl) InvalidateBatch(sessions []*auth.Session) error {
 	err := p.store.DeleteBatch(sessions)
 	if err != nil {
 		return errors.HandledWithMessage(err, "failed to invalidate sessions")
@@ -208,7 +210,7 @@ func (p *providerImpl) InvalidateBatch(sessions []*auth.Session) error {
 	return nil
 }
 
-func (p *providerImpl) InvalidateAll(userID string, sessionID string) error {
+func (p *ProviderImpl) InvalidateAll(userID string, sessionID string) error {
 	err := p.store.DeleteAll(userID, sessionID)
 	if err != nil {
 		return errors.HandledWithMessage(err, "failed to invalidate sessions")
@@ -216,7 +218,7 @@ func (p *providerImpl) InvalidateAll(userID string, sessionID string) error {
 	return nil
 }
 
-func (p *providerImpl) List(userID string) (sessions []*auth.Session, err error) {
+func (p *ProviderImpl) List(userID string) (sessions []*auth.Session, err error) {
 	storedSessions, err := p.store.List(userID)
 	if err != nil {
 		err = errors.HandledWithMessage(err, "failed to list sessions")
@@ -248,7 +250,7 @@ func (p *providerImpl) List(userID string) (sessions []*auth.Session, err error)
 	return
 }
 
-func (p *providerImpl) Refresh(session *auth.Session) (string, error) {
+func (p *ProviderImpl) Refresh(session *auth.Session) (string, error) {
 	accessToken := p.generateAccessToken(session)
 	clientConfig, _ := model.GetClientConfig(p.clientConfigs, session.ClientID)
 
@@ -260,7 +262,7 @@ func (p *providerImpl) Refresh(session *auth.Session) (string, error) {
 	return accessToken, err
 }
 
-func (p *providerImpl) UpdateMFA(sess *auth.Session, opts auth.AuthnSessionStepMFAOptions) error {
+func (p *ProviderImpl) UpdateMFA(sess *auth.Session, opts auth.AuthnSessionStepMFAOptions) error {
 	now := p.time.NowUTC()
 	sess.AuthenticatorID = opts.AuthenticatorID
 	sess.AuthenticatorType = opts.AuthenticatorType
@@ -270,7 +272,7 @@ func (p *providerImpl) UpdateMFA(sess *auth.Session, opts auth.AuthnSessionStepM
 	return err
 }
 
-func (p *providerImpl) UpdatePrincipal(sess *auth.Session, principalID string) error {
+func (p *ProviderImpl) UpdatePrincipal(sess *auth.Session, principalID string) error {
 	sess.PrincipalID = principalID
 
 	clientConfig, _ := model.GetClientConfig(p.clientConfigs, sess.ClientID)
@@ -282,14 +284,14 @@ func (p *providerImpl) UpdatePrincipal(sess *auth.Session, principalID string) e
 	return err
 }
 
-func (p *providerImpl) generateAccessToken(s *auth.Session) string {
+func (p *ProviderImpl) generateAccessToken(s *auth.Session) string {
 	accessToken := encodeToken(s.ID, corerand.StringWithAlphabet(tokenLength, tokenAlphabet, p.rand))
 	s.AccessTokenHash = crypto.SHA256String(accessToken)
 	s.AccessTokenCreatedAt = p.time.NowUTC()
 	return accessToken
 }
 
-func (p *providerImpl) generateRefreshToken(s *auth.Session) string {
+func (p *ProviderImpl) generateRefreshToken(s *auth.Session) string {
 	refreshToken := encodeToken(s.ID, corerand.StringWithAlphabet(tokenLength, tokenAlphabet, p.rand))
 	s.RefreshTokenHash = crypto.SHA256String(refreshToken)
 	return refreshToken

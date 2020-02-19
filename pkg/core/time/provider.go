@@ -7,16 +7,16 @@ type Provider interface {
 	Now() time.Time
 }
 
-type providerImpl struct{}
+type ProviderImpl struct{}
 
-func NewProvider() Provider {
-	return providerImpl{}
+func NewProvider() ProviderImpl {
+	return ProviderImpl{}
 }
 
-func (provider providerImpl) NowUTC() time.Time {
+func (provider ProviderImpl) NowUTC() time.Time {
 	return time.Now().UTC()
 }
 
-func (provider providerImpl) Now() time.Time {
+func (provider ProviderImpl) Now() time.Time {
 	return time.Now()
 }

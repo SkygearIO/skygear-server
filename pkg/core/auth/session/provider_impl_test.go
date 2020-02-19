@@ -48,7 +48,7 @@ func TestProvider(t *testing.T) {
 			},
 		}
 
-		var provider Provider = &providerImpl{
+		var provider Provider = &ProviderImpl{
 			req:           req,
 			store:         store,
 			eventStore:    eventStore,

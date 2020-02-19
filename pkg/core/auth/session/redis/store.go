@@ -17,20 +17,20 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
-type store struct {
+type StoreImpl struct {
 	ctx    context.Context
 	appID  string
 	time   time.Provider
 	logger *logrus.Entry
 }
 
-var _ session.Store = &store{}
+var _ session.Store = &StoreImpl{}
 
-func NewStore(ctx context.Context, appID string, time time.Provider, loggerFactory logging.Factory) session.Store {
-	return &store{ctx: ctx, appID: appID, time: time, logger: loggerFactory.NewLogger("redis-session-store")}
+func NewStore(ctx context.Context, appID string, time time.Provider, loggerFactory logging.Factory) *StoreImpl {
+	return &StoreImpl{ctx: ctx, appID: appID, time: time, logger: loggerFactory.NewLogger("redis-session-store")}
 }
 
-func (s *store) Create(sess *auth.Session, expireAt gotime.Time) (err error) {
+func (s *StoreImpl) Create(sess *auth.Session, expireAt gotime.Time) (err error) {
 	json, err := json.Marshal(sess)
 	if err != nil {
 		return
@@ -60,7 +60,7 @@ func (s *store) Create(sess *auth.Session, expireAt gotime.Time) (err error) {
 	return
 }
 
-func (s *store) Update(sess *auth.Session, expireAt gotime.Time) (err error) {
+func (s *StoreImpl) Update(sess *auth.Session, expireAt gotime.Time) (err error) {
 	data, err := json.Marshal(sess)
 	if err != nil {
 		return
@@ -88,7 +88,7 @@ func (s *store) Update(sess *auth.Session, expireAt gotime.Time) (err error) {
 	return
 }
 
-func (s *store) Get(id string) (sess *auth.Session, err error) {
+func (s *StoreImpl) Get(id string) (sess *auth.Session, err error) {
 	conn := redis.GetConn(s.ctx)
 	key := sessionKey(s.appID, id)
 	data, err := goredis.Bytes(conn.Do("GET", key))
@@ -102,7 +102,7 @@ func (s *store) Get(id string) (sess *auth.Session, err error) {
 	return
 }
 
-func (s *store) Delete(session *auth.Session) (err error) {
+func (s *StoreImpl) Delete(session *auth.Session) (err error) {
 	conn := redis.GetConn(s.ctx)
 	key := sessionKey(s.appID, session.ID)
 	listKey := sessionListKey(s.appID, session.UserID)
@@ -122,7 +122,7 @@ func (s *store) Delete(session *auth.Session) (err error) {
 	return
 }
 
-func (s *store) DeleteBatch(sessions []*auth.Session) (err error) {
+func (s *StoreImpl) DeleteBatch(sessions []*auth.Session) (err error) {
 	conn := redis.GetConn(s.ctx)
 
 	sessionKeys := []interface{}{}
@@ -153,7 +153,7 @@ func (s *store) DeleteBatch(sessions []*auth.Session) (err error) {
 	return
 }
 
-func (s *store) DeleteAll(userID string, sessionID string) error {
+func (s *StoreImpl) DeleteAll(userID string, sessionID string) error {
 	conn := redis.GetConn(s.ctx)
 	listKey := sessionListKey(s.appID, userID)
 
@@ -190,7 +190,7 @@ func (s *store) DeleteAll(userID string, sessionID string) error {
 	return nil
 }
 
-func (s *store) List(userID string) (sessions []*auth.Session, err error) {
+func (s *StoreImpl) List(userID string) (sessions []*auth.Session, err error) {
 	now := s.time.NowUTC()
 	conn := redis.GetConn(s.ctx)
 	listKey := sessionListKey(s.appID, userID)
