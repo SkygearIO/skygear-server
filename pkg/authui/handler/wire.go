@@ -4,21 +4,37 @@ package handler
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/google/wire"
 
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/auth/session"
+	redisSession "github.com/skygeario/skygear-server/pkg/core/auth/session/redis"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/sentry"
 	coreTemplate "github.com/skygeario/skygear-server/pkg/core/template"
+	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 
 	"github.com/skygeario/skygear-server/pkg/authui/inject"
 	"github.com/skygeario/skygear-server/pkg/authui/provider"
 	"github.com/skygeario/skygear-server/pkg/authui/template"
 )
+
+var SessionKey = redisSession.SessionKeyFunc(func(appID string, sessionID string) string {
+	return fmt.Sprintf("%s:auth-ui:session:%s", appID, sessionID)
+})
+
+var SessionListKey = redisSession.SessionListKeyFunc(func(appID string, sessionID string) string {
+	return fmt.Sprintf("%s:auth-ui:session-list:%s", appID, sessionID)
+})
+
+var EventStreamKey = redisSession.EventStreamKeyFunc(func(appID string, sessionID string) string {
+	return fmt.Sprintf("%s:auth-ui:event:%s", appID, sessionID)
+})
 
 func ProvideTenantConfig(r *http.Request) *config.TenantConfiguration {
 	return config.GetTenantConfig(r.Context())
@@ -55,6 +71,50 @@ func ProvideLoggingFactory(tConfig *config.TenantConfiguration, ctx context.Cont
 	return logging.NewFactoryFromRequest(r, logHook, sentryHook)
 }
 
+func ProvideSessionStore(
+	tConfig *config.TenantConfiguration,
+	ctx context.Context,
+	timeProvider coreTime.Provider,
+	loggingFactory logging.Factory,
+) *redisSession.StoreImpl {
+	return redisSession.NewStore(
+		ctx,
+		tConfig.AppID,
+		timeProvider,
+		loggingFactory,
+		SessionKey,
+		SessionListKey,
+	)
+}
+
+func ProvideSessionEventStore(
+	tConfig *config.TenantConfiguration,
+	ctx context.Context,
+) *redisSession.EventStoreImpl {
+	return redisSession.NewEventStore(
+		ctx,
+		tConfig.AppID,
+		EventStreamKey,
+	)
+}
+
+func ProvideSessionProvider(
+	r *http.Request,
+	tConfig *config.TenantConfiguration,
+	store session.Store,
+	eventStore session.EventStore,
+	authContext coreAuth.ContextGetter,
+	timeProvider coreTime.Provider,
+) *session.ProviderImpl {
+	return session.NewProvider(
+		r,
+		store,
+		eventStore,
+		authContext,
+		tConfig.AppConfig.Clients,
+	)
+}
+
 var DefaultSet = wire.NewSet(
 	ProvideTenantConfig,
 	ProvideContext,
@@ -63,6 +123,9 @@ var DefaultSet = wire.NewSet(
 	ProvideValidator,
 
 	template.NewEngine,
+
+	wire.Bind(new(coreTime.Provider), new(coreTime.ProviderImpl)),
+	coreTime.NewProvider,
 
 	wire.Bind(new(provider.RenderProvider), new(*provider.RenderProviderImpl)),
 	provider.NewRenderProvider,
@@ -76,6 +139,13 @@ var DefaultSet = wire.NewSet(
 
 	wire.Bind(new(logging.Factory), new(*logging.FactoryImpl)),
 	ProvideLoggingFactory,
+
+	wire.Bind(new(session.Store), new(*redisSession.StoreImpl)),
+	ProvideSessionStore,
+	wire.Bind(new(session.EventStore), new(*redisSession.EventStoreImpl)),
+	ProvideSessionEventStore,
+	wire.Bind(new(session.Provider), new(*session.ProviderImpl)),
+	ProvideSessionProvider,
 )
 
 func InjectRootHandler(r *http.Request) *RootHandler {

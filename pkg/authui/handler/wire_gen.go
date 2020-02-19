@@ -7,15 +7,19 @@ package handler
 
 import (
 	"context"
+	"fmt"
 	"github.com/google/wire"
 	"github.com/skygeario/skygear-server/pkg/authui/inject"
 	"github.com/skygeario/skygear-server/pkg/authui/provider"
 	"github.com/skygeario/skygear-server/pkg/authui/template"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/auth/session"
+	"github.com/skygeario/skygear-server/pkg/core/auth/session/redis"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/sentry"
 	template2 "github.com/skygeario/skygear-server/pkg/core/template"
+	"github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 	"net/http"
 )
@@ -41,6 +45,18 @@ func InjectAuthorizeHandler(r *http.Request, dep *inject.BootTimeDependency) *Au
 }
 
 // wire.go:
+
+var SessionKey = redis.SessionKeyFunc(func(appID string, sessionID string) string {
+	return fmt.Sprintf("%s:auth-ui:session:%s", appID, sessionID)
+})
+
+var SessionListKey = redis.SessionListKeyFunc(func(appID string, sessionID string) string {
+	return fmt.Sprintf("%s:auth-ui:session-list:%s", appID, sessionID)
+})
+
+var EventStreamKey = redis.EventStreamKeyFunc(func(appID string, sessionID string) string {
+	return fmt.Sprintf("%s:auth-ui:event:%s", appID, sessionID)
+})
 
 func ProvideTenantConfig(r *http.Request) *config.TenantConfiguration {
 	return config.GetTenantConfig(r.Context())
@@ -76,10 +92,54 @@ func ProvideLoggingFactory(tConfig *config.TenantConfiguration, ctx context.Cont
 	return logging.NewFactoryFromRequest(r, logHook, sentryHook)
 }
 
+func ProvideSessionStore(
+	tConfig *config.TenantConfiguration,
+	ctx context.Context,
+	timeProvider time.Provider,
+	loggingFactory logging.Factory,
+) *redis.StoreImpl {
+	return redis.NewStore(
+		ctx,
+		tConfig.AppID,
+		timeProvider,
+		loggingFactory,
+		SessionKey,
+		SessionListKey,
+	)
+}
+
+func ProvideSessionEventStore(
+	tConfig *config.TenantConfiguration,
+	ctx context.Context,
+) *redis.EventStoreImpl {
+	return redis.NewEventStore(
+		ctx,
+		tConfig.AppID,
+		EventStreamKey,
+	)
+}
+
+func ProvideSessionProvider(
+	r *http.Request,
+	tConfig *config.TenantConfiguration,
+	store session.Store,
+	eventStore session.EventStore,
+	authContext auth.ContextGetter,
+	timeProvider time.Provider,
+) *session.ProviderImpl {
+	return session.NewProvider(
+		r,
+		store,
+		eventStore,
+		authContext,
+		tConfig.AppConfig.Clients,
+	)
+}
+
 var DefaultSet = wire.NewSet(
 	ProvideTenantConfig,
 	ProvideContext,
 	ProvideAssetGearLoader,
 	ProvideEnableFileSystemTemplate,
-	ProvideValidator, template.NewEngine, wire.Bind(new(provider.RenderProvider), new(*provider.RenderProviderImpl)), provider.NewRenderProvider, wire.Bind(new(provider.ValidateProvider), new(*provider.ValidateProviderImpl)), provider.NewValidateProvider, wire.Bind(new(auth.ContextGetter), new(*provider.AuthContextProviderImpl)), wire.Bind(new(provider.AuthContextProvider), new(*provider.AuthContextProviderImpl)), provider.NewAuthContextProvider, wire.Bind(new(logging.Factory), new(*logging.FactoryImpl)), ProvideLoggingFactory,
+	ProvideValidator, template.NewEngine, wire.Bind(new(time.Provider), new(time.ProviderImpl)), time.NewProvider, wire.Bind(new(provider.RenderProvider), new(*provider.RenderProviderImpl)), provider.NewRenderProvider, wire.Bind(new(provider.ValidateProvider), new(*provider.ValidateProviderImpl)), provider.NewValidateProvider, wire.Bind(new(auth.ContextGetter), new(*provider.AuthContextProviderImpl)), wire.Bind(new(provider.AuthContextProvider), new(*provider.AuthContextProviderImpl)), provider.NewAuthContextProvider, wire.Bind(new(logging.Factory), new(*logging.FactoryImpl)), ProvideLoggingFactory, wire.Bind(new(session.Store), new(*redis.StoreImpl)), ProvideSessionStore, wire.Bind(new(session.EventStore), new(*redis.EventStoreImpl)), ProvideSessionEventStore, wire.Bind(new(session.Provider), new(*session.ProviderImpl)), ProvideSessionProvider,
 )
