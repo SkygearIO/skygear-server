@@ -7,8 +7,8 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/core/async"
+	"github.com/skygeario/skygear-server/pkg/core/auth/passwordhistory"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 )
@@ -39,9 +39,9 @@ func (f *PwHousekeeperTaskFactory) NewTask(ctx context.Context, taskCtx async.Ta
 }
 
 type PwHousekeeperTask struct {
-	TxContext     db.TxContext         `dependency:"TxContext"`
-	Logger        *logrus.Entry        `dependency:"HandlerLogger"`
-	PwHousekeeper *audit.PwHousekeeper `dependency:"PwHousekeeper"`
+	TxContext     db.TxContext                   `dependency:"TxContext"`
+	Logger        *logrus.Entry                  `dependency:"HandlerLogger"`
+	PwHousekeeper *passwordhistory.PwHousekeeper `dependency:"PwHousekeeper"`
 }
 
 type PwHousekeeperTaskParam struct {

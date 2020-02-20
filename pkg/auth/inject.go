@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 
-	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
@@ -310,7 +309,7 @@ func (m DependencyMap) Provide(
 			PasswordHistoryStore:   newPasswordHistoryStore(),
 		}
 	case "PwHousekeeper":
-		return authAudit.NewPwHousekeeper(
+		return passwordhistory.NewPwHousekeeper(
 			newPasswordHistoryStore(),
 			newLoggerFactory(),
 			tConfig.AppConfig.PasswordPolicy.HistorySize,
