@@ -159,3 +159,21 @@ func TestLoginIDUsernameChecker(t *testing.T) {
 		})
 	})
 }
+
+func TestLoginIDPhoneChecker(t *testing.T) {
+	Convey("LoginIDPhoneChecker", t, func() {
+		c := &LoginIDPhoneChecker{}
+		So(c.Validate(""), ShouldNotBeNil)
+		So(c.Validate("+85222334455"), ShouldBeNil)
+	})
+}
+
+func TestLoginIDNullChecker(t *testing.T) {
+	Convey("LoginIDNullChecker", t, func() {
+		c := &LoginIDNullChecker{}
+		So(c.Validate(""), ShouldBeNil)
+		So(c.Validate("a"), ShouldBeNil)
+		So(c.Validate("+85222334455"), ShouldBeNil)
+		So(c.Validate("user@example.com"), ShouldBeNil)
+	})
+}
