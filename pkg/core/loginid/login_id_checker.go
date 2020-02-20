@@ -1,4 +1,4 @@
-package password
+package loginid
 
 import (
 	"fmt"
@@ -8,31 +8,22 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
-type LoginID struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
+type LoginIDChecker interface {
+	ValidateOne(loginID LoginID) error
+	Validate(loginIDs []LoginID) error
+	CheckType(loginIDKey string, standardKey metadata.StandardKey) bool
+	StandardKey(loginIDKey string) (metadata.StandardKey, bool)
 }
 
-func (loginID LoginID) IsValid() bool {
-	return len(loginID.Key) != 0 && len(loginID.Value) != 0
-}
-
-type loginIDChecker interface {
-	validateOne(loginID LoginID) error
-	validate(loginIDs []LoginID) error
-	checkType(loginIDKey string, standardKey metadata.StandardKey) bool
-	standardKey(loginIDKey string) (metadata.StandardKey, bool)
-}
-
-func newDefaultLoginIDChecker(
+func NewDefaultLoginIDChecker(
 	loginIDsKeys []config.LoginIDKeyConfiguration,
 	loginIDTypes *config.LoginIDTypesConfiguration,
 	reservedNameChecker *ReservedNameChecker,
-) loginIDChecker {
-	return defaultLoginIDChecker{
-		loginIDsKeys: loginIDsKeys,
-		loginIDTypes: loginIDTypes,
-		loginIDTypeCheckerFactory: NewLoginIDTypeCheckerFactory(
+) *DefaultLoginIDChecker {
+	return &DefaultLoginIDChecker{
+		LoginIDsKeys: loginIDsKeys,
+		LoginIDTypes: loginIDTypes,
+		LoginIDTypeCheckerFactory: NewLoginIDTypeCheckerFactory(
 			loginIDsKeys,
 			loginIDTypes,
 			reservedNameChecker,
@@ -40,18 +31,20 @@ func newDefaultLoginIDChecker(
 	}
 }
 
-type defaultLoginIDChecker struct {
-	loginIDsKeys              []config.LoginIDKeyConfiguration
-	loginIDTypes              *config.LoginIDTypesConfiguration
-	loginIDTypeCheckerFactory LoginIDTypeCheckerFactory
+type DefaultLoginIDChecker struct {
+	LoginIDsKeys              []config.LoginIDKeyConfiguration
+	LoginIDTypes              *config.LoginIDTypesConfiguration
+	LoginIDTypeCheckerFactory LoginIDTypeCheckerFactory
 }
 
-func (c defaultLoginIDChecker) validate(loginIDs []LoginID) error {
+var _ LoginIDChecker = &DefaultLoginIDChecker{}
+
+func (c *DefaultLoginIDChecker) Validate(loginIDs []LoginID) error {
 	amounts := map[string]int{}
 	for i, loginID := range loginIDs {
 		amounts[loginID.Key]++
 
-		if err := c.validateOne(loginID); err != nil {
+		if err := c.ValidateOne(loginID); err != nil {
 			if causes := validation.ErrorCauses(err); len(causes) > 0 {
 				for j := range causes {
 					causes[j].Pointer = fmt.Sprintf("/%d%s", i, causes[j].Pointer)
@@ -62,7 +55,7 @@ func (c defaultLoginIDChecker) validate(loginIDs []LoginID) error {
 		}
 	}
 
-	for _, keyConfig := range c.loginIDsKeys {
+	for _, keyConfig := range c.LoginIDsKeys {
 		amount := amounts[keyConfig.Key]
 		if amount > *keyConfig.Maximum {
 			return validation.NewValidationFailed("invalid login IDs", []validation.ErrorCause{{
@@ -85,10 +78,10 @@ func (c defaultLoginIDChecker) validate(loginIDs []LoginID) error {
 	return nil
 }
 
-func (c defaultLoginIDChecker) validateOne(loginID LoginID) error {
+func (c *DefaultLoginIDChecker) ValidateOne(loginID LoginID) error {
 	allowed := false
 	var loginIDType config.LoginIDKeyType
-	for _, keyConfig := range c.loginIDsKeys {
+	for _, keyConfig := range c.LoginIDsKeys {
 		if keyConfig.Key == loginID.Key {
 			loginIDType = keyConfig.Type
 			allowed = true
@@ -110,16 +103,16 @@ func (c defaultLoginIDChecker) validateOne(loginID LoginID) error {
 		}})
 	}
 
-	if err := c.loginIDTypeCheckerFactory.NewChecker(loginIDType).Validate(loginID.Value); err != nil {
+	if err := c.LoginIDTypeCheckerFactory.NewChecker(loginIDType).Validate(loginID.Value); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (c defaultLoginIDChecker) standardKey(loginIDKey string) (key metadata.StandardKey, ok bool) {
+func (c *DefaultLoginIDChecker) StandardKey(loginIDKey string) (key metadata.StandardKey, ok bool) {
 	var config config.LoginIDKeyConfiguration
-	for _, keyConfig := range c.loginIDsKeys {
+	for _, keyConfig := range c.LoginIDsKeys {
 		if keyConfig.Key == loginIDKey {
 			config = keyConfig
 			ok = true
@@ -134,12 +127,7 @@ func (c defaultLoginIDChecker) standardKey(loginIDKey string) (key metadata.Stan
 	return
 }
 
-func (c defaultLoginIDChecker) checkType(loginIDKey string, standardKey metadata.StandardKey) bool {
-	loginIDKeyStandardKey, ok := c.standardKey(loginIDKey)
+func (c *DefaultLoginIDChecker) CheckType(loginIDKey string, standardKey metadata.StandardKey) bool {
+	loginIDKeyStandardKey, ok := c.StandardKey(loginIDKey)
 	return ok && loginIDKeyStandardKey == standardKey
 }
-
-// this ensures that our structure conform to certain interfaces.
-var (
-	_ loginIDChecker = &defaultLoginIDChecker{}
-)
