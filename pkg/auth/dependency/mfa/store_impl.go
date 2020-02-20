@@ -1,4 +1,4 @@
-package pq
+package mfa
 
 import (
 	"database/sql"
@@ -7,7 +7,6 @@ import (
 
 	"github.com/lib/pq"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -27,7 +26,7 @@ func NewStore(
 	sqlBuilder db.SQLBuilder,
 	sqlExecutor db.SQLExecutor,
 	timeProvider time.Provider,
-) mfa.Store {
+) Store {
 	return &storeImpl{
 		mfaConfig:    mfaConfig,
 		sqlBuilder:   sqlBuilder,
@@ -36,7 +35,7 @@ func NewStore(
 	}
 }
 
-func sortRecoveryCodeAuthenticatorSlice(s []mfa.RecoveryCodeAuthenticator) {
+func sortRecoveryCodeAuthenticatorSlice(s []RecoveryCodeAuthenticator) {
 	sort.Slice(s, func(i, j int) bool {
 		a := s[i]
 		b := s[j]
@@ -44,7 +43,7 @@ func sortRecoveryCodeAuthenticatorSlice(s []mfa.RecoveryCodeAuthenticator) {
 	})
 }
 
-func sortAuthenticatorSlice(s []mfa.Authenticator) {
+func sortAuthenticatorSlice(s []Authenticator) {
 	sort.Slice(s, func(i, j int) bool {
 		a := s[i]
 		b := s[j]
@@ -52,7 +51,7 @@ func sortAuthenticatorSlice(s []mfa.Authenticator) {
 	})
 }
 
-func (s *storeImpl) scanTOTPAuthenticator(scanner db.Scanner, a *mfa.TOTPAuthenticator) error {
+func (s *storeImpl) scanTOTPAuthenticator(scanner db.Scanner, a *TOTPAuthenticator) error {
 	var activatedAt pq.NullTime
 	err := scanner.Scan(
 		&a.ID,
@@ -73,7 +72,7 @@ func (s *storeImpl) scanTOTPAuthenticator(scanner db.Scanner, a *mfa.TOTPAuthent
 	return nil
 }
 
-func (s *storeImpl) scanOOBAuthenticator(scanner db.Scanner, a *mfa.OOBAuthenticator) error {
+func (s *storeImpl) scanOOBAuthenticator(scanner db.Scanner, a *OOBAuthenticator) error {
 	var activatedAt pq.NullTime
 	err := scanner.Scan(
 		&a.ID,
@@ -95,7 +94,7 @@ func (s *storeImpl) scanOOBAuthenticator(scanner db.Scanner, a *mfa.OOBAuthentic
 	return nil
 }
 
-func (s *storeImpl) GetRecoveryCode(userID string) (output []mfa.RecoveryCodeAuthenticator, err error) {
+func (s *storeImpl) GetRecoveryCode(userID string) (output []RecoveryCodeAuthenticator, err error) {
 	builder := s.sqlBuilder.Tenant().
 		Select(
 			"a.id",
@@ -119,7 +118,7 @@ func (s *storeImpl) GetRecoveryCode(userID string) (output []mfa.RecoveryCodeAut
 	defer rows.Close()
 
 	for rows.Next() {
-		var a mfa.RecoveryCodeAuthenticator
+		var a RecoveryCodeAuthenticator
 		err = rows.Scan(
 			&a.ID,
 			&a.UserID,
@@ -172,7 +171,7 @@ func (s *storeImpl) DeleteRecoveryCode(userID string) error {
 	return nil
 }
 
-func (s *storeImpl) GenerateRecoveryCode(userID string) ([]mfa.RecoveryCodeAuthenticator, error) {
+func (s *storeImpl) GenerateRecoveryCode(userID string) ([]RecoveryCodeAuthenticator, error) {
 	err := s.DeleteRecoveryCode(userID)
 	if err != nil {
 		return nil, err
@@ -195,13 +194,13 @@ func (s *storeImpl) GenerateRecoveryCode(userID string) ([]mfa.RecoveryCodeAuthe
 		)
 
 	now := s.timeProvider.NowUTC()
-	var output []mfa.RecoveryCodeAuthenticator
+	var output []RecoveryCodeAuthenticator
 	for i := 0; i < s.mfaConfig.RecoveryCode.Count; i++ {
-		a := mfa.RecoveryCodeAuthenticator{
+		a := RecoveryCodeAuthenticator{
 			ID:        uuid.New(),
 			UserID:    userID,
 			Type:      coreAuth.AuthenticatorTypeRecoveryCode,
-			Code:      mfa.GenerateRandomRecoveryCode(),
+			Code:      GenerateRandomRecoveryCode(),
 			CreatedAt: now,
 			Consumed:  false,
 		}
@@ -233,7 +232,7 @@ func (s *storeImpl) GenerateRecoveryCode(userID string) ([]mfa.RecoveryCodeAuthe
 	return output, nil
 }
 
-func (s *storeImpl) UpdateRecoveryCode(a *mfa.RecoveryCodeAuthenticator) error {
+func (s *storeImpl) UpdateRecoveryCode(a *RecoveryCodeAuthenticator) error {
 	q1 := s.sqlBuilder.Tenant().
 		Update(s.sqlBuilder.FullTableName("authenticator_recovery_code")).
 		Set("consumed", a.Consumed).
@@ -360,7 +359,7 @@ func (s *storeImpl) deleteBearerTokenByIDs(ids []string) error {
 	return nil
 }
 
-func (s *storeImpl) CreateBearerToken(a *mfa.BearerTokenAuthenticator) error {
+func (s *storeImpl) CreateBearerToken(a *BearerTokenAuthenticator) error {
 	q1 := s.sqlBuilder.Tenant().
 		Insert(s.sqlBuilder.FullTableName("authenticator")).
 		Columns(
@@ -402,7 +401,7 @@ func (s *storeImpl) CreateBearerToken(a *mfa.BearerTokenAuthenticator) error {
 	return nil
 }
 
-func (s *storeImpl) GetBearerTokenByToken(userID string, token string) (*mfa.BearerTokenAuthenticator, error) {
+func (s *storeImpl) GetBearerTokenByToken(userID string, token string) (*BearerTokenAuthenticator, error) {
 	q1 := s.sqlBuilder.Tenant().
 		Select(
 			"a.id",
@@ -429,7 +428,7 @@ func (s *storeImpl) GetBearerTokenByToken(userID string, token string) (*mfa.Bea
 		return nil, err
 	}
 
-	var a mfa.BearerTokenAuthenticator
+	var a BearerTokenAuthenticator
 	err = row.Scan(
 		&a.ID,
 		&a.UserID,
@@ -441,14 +440,14 @@ func (s *storeImpl) GetBearerTokenByToken(userID string, token string) (*mfa.Bea
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			err = mfa.ErrNoAuthenticators
+			err = ErrNoAuthenticators
 		}
 		return nil, err
 	}
 	return &a, nil
 }
 
-func (s *storeImpl) ListAuthenticators(userID string) ([]mfa.Authenticator, error) {
+func (s *storeImpl) ListAuthenticators(userID string) ([]Authenticator, error) {
 	q1 := s.sqlBuilder.Tenant().
 		Select(
 			"a.id",
@@ -473,9 +472,9 @@ func (s *storeImpl) ListAuthenticators(userID string) ([]mfa.Authenticator, erro
 	}
 	defer rows1.Close()
 
-	var totps []mfa.TOTPAuthenticator
+	var totps []TOTPAuthenticator
 	for rows1.Next() {
-		var a mfa.TOTPAuthenticator
+		var a TOTPAuthenticator
 		err = s.scanTOTPAuthenticator(rows1, &a)
 		if err != nil {
 			return nil, err
@@ -508,9 +507,9 @@ func (s *storeImpl) ListAuthenticators(userID string) ([]mfa.Authenticator, erro
 	}
 	defer rows2.Close()
 
-	var oobs []mfa.OOBAuthenticator
+	var oobs []OOBAuthenticator
 	for rows2.Next() {
-		var a mfa.OOBAuthenticator
+		var a OOBAuthenticator
 		err = s.scanOOBAuthenticator(rows2, &a)
 		if err != nil {
 			return nil, err
@@ -518,7 +517,7 @@ func (s *storeImpl) ListAuthenticators(userID string) ([]mfa.Authenticator, erro
 		oobs = append(oobs, a)
 	}
 
-	output := []mfa.Authenticator{}
+	output := []Authenticator{}
 	for _, a := range totps {
 		output = append(output, a)
 	}
@@ -531,7 +530,7 @@ func (s *storeImpl) ListAuthenticators(userID string) ([]mfa.Authenticator, erro
 	return output, nil
 }
 
-func (s *storeImpl) CreateTOTP(a *mfa.TOTPAuthenticator) error {
+func (s *storeImpl) CreateTOTP(a *TOTPAuthenticator) error {
 	q1 := s.sqlBuilder.Tenant().
 		Insert(s.sqlBuilder.FullTableName("authenticator")).
 		Columns(
@@ -575,7 +574,7 @@ func (s *storeImpl) CreateTOTP(a *mfa.TOTPAuthenticator) error {
 	return nil
 }
 
-func (s *storeImpl) GetTOTP(userID string, id string) (*mfa.TOTPAuthenticator, error) {
+func (s *storeImpl) GetTOTP(userID string, id string) (*TOTPAuthenticator, error) {
 	q1 := s.sqlBuilder.Tenant().
 		Select(
 			"a.id",
@@ -600,18 +599,18 @@ func (s *storeImpl) GetTOTP(userID string, id string) (*mfa.TOTPAuthenticator, e
 		return nil, err
 	}
 
-	var a mfa.TOTPAuthenticator
+	var a TOTPAuthenticator
 	err = s.scanTOTPAuthenticator(row, &a)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			err = mfa.ErrNoAuthenticators
+			err = ErrNoAuthenticators
 		}
 		return nil, err
 	}
 	return &a, nil
 }
 
-func (s *storeImpl) UpdateTOTP(a *mfa.TOTPAuthenticator) error {
+func (s *storeImpl) UpdateTOTP(a *TOTPAuthenticator) error {
 	q1 := s.sqlBuilder.Tenant().
 		Update(s.sqlBuilder.FullTableName("authenticator_totp")).
 		Set("activated", a.Activated).
@@ -624,7 +623,7 @@ func (s *storeImpl) UpdateTOTP(a *mfa.TOTPAuthenticator) error {
 	return err
 }
 
-func (s *storeImpl) DeleteTOTP(a *mfa.TOTPAuthenticator) error {
+func (s *storeImpl) DeleteTOTP(a *TOTPAuthenticator) error {
 	return s.deleteTOTPByIDs([]string{a.ID})
 }
 
@@ -650,7 +649,7 @@ func (s *storeImpl) deleteTOTPByIDs(ids []string) error {
 		return err
 	}
 	if int(count) != len(ids) {
-		return mfa.ErrNoAuthenticators
+		return ErrNoAuthenticators
 	}
 
 	q3 := s.sqlBuilder.Tenant().
@@ -666,7 +665,7 @@ func (s *storeImpl) deleteTOTPByIDs(ids []string) error {
 		return err
 	}
 	if int(count) != len(ids) {
-		return mfa.ErrNoAuthenticators
+		return ErrNoAuthenticators
 	}
 
 	return nil
@@ -702,7 +701,7 @@ func (s *storeImpl) DeleteInactiveTOTP(userID string) error {
 	return s.deleteTOTPByIDs(ids)
 }
 
-func (s *storeImpl) GetOnlyInactiveTOTP(userID string) (*mfa.TOTPAuthenticator, error) {
+func (s *storeImpl) GetOnlyInactiveTOTP(userID string) (*TOTPAuthenticator, error) {
 	q1 := s.sqlBuilder.Tenant().
 		Select(
 			"a.id",
@@ -727,18 +726,18 @@ func (s *storeImpl) GetOnlyInactiveTOTP(userID string) (*mfa.TOTPAuthenticator, 
 		return nil, err
 	}
 
-	var a mfa.TOTPAuthenticator
+	var a TOTPAuthenticator
 	err = s.scanTOTPAuthenticator(row, &a)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			err = mfa.ErrNoAuthenticators
+			err = ErrNoAuthenticators
 		}
 		return nil, err
 	}
 	return &a, nil
 }
 
-func (s *storeImpl) CreateOOB(a *mfa.OOBAuthenticator) error {
+func (s *storeImpl) CreateOOB(a *OOBAuthenticator) error {
 	q1 := s.sqlBuilder.Tenant().
 		Insert(s.sqlBuilder.FullTableName("authenticator")).
 		Columns(
@@ -784,7 +783,7 @@ func (s *storeImpl) CreateOOB(a *mfa.OOBAuthenticator) error {
 	return nil
 }
 
-func (s *storeImpl) GetOOB(userID string, id string) (*mfa.OOBAuthenticator, error) {
+func (s *storeImpl) GetOOB(userID string, id string) (*OOBAuthenticator, error) {
 	q1 := s.sqlBuilder.Tenant().
 		Select(
 			"a.id",
@@ -810,18 +809,18 @@ func (s *storeImpl) GetOOB(userID string, id string) (*mfa.OOBAuthenticator, err
 		return nil, err
 	}
 
-	var a mfa.OOBAuthenticator
+	var a OOBAuthenticator
 	err = s.scanOOBAuthenticator(row, &a)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			err = mfa.ErrNoAuthenticators
+			err = ErrNoAuthenticators
 		}
 		return nil, err
 	}
 	return &a, nil
 }
 
-func (s *storeImpl) GetOnlyInactiveOOB(userID string) (*mfa.OOBAuthenticator, error) {
+func (s *storeImpl) GetOnlyInactiveOOB(userID string) (*OOBAuthenticator, error) {
 	q1 := s.sqlBuilder.Tenant().
 		Select(
 			"a.id",
@@ -847,18 +846,18 @@ func (s *storeImpl) GetOnlyInactiveOOB(userID string) (*mfa.OOBAuthenticator, er
 		return nil, err
 	}
 
-	var a mfa.OOBAuthenticator
+	var a OOBAuthenticator
 	err = s.scanOOBAuthenticator(row, &a)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			err = mfa.ErrNoAuthenticators
+			err = ErrNoAuthenticators
 		}
 		return nil, err
 	}
 	return &a, nil
 }
 
-func (s *storeImpl) GetOOBByChannel(userID string, channel coreAuth.AuthenticatorOOBChannel, phone string, email string) (*mfa.OOBAuthenticator, error) {
+func (s *storeImpl) GetOOBByChannel(userID string, channel coreAuth.AuthenticatorOOBChannel, phone string, email string) (*OOBAuthenticator, error) {
 	q1 := s.sqlBuilder.Tenant().
 		Select(
 			"a.id",
@@ -891,18 +890,18 @@ func (s *storeImpl) GetOOBByChannel(userID string, channel coreAuth.Authenticato
 		return nil, err
 	}
 
-	var a mfa.OOBAuthenticator
+	var a OOBAuthenticator
 	err = s.scanOOBAuthenticator(row, &a)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			err = mfa.ErrNoAuthenticators
+			err = ErrNoAuthenticators
 		}
 		return nil, err
 	}
 	return &a, nil
 }
 
-func (s *storeImpl) UpdateOOB(a *mfa.OOBAuthenticator) error {
+func (s *storeImpl) UpdateOOB(a *OOBAuthenticator) error {
 	q1 := s.sqlBuilder.Tenant().
 		Update(s.sqlBuilder.FullTableName("authenticator_oob")).
 		Set("activated", a.Activated).
@@ -915,7 +914,7 @@ func (s *storeImpl) UpdateOOB(a *mfa.OOBAuthenticator) error {
 	return err
 }
 
-func (s *storeImpl) DeleteOOB(a *mfa.OOBAuthenticator) error {
+func (s *storeImpl) DeleteOOB(a *OOBAuthenticator) error {
 	return s.deleteOOBByIDs([]string{a.ID})
 }
 
@@ -978,7 +977,7 @@ func (s *storeImpl) deleteOOBByIDs(ids []string) error {
 		return err
 	}
 	if int(count) != len(ids) {
-		return mfa.ErrNoAuthenticators
+		return ErrNoAuthenticators
 	}
 
 	q2 := s.sqlBuilder.Tenant().
@@ -993,13 +992,13 @@ func (s *storeImpl) deleteOOBByIDs(ids []string) error {
 		return err
 	}
 	if int(count) != len(ids) {
-		return mfa.ErrNoAuthenticators
+		return ErrNoAuthenticators
 	}
 
 	return nil
 }
 
-func (s *storeImpl) GetValidOOBCode(userID string, t gotime.Time) ([]mfa.OOBCode, error) {
+func (s *storeImpl) GetValidOOBCode(userID string, t gotime.Time) ([]OOBCode, error) {
 	q1 := s.sqlBuilder.Tenant().
 		Select(
 			"aoc.id",
@@ -1022,9 +1021,9 @@ func (s *storeImpl) GetValidOOBCode(userID string, t gotime.Time) ([]mfa.OOBCode
 	}
 	defer rows.Close()
 
-	var output []mfa.OOBCode
+	var output []OOBCode
 	for rows.Next() {
-		var a mfa.OOBCode
+		var a OOBCode
 		err = rows.Scan(
 			&a.ID,
 			&a.UserID,
@@ -1042,7 +1041,7 @@ func (s *storeImpl) GetValidOOBCode(userID string, t gotime.Time) ([]mfa.OOBCode
 	return output, nil
 }
 
-func (s *storeImpl) CreateOOBCode(c *mfa.OOBCode) error {
+func (s *storeImpl) CreateOOBCode(c *OOBCode) error {
 	q1 := s.sqlBuilder.Tenant().
 		Insert(s.sqlBuilder.FullTableName("authenticator_oob_code")).
 		Columns(
@@ -1066,7 +1065,7 @@ func (s *storeImpl) CreateOOBCode(c *mfa.OOBCode) error {
 	return nil
 }
 
-func (s *storeImpl) DeleteOOBCode(c *mfa.OOBCode) error {
+func (s *storeImpl) DeleteOOBCode(c *OOBCode) error {
 	q1 := s.sqlBuilder.Tenant().
 		Delete(s.sqlBuilder.FullTableName("authenticator_oob_code")).
 		Where("id = ?", c.ID)
@@ -1094,5 +1093,5 @@ func (s *storeImpl) deleteOOBCodeByAuthenticatorIDs(authenticatorIDs []string) e
 }
 
 var (
-	_ mfa.Store = &storeImpl{}
+	_ Store = &storeImpl{}
 )
