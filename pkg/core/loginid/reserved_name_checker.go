@@ -1,4 +1,4 @@
-package password
+package loginid
 
 import (
 	"strings"
@@ -8,10 +8,10 @@ import (
 )
 
 type ReservedNameChecker struct {
-	reservedWords []string
+	ReservedWords []string
 }
 
-func NewReservedNameChecker(sourceFile string) (*ReservedNameChecker, error) {
+func NewReservedNameCheckerWithFile(sourceFile string) (*ReservedNameChecker, error) {
 	f, err := os.Open(sourceFile)
 	if err != nil {
 		return nil, err
@@ -24,13 +24,13 @@ func NewReservedNameChecker(sourceFile string) (*ReservedNameChecker, error) {
 	reservedWords := strings.Split(string(content), "\n")
 
 	return &ReservedNameChecker{
-		reservedWords: reservedWords,
+		ReservedWords: reservedWords,
 	}, nil
 }
 
-func (c *ReservedNameChecker) isReserved(name string) (bool, error) {
-	for i := 0; i < len(c.reservedWords); i++ {
-		if c.reservedWords[i] == name {
+func (c *ReservedNameChecker) IsReserved(name string) (bool, error) {
+	for i := 0; i < len(c.ReservedWords); i++ {
+		if c.ReservedWords[i] == name {
 			return true, nil
 		}
 	}
