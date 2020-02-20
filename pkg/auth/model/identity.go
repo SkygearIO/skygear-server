@@ -17,7 +17,7 @@ package model
 import (
 	"encoding/json"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	"github.com/skygeario/skygear-server/pkg/core/auth/principal"
 )
 
 // Identity is a principal of user

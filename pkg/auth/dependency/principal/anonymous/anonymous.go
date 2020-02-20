@@ -1,7 +1,7 @@
 package anonymous
 
 import (
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	"github.com/skygeario/skygear-server/pkg/core/auth/principal"
 )
 
 const providerAnonymous string = "anonymous"

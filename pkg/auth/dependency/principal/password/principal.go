@@ -1,7 +1,7 @@
 package password
 
 import (
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	"github.com/skygeario/skygear-server/pkg/core/auth/principal"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/loginid"
 	corePassword "github.com/skygeario/skygear-server/pkg/core/password"
