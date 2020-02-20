@@ -1,11 +1,10 @@
-package pq
+package passwordhistory
 
 import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
@@ -17,7 +16,7 @@ type passwordHistoryStore struct {
 	timeProvider coreTime.Provider
 }
 
-func NewPasswordHistoryStore(builder db.SQLBuilder, executor db.SQLExecutor, timeProvider coreTime.Provider) passwordhistory.Store {
+func NewPasswordHistoryStore(builder db.SQLBuilder, executor db.SQLExecutor, timeProvider coreTime.Provider) Store {
 	return &passwordHistoryStore{
 		sqlBuilder:   builder,
 		sqlExecutor:  executor,
@@ -37,9 +36,9 @@ func (p *passwordHistoryStore) CreatePasswordHistory(userID string, hashedPasswo
 	return nil
 }
 
-func (p *passwordHistoryStore) GetPasswordHistory(userID string, historySize, historyDays int) ([]passwordhistory.PasswordHistory, error) {
+func (p *passwordHistoryStore) GetPasswordHistory(userID string, historySize, historyDays int) ([]PasswordHistory, error) {
 	var err error
-	var sizeHistory, daysHistory []passwordhistory.PasswordHistory
+	var sizeHistory, daysHistory []PasswordHistory
 	t := p.timeProvider.NowUTC()
 
 	if historySize > 0 {
@@ -119,13 +118,13 @@ func (p *passwordHistoryStore) insertPasswordHistoryBuilder(userID string, hashe
 		)
 }
 
-func (p *passwordHistoryStore) doQueryPasswordHistory(builder db.SelectBuilder) ([]passwordhistory.PasswordHistory, error) {
+func (p *passwordHistoryStore) doQueryPasswordHistory(builder db.SelectBuilder) ([]PasswordHistory, error) {
 	rows, err := p.sqlExecutor.QueryWith(builder)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	out := []passwordhistory.PasswordHistory{}
+	out := []PasswordHistory{}
 	for rows.Next() {
 		var (
 			id                string
@@ -136,7 +135,7 @@ func (p *passwordHistoryStore) doQueryPasswordHistory(builder db.SelectBuilder) 
 		if err := rows.Scan(&id, &userID, &hashedPasswordStr, &loggedAt); err != nil {
 			return nil, err
 		}
-		passwordHistory := passwordhistory.PasswordHistory{
+		passwordHistory := PasswordHistory{
 			ID:             id,
 			UserID:         userID,
 			HashedPassword: []byte(hashedPasswordStr),
@@ -148,5 +147,5 @@ func (p *passwordHistoryStore) doQueryPasswordHistory(builder db.SelectBuilder) 
 }
 
 var (
-	_ passwordhistory.Store = &passwordHistoryStore{}
+	_ Store = &passwordHistoryStore{}
 )

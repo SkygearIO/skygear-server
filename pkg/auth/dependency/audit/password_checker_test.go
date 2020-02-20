@@ -18,7 +18,7 @@ import (
 	"testing"
 	"time"
 
-	ph "github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
+	ph "github.com/skygeario/skygear-server/pkg/core/auth/passwordhistory"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	. "github.com/smartystreets/goconvey/convey"

@@ -7,7 +7,7 @@ import (
 	"github.com/sirupsen/logrus/hooks/test"
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
+	"github.com/skygeario/skygear-server/pkg/core/auth/passwordhistory"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/loginid"
 )

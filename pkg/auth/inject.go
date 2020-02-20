@@ -8,8 +8,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
-	pqPWHistory "github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory/pq"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/customtoken"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
@@ -26,6 +24,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	pqAuthInfo "github.com/skygeario/skygear-server/pkg/core/auth/authinfo/pq"
 	"github.com/skygeario/skygear-server/pkg/core/auth/mfa"
+	"github.com/skygeario/skygear-server/pkg/core/auth/passwordhistory"
 	"github.com/skygeario/skygear-server/pkg/core/auth/principal"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	redisSession "github.com/skygeario/skygear-server/pkg/core/auth/session/redis"
@@ -114,7 +113,7 @@ func (m DependencyMap) Provide(
 	}
 
 	newPasswordHistoryStore := func() passwordhistory.Store {
-		return pqPWHistory.NewPasswordHistoryStore(
+		return passwordhistory.NewPasswordHistoryStore(
 			newSQLBuilder(),
 			newSQLExecutor(),
 			newTimeProvider(),

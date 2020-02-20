@@ -20,7 +20,7 @@ import (
 
 	"github.com/nbutton23/zxcvbn-go"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
+	"github.com/skygeario/skygear-server/pkg/core/auth/passwordhistory"
 	corepassword "github.com/skygeario/skygear-server/pkg/core/password"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
