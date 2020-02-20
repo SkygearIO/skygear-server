@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/passwordpolicy"
+	"github.com/skygeario/skygear-server/pkg/core/auth/principal/password"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
