@@ -16,6 +16,7 @@ import (
 	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/loginid"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
@@ -40,7 +41,7 @@ func TestUpdateHandler(t *testing.T) {
 		}
 		vh.PasswordAuthProvider = password.NewMockProviderWithPrincipalMap(
 			loginIDsKeys,
-			[]string{password.DefaultRealm},
+			[]string{loginid.DefaultRealm},
 			map[string]password.Principal{
 				"principal-id-1": password.Principal{
 					ID:         "principal-id-1",

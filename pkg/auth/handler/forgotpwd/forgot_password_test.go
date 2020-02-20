@@ -16,6 +16,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/loginid"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
@@ -38,7 +39,7 @@ func TestForgotPasswordHandler(t *testing.T) {
 				config.LoginIDKeyConfiguration{Key: "email", Type: config.LoginIDKeyType(metadata.Email)},
 				config.LoginIDKeyConfiguration{Key: "phone", Type: config.LoginIDKeyType(metadata.Phone)},
 			},
-			[]string{password.DefaultRealm},
+			[]string{loginid.DefaultRealm},
 			map[string]password.Principal{
 				"john.doe.principal.id": password.Principal{
 					ID:             "john.doe.principal.id",

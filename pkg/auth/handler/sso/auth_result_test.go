@@ -15,6 +15,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/loginid"
 	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 
@@ -101,7 +102,7 @@ func TestAuthResultHandler(t *testing.T) {
 		loginIDsKeys := []coreconfig.LoginIDKeyConfiguration{
 			coreconfig.LoginIDKeyConfiguration{Key: "email", Maximum: &one},
 		}
-		allowedRealms := []string{password.DefaultRealm}
+		allowedRealms := []string{loginid.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 			loginIDsKeys,
 			allowedRealms,

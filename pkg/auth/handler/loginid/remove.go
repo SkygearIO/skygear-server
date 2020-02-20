@@ -22,6 +22,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
+	"github.com/skygeario/skygear-server/pkg/core/loginid"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
@@ -47,7 +48,7 @@ func (f RemoveLoginIDHandlerFactory) NewHandler(request *http.Request) http.Hand
 }
 
 type RemoveLoginIDRequestPayload struct {
-	password.LoginID
+	loginid.LoginID
 }
 
 // @JSONSchema
@@ -123,7 +124,7 @@ func (h RemoveLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) err
 		userID := authInfo.ID
 
 		var p password.Principal
-		err := h.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm(payload.Key, payload.Value, password.DefaultRealm, &p)
+		err := h.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm(payload.Key, payload.Value, loginid.DefaultRealm, &p)
 		if err != nil {
 			if errors.Is(err, principal.ErrNotFound) {
 				err = password.ErrLoginIDNotFound

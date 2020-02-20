@@ -22,6 +22,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
+	"github.com/skygeario/skygear-server/pkg/core/loginid"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
@@ -47,8 +48,8 @@ func (f UpdateLoginIDHandlerFactory) NewHandler(request *http.Request) http.Hand
 }
 
 type UpdateLoginIDRequestPayload struct {
-	OldLoginID password.LoginID `json:"old_login_id"`
-	NewLoginID password.LoginID `json:"new_login_id"`
+	OldLoginID loginid.LoginID `json:"old_login_id"`
+	NewLoginID loginid.LoginID `json:"new_login_id"`
 }
 
 // @JSONSchema
@@ -146,7 +147,7 @@ func (h UpdateLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) (in
 		err := h.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm(
 			payload.OldLoginID.Key,
 			payload.OldLoginID.Value,
-			password.DefaultRealm,
+			loginid.DefaultRealm,
 			&oldPrincipal,
 		)
 		if err != nil {
@@ -159,7 +160,7 @@ func (h UpdateLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) (in
 			return password.ErrLoginIDNotFound
 		}
 
-		newPrincipal, err := h.PasswordAuthProvider.MakePrincipal(userID, "", payload.NewLoginID, password.DefaultRealm)
+		newPrincipal, err := h.PasswordAuthProvider.MakePrincipal(userID, "", payload.NewLoginID, loginid.DefaultRealm)
 		if err != nil {
 			return err
 		}

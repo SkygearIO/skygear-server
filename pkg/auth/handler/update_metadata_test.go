@@ -18,6 +18,7 @@ import (
 	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/loginid"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 	. "github.com/smartystreets/goconvey/convey"
@@ -62,7 +63,7 @@ func TestUpdateMetadataHandler(t *testing.T) {
 		uh.UserProfileStore = userprofile.NewMockUserProfileStoreByData(profileData)
 
 		loginIDsKeys := []config.LoginIDKeyConfiguration{}
-		allowedRealms := []string{password.DefaultRealm}
+		allowedRealms := []string{loginid.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 			loginIDsKeys,
 			allowedRealms,
@@ -268,7 +269,7 @@ func TestUpdateMetadataHandler(t *testing.T) {
 		uh.UserProfileStore = userprofile.NewMockUserProfileStoreByData(profileData)
 
 		loginIDsKeys := []config.LoginIDKeyConfiguration{}
-		allowedRealms := []string{password.DefaultRealm}
+		allowedRealms := []string{loginid.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 			loginIDsKeys,
 			allowedRealms,

@@ -29,6 +29,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/loginid"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
@@ -57,7 +58,7 @@ func TestSignupHandler(t *testing.T) {
 				Maximum: &two,
 			},
 		}
-		allowedRealms := []string{password.DefaultRealm, "admin"}
+		allowedRealms := []string{loginid.DefaultRealm, "admin"}
 		authInfoStore := authinfo.NewMockStore()
 		passwordAuthProvider := password.NewMockProvider(loginIDsKeys, allowedRealms)
 
@@ -266,10 +267,10 @@ func TestSignupHandler(t *testing.T) {
 			So(resp.Code, ShouldEqual, 200)
 
 			var p password.Principal
-			err := sh.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("email", "john.doe@example.com", password.DefaultRealm, &p)
+			err := sh.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("email", "john.doe@example.com", loginid.DefaultRealm, &p)
 			So(err, ShouldBeNil)
 			var p2 password.Principal
-			err = sh.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("username", "john.doe", password.DefaultRealm, &p2)
+			err = sh.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("username", "john.doe", loginid.DefaultRealm, &p2)
 			So(err, ShouldBeNil)
 
 			userID := p.UserID
@@ -676,7 +677,7 @@ func TestSignupHandler(t *testing.T) {
 			config.LoginIDKeyConfiguration{Key: "email", Maximum: &one},
 			config.LoginIDKeyConfiguration{Key: "username", Maximum: &one},
 		}
-		allowedRealms := []string{password.DefaultRealm, "admin"}
+		allowedRealms := []string{loginid.DefaultRealm, "admin"}
 		authInfoStore := authinfo.NewMockStore()
 		passwordAuthProvider := password.NewMockProvider(loginIDsKeys, allowedRealms)
 

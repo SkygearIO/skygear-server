@@ -29,6 +29,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/loginid"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
@@ -53,7 +54,7 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 		audience := "myaudience"
 		mockPasswordProvider := password.NewMockProvider(
 			nil,
-			[]string{password.DefaultRealm},
+			[]string{loginid.DefaultRealm},
 		)
 		lh.PasswordAuthProvider = mockPasswordProvider
 		lh.CustomTokenConfiguration = &config.CustomTokenConfiguration{
@@ -393,7 +394,7 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 				Maximum: &one,
 			},
 		}
-		allowedRealms := []string{password.DefaultRealm}
+		allowedRealms := []string{loginid.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 			loginIDsKeys,
 			allowedRealms,

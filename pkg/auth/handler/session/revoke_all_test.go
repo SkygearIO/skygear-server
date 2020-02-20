@@ -17,6 +17,7 @@ import (
 	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/loginid"
 )
 
 func TestRevokeAllHandler(t *testing.T) {
@@ -30,14 +31,14 @@ func TestRevokeAllHandler(t *testing.T) {
 		h.SessionProvider = sessionProvider
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 			[]config.LoginIDKeyConfiguration{},
-			[]string{password.DefaultRealm},
+			[]string{loginid.DefaultRealm},
 			map[string]password.Principal{
 				"principal-id-2": password.Principal{
 					ID:         "principal-id-2",
 					UserID:     "user-id-1",
 					LoginIDKey: "email",
 					LoginID:    "user@example.com",
-					Realm:      password.DefaultRealm,
+					Realm:      loginid.DefaultRealm,
 					ClaimsValue: map[string]interface{}{
 						"email": "user@example.com",
 					},

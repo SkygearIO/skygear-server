@@ -15,6 +15,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/loginid"
 )
 
 func TestLogoutHandler(t *testing.T) {
@@ -37,14 +38,14 @@ func TestLogoutHandler(t *testing.T) {
 		h.AuditTrail = coreAudit.NewMockTrail(t)
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 			[]config.LoginIDKeyConfiguration{},
-			[]string{password.DefaultRealm},
+			[]string{loginid.DefaultRealm},
 			map[string]password.Principal{
 				"faseng.cat.principal.id": password.Principal{
 					ID:         "faseng.cat.principal.id",
 					UserID:     "faseng.cat.id",
 					LoginIDKey: "email",
 					LoginID:    "faseng@example.com",
-					Realm:      password.DefaultRealm,
+					Realm:      loginid.DefaultRealm,
 					ClaimsValue: map[string]interface{}{
 						"email": "faseng@example.com",
 					},

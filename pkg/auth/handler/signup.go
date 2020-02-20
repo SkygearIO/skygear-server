@@ -28,6 +28,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
+	"github.com/skygeario/skygear-server/pkg/core/loginid"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
@@ -54,7 +55,7 @@ func (f SignupHandlerFactory) NewHandler(request *http.Request) http.Handler {
 }
 
 type SignupRequestPayload struct {
-	LoginIDs        []password.LoginID     `json:"login_ids"`
+	LoginIDs        []loginid.LoginID      `json:"login_ids"`
 	Realm           string                 `json:"-"`
 	Password        string                 `json:"password"`
 	Metadata        map[string]interface{} `json:"metadata"`
@@ -96,7 +97,7 @@ const SignupRequestSchema = `
 
 func (p *SignupRequestPayload) SetDefaultValue() {
 	if p.Realm == "" {
-		p.Realm = password.DefaultRealm
+		p.Realm = loginid.DefaultRealm
 	}
 	if p.OnUserDuplicate == "" {
 		p.OnUserDuplicate = model.OnUserDuplicateDefault
@@ -376,16 +377,16 @@ func (h SignupHandler) createPrincipals(payload SignupRequestPayload, authInfo a
 	return
 }
 
-func (h SignupHandler) sendWelcomeEmail(user model.User, loginIDs []password.LoginID) []Task {
+func (h SignupHandler) sendWelcomeEmail(user model.User, loginIDs []loginid.LoginID) []Task {
 	tasks := []Task{}
-	supportedLoginIDs := []password.LoginID{}
+	supportedLoginIDs := []loginid.LoginID{}
 	for _, loginID := range loginIDs {
 		if h.PasswordAuthProvider.CheckLoginIDKeyType(loginID.Key, metadata.Email) {
 			supportedLoginIDs = append(supportedLoginIDs, loginID)
 		}
 	}
 
-	var destinationLoginIDs []password.LoginID
+	var destinationLoginIDs []loginid.LoginID
 	if h.WelcomeEmailDestination == config.WelcomeEmailDestinationAll {
 		destinationLoginIDs = supportedLoginIDs
 	} else if h.WelcomeEmailDestination == config.WelcomeEmailDestinationFirst {
@@ -408,7 +409,7 @@ func (h SignupHandler) sendWelcomeEmail(user model.User, loginIDs []password.Log
 	return tasks
 }
 
-func (h SignupHandler) sendUserVerifyRequest(user model.User, loginIDs []password.LoginID) []Task {
+func (h SignupHandler) sendUserVerifyRequest(user model.User, loginIDs []loginid.LoginID) []Task {
 	tasks := []Task{}
 	for _, loginID := range loginIDs {
 		for _, keyConfig := range h.UserVerifyLoginIDKeys {

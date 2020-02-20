@@ -15,6 +15,7 @@ import (
 	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/loginid"
 )
 
 func TestListIdentitiesHandler(t *testing.T) {
@@ -26,14 +27,14 @@ func TestListIdentitiesHandler(t *testing.T) {
 		h.AuthContext = authContext
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 			[]config.LoginIDKeyConfiguration{},
-			[]string{password.DefaultRealm},
+			[]string{loginid.DefaultRealm},
 			map[string]password.Principal{
 				"principal-id-1": password.Principal{
 					ID:         "principal-id-1",
 					UserID:     "user-id-1",
 					LoginIDKey: "email",
 					LoginID:    "user1@example.com",
-					Realm:      password.DefaultRealm,
+					Realm:      loginid.DefaultRealm,
 					ClaimsValue: map[string]interface{}{
 						"email": "user1@example.com",
 					},
@@ -43,7 +44,7 @@ func TestListIdentitiesHandler(t *testing.T) {
 					UserID:     "user-id-1",
 					LoginIDKey: "username",
 					LoginID:    "user1",
-					Realm:      password.DefaultRealm,
+					Realm:      loginid.DefaultRealm,
 					ClaimsValue: map[string]interface{}{
 						"username": "user1",
 					},

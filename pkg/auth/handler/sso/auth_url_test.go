@@ -11,6 +11,7 @@ import (
 
 	jwt "github.com/dgrijalva/jwt-go"
 	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
+	"github.com/skygeario/skygear-server/pkg/core/loginid"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 	. "github.com/smartystreets/goconvey/convey"
 
@@ -56,7 +57,7 @@ func TestAuthURLHandler(t *testing.T) {
 		}
 		mockPasswordProvider := password.NewMockProvider(
 			nil,
-			[]string{password.DefaultRealm},
+			[]string{loginid.DefaultRealm},
 		)
 		h.TxContext = db.NewMockTxContext()
 		h.OAuthProvider = &mockProvider

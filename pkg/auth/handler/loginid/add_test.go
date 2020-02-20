@@ -21,6 +21,7 @@ import (
 	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/loginid"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -57,14 +58,14 @@ func TestAddLoginIDHandler(t *testing.T) {
 				newLoginIDKeyConfig("email", config.LoginIDKeyType(metadata.Email), 1),
 				newLoginIDKeyConfig("username", config.LoginIDKeyType(metadata.Username), 2),
 			},
-			[]string{password.DefaultRealm},
+			[]string{loginid.DefaultRealm},
 			map[string]password.Principal{
 				"principal-id-1": password.Principal{
 					ID:         "principal-id-1",
 					UserID:     "user-id-1",
 					LoginIDKey: "email",
 					LoginID:    "user1@example.com",
-					Realm:      password.DefaultRealm,
+					Realm:      loginid.DefaultRealm,
 					ClaimsValue: map[string]interface{}{
 						"email": "user1@example.com",
 					},
@@ -74,7 +75,7 @@ func TestAddLoginIDHandler(t *testing.T) {
 					UserID:     "user-id-2",
 					LoginIDKey: "username",
 					LoginID:    "user2",
-					Realm:      password.DefaultRealm,
+					Realm:      loginid.DefaultRealm,
 					ClaimsValue: map[string]interface{}{
 						"username": "user2",
 					},
@@ -185,13 +186,13 @@ func TestAddLoginIDHandler(t *testing.T) {
 
 			So(passwordAuthProvider.PrincipalMap, ShouldHaveLength, 4)
 			var p1 password.Principal
-			err := passwordAuthProvider.GetPrincipalByLoginIDWithRealm("username", "user1a", password.DefaultRealm, &p1)
+			err := passwordAuthProvider.GetPrincipalByLoginIDWithRealm("username", "user1a", loginid.DefaultRealm, &p1)
 			So(err, ShouldBeNil)
 			So(p1.UserID, ShouldEqual, "user-id-1")
 			So(p1.LoginIDKey, ShouldEqual, "username")
 			So(p1.LoginID, ShouldEqual, "user1a")
 			var p2 password.Principal
-			err = passwordAuthProvider.GetPrincipalByLoginIDWithRealm("username", "user1b", password.DefaultRealm, &p2)
+			err = passwordAuthProvider.GetPrincipalByLoginIDWithRealm("username", "user1b", loginid.DefaultRealm, &p2)
 			So(err, ShouldBeNil)
 			So(p2.UserID, ShouldEqual, "user-id-1")
 			So(p2.LoginIDKey, ShouldEqual, "username")
@@ -246,14 +247,14 @@ func TestAddLoginIDHandler(t *testing.T) {
 				[]config.LoginIDKeyConfiguration{
 					newLoginIDKeyConfig("email", config.LoginIDKeyType(metadata.Email), 2),
 				},
-				[]string{password.DefaultRealm},
+				[]string{loginid.DefaultRealm},
 				map[string]password.Principal{
 					"principal-id-1": password.Principal{
 						ID:         "principal-id-1",
 						UserID:     "user-id-1",
 						LoginIDKey: "email",
 						LoginID:    "user1@example.com",
-						Realm:      password.DefaultRealm,
+						Realm:      loginid.DefaultRealm,
 						ClaimsValue: map[string]interface{}{
 							"email": "user1@example.com",
 						},
@@ -283,7 +284,7 @@ func TestAddLoginIDHandler(t *testing.T) {
 				[]config.LoginIDKeyConfiguration{
 					newLoginIDKeyConfig("email", config.LoginIDKeyType(metadata.Email), 2),
 				},
-				[]string{password.DefaultRealm},
+				[]string{loginid.DefaultRealm},
 				map[string]password.Principal{},
 			)
 			h.PasswordAuthProvider = passwordAuthProvider

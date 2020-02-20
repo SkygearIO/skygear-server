@@ -26,6 +26,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
+	"github.com/skygeario/skygear-server/pkg/core/loginid"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
@@ -66,7 +67,7 @@ type CustomTokenLoginPayload struct {
 
 func (p *CustomTokenLoginPayload) SetDefaultValue() {
 	if p.MergeRealm == "" {
-		p.MergeRealm = password.DefaultRealm
+		p.MergeRealm = loginid.DefaultRealm
 	}
 	if p.OnUserDuplicate == "" {
 		p.OnUserDuplicate = model.OnUserDuplicateDefault

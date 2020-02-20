@@ -29,6 +29,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/crypto"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
+	"github.com/skygeario/skygear-server/pkg/core/loginid"
 	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
@@ -166,7 +167,7 @@ func TestAuthHandler(t *testing.T) {
 		loginIDsKeys := []coreconfig.LoginIDKeyConfiguration{
 			coreconfig.LoginIDKeyConfiguration{Key: "email", Maximum: &one},
 		}
-		allowedRealms := []string{password.DefaultRealm}
+		allowedRealms := []string{loginid.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 			loginIDsKeys,
 			allowedRealms,
@@ -452,7 +453,7 @@ func TestAuthHandler(t *testing.T) {
 		loginIDsKeys := []coreconfig.LoginIDKeyConfiguration{
 			coreconfig.LoginIDKeyConfiguration{Type: "email", Maximum: &one},
 		}
-		allowedRealms := []string{password.DefaultRealm}
+		allowedRealms := []string{loginid.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 			loginIDsKeys,
 			allowedRealms,
@@ -670,7 +671,7 @@ func TestAuthHandler(t *testing.T) {
 				Maximum: &one,
 			},
 		}
-		allowedRealms := []string{password.DefaultRealm}
+		allowedRealms := []string{loginid.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 			loginIDsKeys,
 			allowedRealms,
@@ -727,7 +728,7 @@ func TestAuthHandler(t *testing.T) {
 					UXMode:      UXMode,
 				},
 				LoginState: sso.LoginState{
-					MergeRealm:      password.DefaultRealm,
+					MergeRealm:      loginid.DefaultRealm,
 					OnUserDuplicate: model.OnUserDuplicateAbort,
 				},
 				Nonce: hashedNonce,
@@ -772,7 +773,7 @@ func TestAuthHandler(t *testing.T) {
 					UXMode:      UXMode,
 				},
 				LoginState: sso.LoginState{
-					MergeRealm:      password.DefaultRealm,
+					MergeRealm:      loginid.DefaultRealm,
 					OnUserDuplicate: model.OnUserDuplicateMerge,
 				},
 				Nonce: hashedNonce,
@@ -822,7 +823,7 @@ func TestAuthHandler(t *testing.T) {
 					UXMode:      UXMode,
 				},
 				LoginState: sso.LoginState{
-					MergeRealm:      password.DefaultRealm,
+					MergeRealm:      loginid.DefaultRealm,
 					OnUserDuplicate: model.OnUserDuplicateCreate,
 				},
 				Nonce: hashedNonce,

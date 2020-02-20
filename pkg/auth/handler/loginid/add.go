@@ -18,6 +18,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
+	"github.com/skygeario/skygear-server/pkg/core/loginid"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
@@ -43,7 +44,7 @@ func (f AddLoginIDHandlerFactory) NewHandler(request *http.Request) http.Handler
 }
 
 type AddLoginIDRequestPayload struct {
-	LoginIDs []password.LoginID `json:"login_ids"`
+	LoginIDs []loginid.LoginID `json:"login_ids"`
 }
 
 // @JSONSchema
@@ -155,7 +156,7 @@ func (h AddLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) error 
 		user := model.NewUser(*authInfo, userProfile)
 
 		for _, loginID := range payload.LoginIDs {
-			newPrincipal, err := h.PasswordAuthProvider.MakePrincipal(userID, "", loginID, password.DefaultRealm)
+			newPrincipal, err := h.PasswordAuthProvider.MakePrincipal(userID, "", loginID, loginid.DefaultRealm)
 			if err != nil {
 				return err
 			}

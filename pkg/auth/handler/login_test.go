@@ -14,6 +14,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/loginid"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
@@ -61,7 +62,7 @@ func TestLoginHandler(t *testing.T) {
 				Maximum: &one,
 			},
 		}
-		allowedRealms := []string{password.DefaultRealm, "admin"}
+		allowedRealms := []string{loginid.DefaultRealm, "admin"}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 			loginIDsKeys,
 			allowedRealms,
@@ -71,7 +72,7 @@ func TestLoginHandler(t *testing.T) {
 					UserID:         "john.doe.id",
 					LoginIDKey:     "email",
 					LoginID:        "john.doe@example.com",
-					Realm:          password.DefaultRealm,
+					Realm:          loginid.DefaultRealm,
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 					ClaimsValue: map[string]interface{}{
 						"email": "john.doe@example.com",
@@ -82,7 +83,7 @@ func TestLoginHandler(t *testing.T) {
 					UserID:         "john.doe.id",
 					LoginIDKey:     "username",
 					LoginID:        "john.doe",
-					Realm:          password.DefaultRealm,
+					Realm:          loginid.DefaultRealm,
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 					ClaimsValue:    map[string]interface{}{},
 				},
@@ -295,7 +296,7 @@ func TestLoginHandler(t *testing.T) {
 			payload := LoginRequestPayload{
 				LoginIDKey: "email",
 				LoginID:    "john.doe@example.com",
-				Realm:      password.DefaultRealm,
+				Realm:      loginid.DefaultRealm,
 				Password:   "123456",
 			}
 			h.Handle(payload)
@@ -308,7 +309,7 @@ func TestLoginHandler(t *testing.T) {
 			payload := LoginRequestPayload{
 				LoginIDKey: "email",
 				LoginID:    "john.doe@example.com",
-				Realm:      password.DefaultRealm,
+				Realm:      loginid.DefaultRealm,
 				Password:   "wrong_password",
 			}
 			h.Handle(payload)
@@ -342,7 +343,7 @@ func TestLoginHandler(t *testing.T) {
 			config.LoginIDKeyConfiguration{Key: "email", Maximum: &one},
 			config.LoginIDKeyConfiguration{Key: "username", Maximum: &one},
 		}
-		allowedRealms := []string{password.DefaultRealm}
+		allowedRealms := []string{loginid.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 			loginIDsKeys,
 			allowedRealms,
@@ -352,7 +353,7 @@ func TestLoginHandler(t *testing.T) {
 					UserID:         "john.doe.id",
 					LoginIDKey:     "email",
 					LoginID:        "john.doe@example.com",
-					Realm:          password.DefaultRealm,
+					Realm:          loginid.DefaultRealm,
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 					ClaimsValue: map[string]interface{}{
 						"email": "john.doe@example.com",
@@ -363,7 +364,7 @@ func TestLoginHandler(t *testing.T) {
 					UserID:         "john.doe.id",
 					LoginIDKey:     "username",
 					LoginID:        "john.doe",
-					Realm:          password.DefaultRealm,
+					Realm:          loginid.DefaultRealm,
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 					ClaimsValue:    map[string]interface{}{},
 				},

@@ -8,7 +8,6 @@ import (
 	"github.com/kelseyhightower/envconfig"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/handler"
 	forgotpwdhandler "github.com/skygeario/skygear-server/pkg/auth/handler/forgotpwd"
 	gearHandler "github.com/skygeario/skygear-server/pkg/auth/handler/gear"
@@ -22,6 +21,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
+	"github.com/skygeario/skygear-server/pkg/core/loginid"
 	"github.com/skygeario/skygear-server/pkg/core/middleware"
 	"github.com/skygeario/skygear-server/pkg/core/redis"
 	"github.com/skygeario/skygear-server/pkg/core/sentry"
@@ -156,8 +156,8 @@ func main() {
 		}
 	}
 
-	var reservedNameChecker *password.ReservedNameChecker
-	reservedNameChecker, err = password.NewReservedNameChecker(configuration.ReservedNameSourceFile)
+	var reservedNameChecker *loginid.ReservedNameChecker
+	reservedNameChecker, err = loginid.NewReservedNameCheckerWithFile(configuration.ReservedNameSourceFile)
 	if err != nil {
 		logger.Fatalf("fail to load reserved name source file: %v", err.Error())
 	}
