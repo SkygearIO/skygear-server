@@ -117,7 +117,7 @@ func (m DependencyMap) Provide(
 		return pqPWHistory.NewPasswordHistoryStore(
 			newSQLBuilder(),
 			newSQLExecutor(),
-			newLoggerFactory(),
+			newTimeProvider(),
 		)
 	}
 
