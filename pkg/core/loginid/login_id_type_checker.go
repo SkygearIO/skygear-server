@@ -1,4 +1,4 @@
-package password
+package loginid
 
 import (
 	"regexp"
@@ -29,31 +29,31 @@ func NewLoginIDTypeCheckerFactory(
 	loginIDsKeys []config.LoginIDKeyConfiguration,
 	loginIDTypes *config.LoginIDTypesConfiguration,
 	reservedNameChecker *ReservedNameChecker,
-) LoginIDTypeCheckerFactory {
-	return &checkerFactoryImpl{
-		loginIDsKeys:        loginIDsKeys,
-		loginIDTypes:        loginIDTypes,
-		reservedNameChecker: reservedNameChecker,
+) *CheckerFactoryImpl {
+	return &CheckerFactoryImpl{
+		LoginIDsKeys:        loginIDsKeys,
+		LoginIDTypes:        loginIDTypes,
+		ReservedNameChecker: reservedNameChecker,
 	}
 }
 
-type checkerFactoryImpl struct {
-	loginIDsKeys        []config.LoginIDKeyConfiguration
-	loginIDTypes        *config.LoginIDTypesConfiguration
-	reservedNameChecker *ReservedNameChecker
+type CheckerFactoryImpl struct {
+	LoginIDsKeys        []config.LoginIDKeyConfiguration
+	LoginIDTypes        *config.LoginIDTypesConfiguration
+	ReservedNameChecker *ReservedNameChecker
 }
 
-func (f *checkerFactoryImpl) NewChecker(loginIDKeyType config.LoginIDKeyType) LoginIDTypeChecker {
+func (f *CheckerFactoryImpl) NewChecker(loginIDKeyType config.LoginIDKeyType) LoginIDTypeChecker {
 	metadataKey, _ := loginIDKeyType.MetadataKey()
 	switch metadataKey {
 	case metadata.Email:
 		return &LoginIDEmailChecker{
-			config: f.loginIDTypes.Email,
+			config: f.LoginIDTypes.Email,
 		}
 	case metadata.Username:
 		return &LoginIDUsernameChecker{
-			config:              f.loginIDTypes.Username,
-			reservedNameChecker: f.reservedNameChecker,
+			config:              f.LoginIDTypes.Username,
+			reservedNameChecker: f.ReservedNameChecker,
 		}
 	case metadata.Phone:
 		return &LoginIDPhoneChecker{}
@@ -118,7 +118,7 @@ func (c *LoginIDUsernameChecker) Validate(loginID string) error {
 	}
 
 	if *c.config.BlockReservedUsernames {
-		reserved, err := c.reservedNameChecker.isReserved(cfLoginID)
+		reserved, err := c.reservedNameChecker.IsReserved(cfLoginID)
 		if err != nil {
 			return err
 		}

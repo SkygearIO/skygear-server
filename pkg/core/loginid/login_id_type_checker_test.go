@@ -1,4 +1,4 @@
-package password
+package loginid
 
 import (
 	"testing"
@@ -8,7 +8,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
-func TestLoginIDChecker(t *testing.T) {
+func TestLoginIDEmailChecker(t *testing.T) {
 	type Case struct {
 		LoginID string
 		Err     string
@@ -74,7 +74,30 @@ func TestLoginIDChecker(t *testing.T) {
 			}
 		})
 	})
+}
 
+func TestLoginIDUsernameChecker(t *testing.T) {
+	type Case struct {
+		LoginID string
+		Err     string
+	}
+	f := func(c Case, check LoginIDTypeChecker) {
+		err := check.Validate(c.LoginID)
+
+		if c.Err == "" {
+			So(err, ShouldBeNil)
+		} else {
+			So(err, ShouldBeError, c.Err)
+		}
+	}
+	newTrue := func() *bool {
+		b := true
+		return &b
+	}
+	newFalse := func() *bool {
+		b := false
+		return &b
+	}
 	Convey("TestLoginIDUsernameChecker", t, func() {
 		Convey("allow all", func() {
 			cases := []Case{
@@ -120,7 +143,7 @@ func TestLoginIDChecker(t *testing.T) {
 				{"faseng_chima-the.cat", ""},
 			}
 
-			reversedNameChecker, _ := NewReservedNameChecker("../../../../../reserved_name.txt")
+			reversedNameChecker, _ := NewReservedNameCheckerWithFile("../../../reserved_name.txt")
 			n := &LoginIDUsernameChecker{
 				config: &config.LoginIDTypeUsernameConfiguration{
 					BlockReservedUsernames: newTrue(),
