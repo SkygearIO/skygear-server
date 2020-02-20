@@ -7,15 +7,16 @@ import (
 	"github.com/dgrijalva/jwt-go"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
-	"github.com/skygeario/skygear-server/pkg/core/auth/mfa"
-	"github.com/skygeario/skygear-server/pkg/core/auth/principal"
 	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authnsession"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
+	"github.com/skygeario/skygear-server/pkg/core/auth/mfa"
+	"github.com/skygeario/skygear-server/pkg/core/auth/principal"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
@@ -111,32 +112,10 @@ func (p *providerImpl) NewFromToken(token string) (*auth.AuthnSession, error) {
 	return &claims.AuthnSession, nil
 }
 
-func (p *providerImpl) getRequiredSteps(userID string) ([]auth.AuthnSessionStep, error) {
-	steps := []auth.AuthnSessionStep{auth.AuthnSessionStepIdentity}
-	enforcement := p.mfaConfiguration.Enforcement
-	switch enforcement {
-	case config.MFAEnforcementOptional:
-		authenticators, err := p.mfaProvider.ListAuthenticators(userID)
-		if err != nil {
-			return nil, err
-		}
-		if len(authenticators) > 0 {
-			steps = append(steps, auth.AuthnSessionStepMFA)
-		}
-	case config.MFAEnforcementRequired:
-		steps = append(steps, auth.AuthnSessionStepMFA)
-	case config.MFAEnforcementOff:
-		break
-	default:
-		return nil, errors.New("unknown MFA enforcement")
-	}
-	return steps, nil
-}
-
 func (p *providerImpl) NewFromScratch(userID string, prin principal.Principal, reason auth.SessionCreateReason) (*auth.AuthnSession, error) {
 	now := p.timeProvider.NowUTC()
 	clientID := p.authContextGetter.AccessKey().ClientID
-	requiredSteps, err := p.getRequiredSteps(userID)
+	requiredSteps, err := authnsession.GetRequiredSteps(p.mfaProvider, p.mfaConfiguration, userID)
 	if err != nil {
 		return nil, errors.HandledWithMessage(err, "cannot get required authn steps")
 	}
