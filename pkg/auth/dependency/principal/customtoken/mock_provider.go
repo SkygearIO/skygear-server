@@ -5,8 +5,8 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 
-	"github.com/skygeario/skygear-server/pkg/core/auth/principal"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/auth/principal"
 )
 
 // MockProvider is the memory implementation of custom provider

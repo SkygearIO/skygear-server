@@ -3,8 +3,8 @@ package oauth
 import (
 	"reflect"
 
-	"github.com/skygeario/skygear-server/pkg/core/auth/principal"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/auth/principal"
 )
 
 type MockProvider struct {
