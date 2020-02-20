@@ -6,7 +6,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
@@ -19,6 +18,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	"github.com/skygeario/skygear-server/pkg/core/auth/passwordpolicy"
 	"github.com/skygeario/skygear-server/pkg/core/auth/principal"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -89,20 +89,20 @@ const ChangePasswordRequestSchema = `
 		@Callback user_sync {UserSyncEvent}
 */
 type ChangePasswordHandler struct {
-	Validator            *validation.Validator      `dependency:"Validator"`
-	AuditTrail           audit.Trail                `dependency:"AuditTrail"`
-	AuthContext          coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
-	RequireAuthz         handler.RequireAuthz       `dependency:"RequireAuthz"`
-	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
-	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
-	IdentityProvider     principal.IdentityProvider `dependency:"IdentityProvider"`
-	PasswordChecker      *authAudit.PasswordChecker `dependency:"PasswordChecker"`
-	SessionProvider      session.Provider           `dependency:"SessionProvider"`
-	SessionWriter        session.Writer             `dependency:"SessionWriter"`
-	TxContext            db.TxContext               `dependency:"TxContext"`
-	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
-	HookProvider         hook.Provider              `dependency:"HookProvider"`
-	TaskQueue            async.Queue                `dependency:"AsyncTaskQueue"`
+	Validator            *validation.Validator           `dependency:"Validator"`
+	AuditTrail           audit.Trail                     `dependency:"AuditTrail"`
+	AuthContext          coreAuth.ContextGetter          `dependency:"AuthContextGetter"`
+	RequireAuthz         handler.RequireAuthz            `dependency:"RequireAuthz"`
+	AuthInfoStore        authinfo.Store                  `dependency:"AuthInfoStore"`
+	PasswordAuthProvider password.Provider               `dependency:"PasswordAuthProvider"`
+	IdentityProvider     principal.IdentityProvider      `dependency:"IdentityProvider"`
+	PasswordChecker      *passwordpolicy.PasswordChecker `dependency:"PasswordChecker"`
+	SessionProvider      session.Provider                `dependency:"SessionProvider"`
+	SessionWriter        session.Writer                  `dependency:"SessionWriter"`
+	TxContext            db.TxContext                    `dependency:"TxContext"`
+	UserProfileStore     userprofile.Store               `dependency:"UserProfileStore"`
+	HookProvider         hook.Provider                   `dependency:"HookProvider"`
+	TaskQueue            async.Queue                     `dependency:"AsyncTaskQueue"`
 }
 
 // ProvideAuthzPolicy provides authorization policy of handler
@@ -135,7 +135,7 @@ func (h ChangePasswordHandler) Handle(w http.ResponseWriter, r *http.Request) (r
 		authinfo, _ := h.AuthContext.AuthInfo()
 		sess, _ := h.AuthContext.Session()
 
-		if err := h.PasswordChecker.ValidatePassword(authAudit.ValidatePasswordPayload{
+		if err := h.PasswordChecker.ValidatePassword(passwordpolicy.ValidatePasswordPayload{
 			PlainPassword: payload.NewPassword,
 			AuthID:        authinfo.ID,
 		}); err != nil {

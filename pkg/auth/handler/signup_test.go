@@ -10,7 +10,6 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
@@ -25,6 +24,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/auth/mfa"
+	"github.com/skygeario/skygear-server/pkg/core/auth/passwordpolicy"
 	"github.com/skygeario/skygear-server/pkg/core/auth/principal"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -62,7 +62,7 @@ func TestSignupHandler(t *testing.T) {
 		authInfoStore := authinfo.NewMockStore()
 		passwordAuthProvider := password.NewMockProvider(loginIDsKeys, allowedRealms)
 
-		passwordChecker := &authAudit.PasswordChecker{
+		passwordChecker := &passwordpolicy.PasswordChecker{
 			PwMinLength: 6,
 		}
 
@@ -681,7 +681,7 @@ func TestSignupHandler(t *testing.T) {
 		authInfoStore := authinfo.NewMockStore()
 		passwordAuthProvider := password.NewMockProvider(loginIDsKeys, allowedRealms)
 
-		passwordChecker := &authAudit.PasswordChecker{
+		passwordChecker := &passwordpolicy.PasswordChecker{
 			PwMinLength: 6,
 		}
 

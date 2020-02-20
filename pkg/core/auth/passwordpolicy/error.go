@@ -1,4 +1,4 @@
-package audit
+package passwordpolicy
 
 import (
 	"encoding/json"

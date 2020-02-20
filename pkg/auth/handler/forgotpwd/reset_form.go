@@ -9,7 +9,6 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
@@ -20,6 +19,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	coreaudit "github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	"github.com/skygeario/skygear-server/pkg/core/auth/passwordpolicy"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -108,7 +108,7 @@ func decodeForgotPasswordResetFormRequest(request *http.Request) (payload Forgot
 type ForgotPasswordResetFormHandler struct {
 	Validator                 *validation.Validator                     `dependency:"Validator"`
 	CodeGenerator             *forgotpwdemail.CodeGenerator             `dependency:"ForgotPasswordCodeGenerator"`
-	PasswordChecker           *audit.PasswordChecker                    `dependency:"PasswordChecker"`
+	PasswordChecker           *passwordpolicy.PasswordChecker           `dependency:"PasswordChecker"`
 	AuthInfoStore             authinfo.Store                            `dependency:"AuthInfoStore"`
 	PasswordAuthProvider      password.Provider                         `dependency:"PasswordAuthProvider"`
 	UserProfileStore          userprofile.Store                         `dependency:"UserProfileStore"`

@@ -15,7 +15,6 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/test"
-	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
@@ -24,6 +23,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	"github.com/skygeario/skygear-server/pkg/core/auth/passwordpolicy"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/loginid"
@@ -85,7 +85,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 		)
 		fh.UserProfileStore = userprofile.NewMockUserProfileStore()
 		fh.CodeGenerator = codeGenerator
-		fh.PasswordChecker = &authAudit.PasswordChecker{}
+		fh.PasswordChecker = &passwordpolicy.PasswordChecker{}
 		fh.TaskQueue = mockTaskQueue
 		hookProvider := authHook.NewMockProvider()
 		fh.HookProvider = hookProvider

@@ -10,13 +10,13 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	"github.com/skygeario/skygear-server/pkg/core/auth/passwordpolicy"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -82,16 +82,16 @@ const ResetPasswordRequestSchema = `
 		@Callback user_sync {UserSyncEvent}
 */
 type ResetPasswordHandler struct {
-	RequireAuthz         handler.RequireAuthz       `dependency:"RequireAuthz"`
-	Validator            *validation.Validator      `dependency:"Validator"`
-	PasswordChecker      *authAudit.PasswordChecker `dependency:"PasswordChecker"`
-	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
-	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
-	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
-	AuditTrail           audit.Trail                `dependency:"AuditTrail"`
-	TxContext            db.TxContext               `dependency:"TxContext"`
-	TaskQueue            async.Queue                `dependency:"AsyncTaskQueue"`
-	HookProvider         hook.Provider              `dependency:"HookProvider"`
+	RequireAuthz         handler.RequireAuthz            `dependency:"RequireAuthz"`
+	Validator            *validation.Validator           `dependency:"Validator"`
+	PasswordChecker      *passwordpolicy.PasswordChecker `dependency:"PasswordChecker"`
+	UserProfileStore     userprofile.Store               `dependency:"UserProfileStore"`
+	AuthInfoStore        authinfo.Store                  `dependency:"AuthInfoStore"`
+	PasswordAuthProvider password.Provider               `dependency:"PasswordAuthProvider"`
+	AuditTrail           audit.Trail                     `dependency:"AuditTrail"`
+	TxContext            db.TxContext                    `dependency:"TxContext"`
+	TaskQueue            async.Queue                     `dependency:"AsyncTaskQueue"`
+	HookProvider         hook.Provider                   `dependency:"HookProvider"`
 }
 
 func (h ResetPasswordHandler) ProvideAuthzPolicy() authz.Policy {

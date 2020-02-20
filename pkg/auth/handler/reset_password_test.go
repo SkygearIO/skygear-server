@@ -6,7 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
@@ -16,6 +15,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	"github.com/skygeario/skygear-server/pkg/core/auth/passwordpolicy"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/loginid"
@@ -60,7 +60,7 @@ func TestResetPasswordHandler(t *testing.T) {
 				},
 			},
 		)
-		passwordChecker := &authAudit.PasswordChecker{
+		passwordChecker := &passwordpolicy.PasswordChecker{
 			PwMinLength: 6,
 		}
 		mockTaskQueue := async.NewMockQueue()

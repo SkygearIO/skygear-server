@@ -8,7 +8,6 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
@@ -23,6 +22,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
+	"github.com/skygeario/skygear-server/pkg/core/auth/passwordpolicy"
 	"github.com/skygeario/skygear-server/pkg/core/auth/principal"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -61,9 +61,9 @@ type SignupRequestPayload struct {
 	Metadata        map[string]interface{} `json:"metadata"`
 	OnUserDuplicate model.OnUserDuplicate  `json:"on_user_duplicate"`
 
-	PasswordAuthProvider password.Provider          `json:"-"`
-	AuthConfiguration    config.AuthConfiguration   `json:"-"`
-	PasswordChecker      *authAudit.PasswordChecker `json:"-"`
+	PasswordAuthProvider password.Provider               `json:"-"`
+	AuthConfiguration    config.AuthConfiguration        `json:"-"`
+	PasswordChecker      *passwordpolicy.PasswordChecker `json:"-"`
 }
 
 // @JSONSchema
@@ -186,7 +186,7 @@ type SignupHandler struct {
 	RequireAuthz            handler.RequireAuthz                      `dependency:"RequireAuthz"`
 	Validator               *validation.Validator                     `dependency:"Validator"`
 	AuthnSessionProvider    authnsession.Provider                     `dependency:"AuthnSessionProvider"`
-	PasswordChecker         *authAudit.PasswordChecker                `dependency:"PasswordChecker"`
+	PasswordChecker         *passwordpolicy.PasswordChecker           `dependency:"PasswordChecker"`
 	UserProfileStore        userprofile.Store                         `dependency:"UserProfileStore"`
 	AuthInfoStore           authinfo.Store                            `dependency:"AuthInfoStore"`
 	PasswordAuthProvider    password.Provider                         `dependency:"PasswordAuthProvider"`
@@ -241,7 +241,7 @@ func (h SignupHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 
 func (h SignupHandler) Handle(payload SignupRequestPayload) (resp interface{}, tasks []Task, err error) {
 	// validate password
-	if err = h.PasswordChecker.ValidatePassword(authAudit.ValidatePasswordPayload{
+	if err = h.PasswordChecker.ValidatePassword(passwordpolicy.ValidatePasswordPayload{
 		PlainPassword: payload.Password,
 	}); err != nil {
 		return

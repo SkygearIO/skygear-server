@@ -25,6 +25,7 @@ import (
 	pqAuthInfo "github.com/skygeario/skygear-server/pkg/core/auth/authinfo/pq"
 	"github.com/skygeario/skygear-server/pkg/core/auth/mfa"
 	"github.com/skygeario/skygear-server/pkg/core/auth/passwordhistory"
+	"github.com/skygeario/skygear-server/pkg/core/auth/passwordpolicy"
 	"github.com/skygeario/skygear-server/pkg/core/auth/principal"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	redisSession "github.com/skygeario/skygear-server/pkg/core/auth/session/redis"
@@ -294,7 +295,7 @@ func (m DependencyMap) Provide(
 	case "AuthInfoStore":
 		return newAuthInfoStore()
 	case "PasswordChecker":
-		return &authAudit.PasswordChecker{
+		return &passwordpolicy.PasswordChecker{
 			PwMinLength:         tConfig.AppConfig.PasswordPolicy.MinLength,
 			PwUppercaseRequired: tConfig.AppConfig.PasswordPolicy.UppercaseRequired,
 			PwLowercaseRequired: tConfig.AppConfig.PasswordPolicy.LowercaseRequired,

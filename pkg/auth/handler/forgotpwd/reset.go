@@ -4,16 +4,16 @@ import (
 	"crypto/subtle"
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	"github.com/skygeario/skygear-server/pkg/core/auth/passwordpolicy"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 type passwordReseter struct {
 	CodeGenerator        *forgotpwdemail.CodeGenerator
-	PasswordChecker      *audit.PasswordChecker
+	PasswordChecker      *passwordpolicy.PasswordChecker
 	AuthInfoStore        authinfo.Store
 	PasswordAuthProvider password.Provider
 }

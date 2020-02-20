@@ -1,16 +1,16 @@
 package password
 
 import (
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
+	"github.com/skygeario/skygear-server/pkg/core/auth/passwordpolicy"
 )
 
 type ResetPasswordRequestContext struct {
-	PasswordChecker      *audit.PasswordChecker
+	PasswordChecker      *passwordpolicy.PasswordChecker
 	PasswordAuthProvider Provider
 }
 
 func (r *ResetPasswordRequestContext) ExecuteWithPrincipals(newPassword string, principals []*Principal) (err error) {
-	if err = r.PasswordChecker.ValidatePassword(audit.ValidatePasswordPayload{
+	if err = r.PasswordChecker.ValidatePassword(passwordpolicy.ValidatePasswordPayload{
 		PlainPassword: newPassword,
 	}); err != nil {
 		return

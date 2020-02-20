@@ -9,7 +9,6 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
@@ -19,6 +18,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	"github.com/skygeario/skygear-server/pkg/core/auth/passwordpolicy"
 	"github.com/skygeario/skygear-server/pkg/core/auth/principal"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
@@ -58,7 +58,7 @@ func TestChangePasswordHandler(t *testing.T) {
 		}
 		lh.UserProfileStore = userprofile.NewMockUserProfileStoreByData(profileData)
 		lh.TxContext = db.NewMockTxContext()
-		lh.PasswordChecker = &authAudit.PasswordChecker{
+		lh.PasswordChecker = &passwordpolicy.PasswordChecker{
 			PwMinLength: 6,
 		}
 		lh.PasswordAuthProvider = password.NewMockProviderWithPrincipalMap(

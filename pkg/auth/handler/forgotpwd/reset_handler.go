@@ -7,7 +7,6 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
@@ -20,6 +19,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	"github.com/skygeario/skygear-server/pkg/core/auth/passwordpolicy"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -97,18 +97,18 @@ func (p *ForgotPasswordResetPayload) SetDefaultValue() {
 		@Callback user_sync {UserSyncEvent}
 */
 type ForgotPasswordResetHandler struct {
-	RequireAuthz         handler.RequireAuthz          `dependency:"RequireAuthz"`
-	Validator            *validation.Validator         `dependency:"Validator"`
-	CodeGenerator        *forgotpwdemail.CodeGenerator `dependency:"ForgotPasswordCodeGenerator"`
-	PasswordChecker      *authAudit.PasswordChecker    `dependency:"PasswordChecker"`
-	AuthInfoStore        authinfo.Store                `dependency:"AuthInfoStore"`
-	UserProfileStore     userprofile.Store             `dependency:"UserProfileStore"`
-	HookProvider         hook.Provider                 `dependency:"HookProvider"`
-	PasswordAuthProvider password.Provider             `dependency:"PasswordAuthProvider"`
-	AuditTrail           audit.Trail                   `dependency:"AuditTrail"`
-	TxContext            db.TxContext                  `dependency:"TxContext"`
-	Logger               *logrus.Entry                 `dependency:"HandlerLogger"`
-	TaskQueue            async.Queue                   `dependency:"AsyncTaskQueue"`
+	RequireAuthz         handler.RequireAuthz            `dependency:"RequireAuthz"`
+	Validator            *validation.Validator           `dependency:"Validator"`
+	CodeGenerator        *forgotpwdemail.CodeGenerator   `dependency:"ForgotPasswordCodeGenerator"`
+	PasswordChecker      *passwordpolicy.PasswordChecker `dependency:"PasswordChecker"`
+	AuthInfoStore        authinfo.Store                  `dependency:"AuthInfoStore"`
+	UserProfileStore     userprofile.Store               `dependency:"UserProfileStore"`
+	HookProvider         hook.Provider                   `dependency:"HookProvider"`
+	PasswordAuthProvider password.Provider               `dependency:"PasswordAuthProvider"`
+	AuditTrail           audit.Trail                     `dependency:"AuditTrail"`
+	TxContext            db.TxContext                    `dependency:"TxContext"`
+	Logger               *logrus.Entry                   `dependency:"HandlerLogger"`
+	TaskQueue            async.Queue                     `dependency:"AsyncTaskQueue"`
 }
 
 // ProvideAuthzPolicy provides authorization policy of handler
