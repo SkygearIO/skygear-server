@@ -8,12 +8,12 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
-func TestLoginIDNormalizer(t *testing.T) {
+func TestNormalizer(t *testing.T) {
 	type Case struct {
 		LoginID           string
 		NormalizedLoginID string
 	}
-	f := func(c Case, n LoginIDNormalizer) {
+	f := func(c Case, n Normalizer) {
 		result, _ := n.Normalize(c.LoginID)
 		So(result, ShouldEqual, c.NormalizedLoginID)
 	}
@@ -25,7 +25,7 @@ func TestLoginIDNormalizer(t *testing.T) {
 		b := false
 		return &b
 	}
-	Convey("TestLoginIDEmailNormalizer", t, func() {
+	Convey("EmailNormalizer", t, func() {
 		Convey("default setting", func() {
 			cases := []Case{
 				// no change
@@ -48,7 +48,7 @@ func TestLoginIDNormalizer(t *testing.T) {
 				{"faseng@測試.香港", "faseng@測試.香港"},
 			}
 
-			n := &LoginIDEmailNormalizer{
+			n := &EmailNormalizer{
 				config: &config.LoginIDTypeEmailConfiguration{
 					CaseSensitive: newFalse(),
 					BlockPlusSign: newFalse(),
@@ -68,7 +68,7 @@ func TestLoginIDNormalizer(t *testing.T) {
 				{"Faseng.The.Cat@example.com", "Faseng.The.Cat@example.com"},
 			}
 
-			n := &LoginIDEmailNormalizer{
+			n := &EmailNormalizer{
 				config: &config.LoginIDTypeEmailConfiguration{
 					CaseSensitive: newTrue(),
 					BlockPlusSign: newFalse(),
@@ -87,7 +87,7 @@ func TestLoginIDNormalizer(t *testing.T) {
 				{"Faseng.The.Cat@example.com", "fasengthecat@example.com"},
 			}
 
-			n := &LoginIDEmailNormalizer{
+			n := &EmailNormalizer{
 				config: &config.LoginIDTypeEmailConfiguration{
 					CaseSensitive: newFalse(),
 					BlockPlusSign: newTrue(),
@@ -101,7 +101,7 @@ func TestLoginIDNormalizer(t *testing.T) {
 		})
 
 		Convey("compute unique key", func() {
-			n := &LoginIDEmailNormalizer{}
+			n := &EmailNormalizer{}
 			var uniqueKey string
 
 			uniqueKey, _ = n.ComputeUniqueKey("Faseng+Chima@example.com")
@@ -128,7 +128,7 @@ func TestLoginIDNormalizer(t *testing.T) {
 				{"grüßen", "grüssen"},
 			}
 
-			n := &LoginIDUsernameNormalizer{
+			n := &UsernameNormalizer{
 				config: &config.LoginIDTypeUsernameConfiguration{
 					CaseSensitive: newFalse(),
 				},
@@ -153,7 +153,7 @@ func TestLoginIDNormalizer(t *testing.T) {
 				{"grüßen", "grüßen"},
 			}
 
-			n := &LoginIDUsernameNormalizer{
+			n := &UsernameNormalizer{
 				config: &config.LoginIDTypeUsernameConfiguration{
 					CaseSensitive: newTrue(),
 				},

@@ -17,56 +17,56 @@ const usernameFormat = `^[a-zA-Z0-9_\-.]*$`
 
 var usernameRegex = regexp.MustCompile(usernameFormat)
 
-type LoginIDTypeChecker interface {
+type TypeChecker interface {
 	Validate(loginID string) error
 }
 
-type LoginIDTypeCheckerFactory interface {
-	NewChecker(loginIDKey config.LoginIDKeyType) LoginIDTypeChecker
+type TypeCheckerFactory interface {
+	NewChecker(loginIDKey config.LoginIDKeyType) TypeChecker
 }
 
-func NewLoginIDTypeCheckerFactory(
+func NewTypeCheckerFactory(
 	loginIDsKeys []config.LoginIDKeyConfiguration,
 	loginIDTypes *config.LoginIDTypesConfiguration,
 	reservedNameChecker *ReservedNameChecker,
-) *CheckerFactoryImpl {
-	return &CheckerFactoryImpl{
+) *TypeCheckerFactoryImpl {
+	return &TypeCheckerFactoryImpl{
 		LoginIDsKeys:        loginIDsKeys,
 		LoginIDTypes:        loginIDTypes,
 		ReservedNameChecker: reservedNameChecker,
 	}
 }
 
-type CheckerFactoryImpl struct {
+type TypeCheckerFactoryImpl struct {
 	LoginIDsKeys        []config.LoginIDKeyConfiguration
 	LoginIDTypes        *config.LoginIDTypesConfiguration
 	ReservedNameChecker *ReservedNameChecker
 }
 
-func (f *CheckerFactoryImpl) NewChecker(loginIDKeyType config.LoginIDKeyType) LoginIDTypeChecker {
+func (f *TypeCheckerFactoryImpl) NewChecker(loginIDKeyType config.LoginIDKeyType) TypeChecker {
 	metadataKey, _ := loginIDKeyType.MetadataKey()
 	switch metadataKey {
 	case metadata.Email:
-		return &LoginIDEmailChecker{
+		return &EmailTypeChecker{
 			config: f.LoginIDTypes.Email,
 		}
 	case metadata.Username:
-		return &LoginIDUsernameChecker{
+		return &UsernameTypeChecker{
 			config:              f.LoginIDTypes.Username,
 			reservedNameChecker: f.ReservedNameChecker,
 		}
 	case metadata.Phone:
-		return &LoginIDPhoneChecker{}
+		return &PhoneTypeChecker{}
 	}
 
-	return &LoginIDNullChecker{}
+	return &NullTypeChecker{}
 }
 
-type LoginIDEmailChecker struct {
+type EmailTypeChecker struct {
 	config *config.LoginIDTypeEmailConfiguration
 }
 
-func (c *LoginIDEmailChecker) Validate(loginID string) error {
+func (c *EmailTypeChecker) Validate(loginID string) error {
 	invalidFormatError := validation.NewValidationFailed("invalid login ID", []validation.ErrorCause{{
 		Kind:    validation.ErrorStringFormat,
 		Pointer: "/value",
@@ -95,12 +95,12 @@ func (c *LoginIDEmailChecker) Validate(loginID string) error {
 	return nil
 }
 
-type LoginIDUsernameChecker struct {
+type UsernameTypeChecker struct {
 	config              *config.LoginIDTypeUsernameConfiguration
 	reservedNameChecker *ReservedNameChecker
 }
 
-func (c *LoginIDUsernameChecker) Validate(loginID string) error {
+func (c *UsernameTypeChecker) Validate(loginID string) error {
 	invalidFormatError := validation.NewValidationFailed("invalid login ID", []validation.ErrorCause{{
 		Kind:    validation.ErrorStringFormat,
 		Pointer: "/value",
@@ -164,9 +164,9 @@ func (c *LoginIDUsernameChecker) Validate(loginID string) error {
 	return nil
 }
 
-type LoginIDPhoneChecker struct{}
+type PhoneTypeChecker struct{}
 
-func (c *LoginIDPhoneChecker) Validate(loginID string) error {
+func (c *PhoneTypeChecker) Validate(loginID string) error {
 	ok := validation.E164Phone{}.IsFormat(loginID)
 	if ok {
 		return nil
@@ -179,8 +179,8 @@ func (c *LoginIDPhoneChecker) Validate(loginID string) error {
 	}})
 }
 
-type LoginIDNullChecker struct{}
+type NullTypeChecker struct{}
 
-func (c *LoginIDNullChecker) Validate(loginID string) error {
+func (c *NullTypeChecker) Validate(loginID string) error {
 	return nil
 }

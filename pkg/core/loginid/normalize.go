@@ -12,31 +12,31 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
-type LoginIDNormalizer interface {
+type Normalizer interface {
 	Normalize(loginID string) (string, error)
 	ComputeUniqueKey(normalizeLoginID string) (string, error)
 }
 
-type LoginIDNormalizerFactory interface {
-	NewNormalizer(loginIDKey string) LoginIDNormalizer
+type NormalizerFactory interface {
+	NewNormalizer(loginIDKey string) Normalizer
 }
 
-func NewLoginIDNormalizerFactory(
+func NewNormalizerFactory(
 	loginIDsKeys []config.LoginIDKeyConfiguration,
 	loginIDTypes *config.LoginIDTypesConfiguration,
-) *FactoryImpl {
-	return &FactoryImpl{
+) *NormalizerFactoryImpl {
+	return &NormalizerFactoryImpl{
 		LoginIDsKeys: loginIDsKeys,
 		LoginIDTypes: loginIDTypes,
 	}
 }
 
-type FactoryImpl struct {
+type NormalizerFactoryImpl struct {
 	LoginIDsKeys []config.LoginIDKeyConfiguration
 	LoginIDTypes *config.LoginIDTypesConfiguration
 }
 
-func (f *FactoryImpl) NewNormalizer(loginIDKey string) LoginIDNormalizer {
+func (f *NormalizerFactoryImpl) NewNormalizer(loginIDKey string) Normalizer {
 	for _, c := range f.LoginIDsKeys {
 		if c.Key == loginIDKey {
 			return f.NewNormalizerWithType(c.Type)
@@ -46,27 +46,27 @@ func (f *FactoryImpl) NewNormalizer(loginIDKey string) LoginIDNormalizer {
 	panic("password: invalid login id key: " + loginIDKey)
 }
 
-func (f *FactoryImpl) NewNormalizerWithType(loginIDKeyType config.LoginIDKeyType) LoginIDNormalizer {
+func (f *NormalizerFactoryImpl) NewNormalizerWithType(loginIDKeyType config.LoginIDKeyType) Normalizer {
 	metadataKey, _ := loginIDKeyType.MetadataKey()
 	switch metadataKey {
 	case metadata.Email:
-		return &LoginIDEmailNormalizer{
+		return &EmailNormalizer{
 			config: f.LoginIDTypes.Email,
 		}
 	case metadata.Username:
-		return &LoginIDUsernameNormalizer{
+		return &UsernameNormalizer{
 			config: f.LoginIDTypes.Username,
 		}
 	}
 
-	return &LoginIDNullNormalizer{}
+	return &NullNormalizer{}
 }
 
-type LoginIDEmailNormalizer struct {
+type EmailNormalizer struct {
 	config *config.LoginIDTypeEmailConfiguration
 }
 
-func (n *LoginIDEmailNormalizer) Normalize(loginID string) (string, error) {
+func (n *EmailNormalizer) Normalize(loginID string) (string, error) {
 	// refs from stdlib
 	// https://golang.org/src/net/mail/message.go?s=5217:5250#L172
 	at := strings.LastIndex(loginID, "@")
@@ -100,7 +100,7 @@ func (n *LoginIDEmailNormalizer) Normalize(loginID string) (string, error) {
 	return local + "@" + domain, nil
 }
 
-func (n *LoginIDEmailNormalizer) ComputeUniqueKey(normalizeLoginID string) (string, error) {
+func (n *EmailNormalizer) ComputeUniqueKey(normalizeLoginID string) (string, error) {
 	at := strings.LastIndex(normalizeLoginID, "@")
 	if at < 0 {
 		panic("password: malformed address, should be rejected by the email format checker")
@@ -114,11 +114,11 @@ func (n *LoginIDEmailNormalizer) ComputeUniqueKey(normalizeLoginID string) (stri
 	return local + "@" + domain, nil
 }
 
-type LoginIDUsernameNormalizer struct {
+type UsernameNormalizer struct {
 	config *config.LoginIDTypeUsernameConfiguration
 }
 
-func (n *LoginIDUsernameNormalizer) Normalize(loginID string) (string, error) {
+func (n *UsernameNormalizer) Normalize(loginID string) (string, error) {
 	loginID = norm.NFKC.String(loginID)
 
 	var err error
@@ -133,23 +133,23 @@ func (n *LoginIDUsernameNormalizer) Normalize(loginID string) (string, error) {
 	return loginID, nil
 }
 
-func (n *LoginIDUsernameNormalizer) ComputeUniqueKey(normalizeLoginID string) (string, error) {
+func (n *UsernameNormalizer) ComputeUniqueKey(normalizeLoginID string) (string, error) {
 	return normalizeLoginID, nil
 }
 
-type LoginIDNullNormalizer struct{}
+type NullNormalizer struct{}
 
-func (n *LoginIDNullNormalizer) Normalize(loginID string) (string, error) {
+func (n *NullNormalizer) Normalize(loginID string) (string, error) {
 	return loginID, nil
 }
 
-func (n *LoginIDNullNormalizer) ComputeUniqueKey(normalizeLoginID string) (string, error) {
+func (n *NullNormalizer) ComputeUniqueKey(normalizeLoginID string) (string, error) {
 	return normalizeLoginID, nil
 }
 
 // this ensures that our structure conform to certain interfaces.
 var (
-	_ LoginIDNormalizer = &LoginIDEmailNormalizer{}
-	_ LoginIDNormalizer = &LoginIDUsernameNormalizer{}
-	_ LoginIDNormalizer = &LoginIDNullNormalizer{}
+	_ Normalizer = &EmailNormalizer{}
+	_ Normalizer = &UsernameNormalizer{}
+	_ Normalizer = &NullNormalizer{}
 )

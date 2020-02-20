@@ -8,12 +8,12 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
-func TestLoginIDEmailChecker(t *testing.T) {
+func TestEmailTypeChecker(t *testing.T) {
 	type Case struct {
 		LoginID string
 		Err     string
 	}
-	f := func(c Case, check LoginIDTypeChecker) {
+	f := func(c Case, check TypeChecker) {
 		err := check.Validate(c.LoginID)
 
 		if c.Err == "" {
@@ -30,7 +30,7 @@ func TestLoginIDEmailChecker(t *testing.T) {
 		b := false
 		return &b
 	}
-	Convey("TestLoginIDEmailChecker", t, func() {
+	Convey("EmailTypeChecker", t, func() {
 		Convey("default setting", func() {
 			cases := []Case{
 				{"Faseng@Example.com", ""},
@@ -45,7 +45,7 @@ func TestLoginIDEmailChecker(t *testing.T) {
 				{`"faseng@"@example.com`, ""},
 			}
 
-			check := &LoginIDEmailChecker{
+			check := &EmailTypeChecker{
 				config: &config.LoginIDTypeEmailConfiguration{
 					BlockPlusSign: newFalse(),
 				},
@@ -63,7 +63,7 @@ func TestLoginIDEmailChecker(t *testing.T) {
 				{`"faseng@cat+123"@example.com`, "invalid login ID"},
 			}
 
-			checker := &LoginIDEmailChecker{
+			checker := &EmailTypeChecker{
 				config: &config.LoginIDTypeEmailConfiguration{
 					BlockPlusSign: newTrue(),
 				},
@@ -76,12 +76,12 @@ func TestLoginIDEmailChecker(t *testing.T) {
 	})
 }
 
-func TestLoginIDUsernameChecker(t *testing.T) {
+func TestUsernameTypeChecker(t *testing.T) {
 	type Case struct {
 		LoginID string
 		Err     string
 	}
-	f := func(c Case, check LoginIDTypeChecker) {
+	f := func(c Case, check TypeChecker) {
 		err := check.Validate(c.LoginID)
 
 		if c.Err == "" {
@@ -98,7 +98,7 @@ func TestLoginIDUsernameChecker(t *testing.T) {
 		b := false
 		return &b
 	}
-	Convey("TestLoginIDUsernameChecker", t, func() {
+	Convey("UsernameTypeChecker", t, func() {
 		Convey("allow all", func() {
 			cases := []Case{
 				{"admin", ""},
@@ -118,7 +118,7 @@ func TestLoginIDUsernameChecker(t *testing.T) {
 				{string([]byte{109, 105, 99, 114, 111, 115, 208, 190, 102, 116}), "invalid login ID"},
 			}
 
-			n := &LoginIDUsernameChecker{
+			n := &UsernameTypeChecker{
 				config: &config.LoginIDTypeUsernameConfiguration{
 					BlockReservedUsernames: newFalse(),
 					ExcludedKeywords:       []string{},
@@ -144,7 +144,7 @@ func TestLoginIDUsernameChecker(t *testing.T) {
 			}
 
 			reversedNameChecker, _ := NewReservedNameCheckerWithFile("../../../reserved_name.txt")
-			n := &LoginIDUsernameChecker{
+			n := &UsernameTypeChecker{
 				config: &config.LoginIDTypeUsernameConfiguration{
 					BlockReservedUsernames: newTrue(),
 					ExcludedKeywords:       []string{"skygear"},
@@ -160,17 +160,17 @@ func TestLoginIDUsernameChecker(t *testing.T) {
 	})
 }
 
-func TestLoginIDPhoneChecker(t *testing.T) {
-	Convey("LoginIDPhoneChecker", t, func() {
-		c := &LoginIDPhoneChecker{}
+func TestPhoneTypeChecker(t *testing.T) {
+	Convey("PhoneTypeChecker", t, func() {
+		c := &PhoneTypeChecker{}
 		So(c.Validate(""), ShouldNotBeNil)
 		So(c.Validate("+85222334455"), ShouldBeNil)
 	})
 }
 
-func TestLoginIDNullChecker(t *testing.T) {
-	Convey("LoginIDNullChecker", t, func() {
-		c := &LoginIDNullChecker{}
+func TestNullTypeChecker(t *testing.T) {
+	Convey("NullTypeChecker", t, func() {
+		c := &NullTypeChecker{}
 		So(c.Validate(""), ShouldBeNil)
 		So(c.Validate("a"), ShouldBeNil)
 		So(c.Validate("+85222334455"), ShouldBeNil)

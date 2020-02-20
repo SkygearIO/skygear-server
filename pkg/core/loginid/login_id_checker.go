@@ -8,22 +8,22 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
-type LoginIDChecker interface {
+type Checker interface {
 	ValidateOne(loginID LoginID) error
 	Validate(loginIDs []LoginID) error
 	CheckType(loginIDKey string, standardKey metadata.StandardKey) bool
 	StandardKey(loginIDKey string) (metadata.StandardKey, bool)
 }
 
-func NewDefaultLoginIDChecker(
+func NewDefaultChecker(
 	loginIDsKeys []config.LoginIDKeyConfiguration,
 	loginIDTypes *config.LoginIDTypesConfiguration,
 	reservedNameChecker *ReservedNameChecker,
-) *DefaultLoginIDChecker {
-	return &DefaultLoginIDChecker{
+) *DefaultChecker {
+	return &DefaultChecker{
 		LoginIDsKeys: loginIDsKeys,
 		LoginIDTypes: loginIDTypes,
-		LoginIDTypeCheckerFactory: NewLoginIDTypeCheckerFactory(
+		LoginIDTypeCheckerFactory: NewTypeCheckerFactory(
 			loginIDsKeys,
 			loginIDTypes,
 			reservedNameChecker,
@@ -31,15 +31,15 @@ func NewDefaultLoginIDChecker(
 	}
 }
 
-type DefaultLoginIDChecker struct {
+type DefaultChecker struct {
 	LoginIDsKeys              []config.LoginIDKeyConfiguration
 	LoginIDTypes              *config.LoginIDTypesConfiguration
-	LoginIDTypeCheckerFactory LoginIDTypeCheckerFactory
+	LoginIDTypeCheckerFactory TypeCheckerFactory
 }
 
-var _ LoginIDChecker = &DefaultLoginIDChecker{}
+var _ Checker = &DefaultChecker{}
 
-func (c *DefaultLoginIDChecker) Validate(loginIDs []LoginID) error {
+func (c *DefaultChecker) Validate(loginIDs []LoginID) error {
 	amounts := map[string]int{}
 	for i, loginID := range loginIDs {
 		amounts[loginID.Key]++
@@ -78,7 +78,7 @@ func (c *DefaultLoginIDChecker) Validate(loginIDs []LoginID) error {
 	return nil
 }
 
-func (c *DefaultLoginIDChecker) ValidateOne(loginID LoginID) error {
+func (c *DefaultChecker) ValidateOne(loginID LoginID) error {
 	allowed := false
 	var loginIDType config.LoginIDKeyType
 	for _, keyConfig := range c.LoginIDsKeys {
@@ -110,7 +110,7 @@ func (c *DefaultLoginIDChecker) ValidateOne(loginID LoginID) error {
 	return nil
 }
 
-func (c *DefaultLoginIDChecker) StandardKey(loginIDKey string) (key metadata.StandardKey, ok bool) {
+func (c *DefaultChecker) StandardKey(loginIDKey string) (key metadata.StandardKey, ok bool) {
 	var config config.LoginIDKeyConfiguration
 	for _, keyConfig := range c.LoginIDsKeys {
 		if keyConfig.Key == loginIDKey {
@@ -127,7 +127,7 @@ func (c *DefaultLoginIDChecker) StandardKey(loginIDKey string) (key metadata.Sta
 	return
 }
 
-func (c *DefaultLoginIDChecker) CheckType(loginIDKey string, standardKey metadata.StandardKey) bool {
+func (c *DefaultChecker) CheckType(loginIDKey string, standardKey metadata.StandardKey) bool {
 	loginIDKeyStandardKey, ok := c.StandardKey(loginIDKey)
 	return ok && loginIDKeyStandardKey == standardKey
 }
