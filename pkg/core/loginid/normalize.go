@@ -1,4 +1,4 @@
-package password
+package loginid
 
 import (
 	"strings"
@@ -24,38 +24,38 @@ type LoginIDNormalizerFactory interface {
 func NewLoginIDNormalizerFactory(
 	loginIDsKeys []config.LoginIDKeyConfiguration,
 	loginIDTypes *config.LoginIDTypesConfiguration,
-) LoginIDNormalizerFactory {
-	return &factoryImpl{
-		loginIDsKeys: loginIDsKeys,
-		loginIDTypes: loginIDTypes,
+) *FactoryImpl {
+	return &FactoryImpl{
+		LoginIDsKeys: loginIDsKeys,
+		LoginIDTypes: loginIDTypes,
 	}
 }
 
-type factoryImpl struct {
-	loginIDsKeys []config.LoginIDKeyConfiguration
-	loginIDTypes *config.LoginIDTypesConfiguration
+type FactoryImpl struct {
+	LoginIDsKeys []config.LoginIDKeyConfiguration
+	LoginIDTypes *config.LoginIDTypesConfiguration
 }
 
-func (f *factoryImpl) NewNormalizer(loginIDKey string) LoginIDNormalizer {
-	for _, c := range f.loginIDsKeys {
+func (f *FactoryImpl) NewNormalizer(loginIDKey string) LoginIDNormalizer {
+	for _, c := range f.LoginIDsKeys {
 		if c.Key == loginIDKey {
-			return f.newNormalizer(c.Type)
+			return f.NewNormalizerWithType(c.Type)
 		}
 	}
 
 	panic("password: invalid login id key: " + loginIDKey)
 }
 
-func (f *factoryImpl) newNormalizer(loginIDKeyType config.LoginIDKeyType) LoginIDNormalizer {
+func (f *FactoryImpl) NewNormalizerWithType(loginIDKeyType config.LoginIDKeyType) LoginIDNormalizer {
 	metadataKey, _ := loginIDKeyType.MetadataKey()
 	switch metadataKey {
 	case metadata.Email:
 		return &LoginIDEmailNormalizer{
-			config: f.loginIDTypes.Email,
+			config: f.LoginIDTypes.Email,
 		}
 	case metadata.Username:
 		return &LoginIDUsernameNormalizer{
-			config: f.loginIDTypes.Username,
+			config: f.LoginIDTypes.Username,
 		}
 	}
 
