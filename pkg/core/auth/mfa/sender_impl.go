@@ -8,7 +8,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/template"
 )
 
-type senderImpl struct {
+type SenderImpl struct {
 	appName        string
 	oobConfig      *config.MFAOOBConfiguration
 	smsClient      sms.Client
@@ -21,8 +21,8 @@ func NewSender(
 	smsClient sms.Client,
 	mailSender mail.Sender,
 	templateEngine *template.Engine,
-) Sender {
-	return &senderImpl{
+) *SenderImpl {
+	return &SenderImpl{
 		appName:        tConfig.AppConfig.DisplayAppName,
 		oobConfig:      tConfig.AppConfig.MFA.OOB,
 		smsClient:      smsClient,
@@ -31,7 +31,7 @@ func NewSender(
 	}
 }
 
-func (s *senderImpl) Send(code string, phone string, email string) error {
+func (s *SenderImpl) Send(code string, phone string, email string) error {
 	context := map[string]interface{}{
 		"appname": s.appName,
 		"code":    code,
@@ -45,7 +45,7 @@ func (s *senderImpl) Send(code string, phone string, email string) error {
 	return nil
 }
 
-func (s *senderImpl) SendSMS(context map[string]interface{}, phone string) error {
+func (s *SenderImpl) SendSMS(context map[string]interface{}, phone string) error {
 	body, err := s.templateEngine.RenderTemplate(
 		TemplateItemTypeMFAOOBCodeSMSTXT,
 		context,
@@ -63,7 +63,7 @@ func (s *senderImpl) SendSMS(context map[string]interface{}, phone string) error
 	return err
 }
 
-func (s *senderImpl) SendEmail(context map[string]interface{}, email string) error {
+func (s *SenderImpl) SendEmail(context map[string]interface{}, email string) error {
 	textBody, err := s.templateEngine.RenderTemplate(
 		TemplateItemTypeMFAOOBCodeEmailTXT,
 		context,

@@ -11,6 +11,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/auth/mfa"
 	"github.com/skygeario/skygear-server/pkg/core/auth/passwordhistory"
 	"github.com/skygeario/skygear-server/pkg/core/auth/principal/password"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
@@ -169,6 +170,15 @@ func ProvideMailSender(tConfig *config.TenantConfiguration) *mail.SenderImpl {
 	return mail.NewSender(tConfig.AppConfig.SMTP)
 }
 
+func ProvideMFAStore(
+	tConfig *config.TenantConfiguration,
+	sqlBuilder db.SQLBuilder,
+	sqlExecutor db.SQLExecutor,
+	timeProvider coreTime.Provider,
+) *mfa.StoreImpl {
+	return mfa.NewStore(tConfig.AppConfig.MFA, sqlBuilder, sqlExecutor, timeProvider)
+}
+
 var DefaultSet = wire.NewSet(
 	ProvideTenantConfig,
 	ProvideContext,
@@ -225,6 +235,12 @@ var DefaultSet = wire.NewSet(
 
 	wire.Bind(new(mail.Sender), new(*mail.SenderImpl)),
 	ProvideMailSender,
+
+	wire.Bind(new(mfa.Sender), new(*mfa.SenderImpl)),
+	mfa.NewSender,
+
+	wire.Bind(new(mfa.Store), new(*mfa.StoreImpl)),
+	ProvideMFAStore,
 )
 
 func InjectRootHandler(r *http.Request) *RootHandler {

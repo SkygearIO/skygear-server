@@ -14,7 +14,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
 )
 
-type storeImpl struct {
+type StoreImpl struct {
 	mfaConfig    *config.MFAConfiguration
 	sqlBuilder   db.SQLBuilder
 	sqlExecutor  db.SQLExecutor
@@ -26,8 +26,8 @@ func NewStore(
 	sqlBuilder db.SQLBuilder,
 	sqlExecutor db.SQLExecutor,
 	timeProvider time.Provider,
-) Store {
-	return &storeImpl{
+) *StoreImpl {
+	return &StoreImpl{
 		mfaConfig:    mfaConfig,
 		sqlBuilder:   sqlBuilder,
 		sqlExecutor:  sqlExecutor,
@@ -51,7 +51,7 @@ func sortAuthenticatorSlice(s []Authenticator) {
 	})
 }
 
-func (s *storeImpl) scanTOTPAuthenticator(scanner db.Scanner, a *TOTPAuthenticator) error {
+func (s *StoreImpl) scanTOTPAuthenticator(scanner db.Scanner, a *TOTPAuthenticator) error {
 	var activatedAt pq.NullTime
 	err := scanner.Scan(
 		&a.ID,
@@ -72,7 +72,7 @@ func (s *storeImpl) scanTOTPAuthenticator(scanner db.Scanner, a *TOTPAuthenticat
 	return nil
 }
 
-func (s *storeImpl) scanOOBAuthenticator(scanner db.Scanner, a *OOBAuthenticator) error {
+func (s *StoreImpl) scanOOBAuthenticator(scanner db.Scanner, a *OOBAuthenticator) error {
 	var activatedAt pq.NullTime
 	err := scanner.Scan(
 		&a.ID,
@@ -94,7 +94,7 @@ func (s *storeImpl) scanOOBAuthenticator(scanner db.Scanner, a *OOBAuthenticator
 	return nil
 }
 
-func (s *storeImpl) GetRecoveryCode(userID string) (output []RecoveryCodeAuthenticator, err error) {
+func (s *StoreImpl) GetRecoveryCode(userID string) (output []RecoveryCodeAuthenticator, err error) {
 	builder := s.sqlBuilder.Tenant().
 		Select(
 			"a.id",
@@ -138,7 +138,7 @@ func (s *storeImpl) GetRecoveryCode(userID string) (output []RecoveryCodeAuthent
 	return
 }
 
-func (s *storeImpl) DeleteRecoveryCode(userID string) error {
+func (s *StoreImpl) DeleteRecoveryCode(userID string) error {
 	old, err := s.GetRecoveryCode(userID)
 	if err != nil {
 		return err
@@ -171,7 +171,7 @@ func (s *storeImpl) DeleteRecoveryCode(userID string) error {
 	return nil
 }
 
-func (s *storeImpl) GenerateRecoveryCode(userID string) ([]RecoveryCodeAuthenticator, error) {
+func (s *StoreImpl) GenerateRecoveryCode(userID string) ([]RecoveryCodeAuthenticator, error) {
 	err := s.DeleteRecoveryCode(userID)
 	if err != nil {
 		return nil, err
@@ -232,7 +232,7 @@ func (s *storeImpl) GenerateRecoveryCode(userID string) ([]RecoveryCodeAuthentic
 	return output, nil
 }
 
-func (s *storeImpl) UpdateRecoveryCode(a *RecoveryCodeAuthenticator) error {
+func (s *StoreImpl) UpdateRecoveryCode(a *RecoveryCodeAuthenticator) error {
 	q1 := s.sqlBuilder.Tenant().
 		Update(s.sqlBuilder.FullTableName("authenticator_recovery_code")).
 		Set("consumed", a.Consumed).
@@ -244,7 +244,7 @@ func (s *storeImpl) UpdateRecoveryCode(a *RecoveryCodeAuthenticator) error {
 	return err
 }
 
-func (s *storeImpl) DeleteAllBearerToken(userID string) error {
+func (s *StoreImpl) DeleteAllBearerToken(userID string) error {
 	q1 := s.sqlBuilder.Tenant().
 		Select("a.id").
 		From(s.sqlBuilder.FullTableName("authenticator"), "a").
@@ -269,7 +269,7 @@ func (s *storeImpl) DeleteAllBearerToken(userID string) error {
 	return s.deleteBearerTokenByIDs(ids)
 }
 
-func (s *storeImpl) DeleteExpiredBearerToken(userID string) error {
+func (s *StoreImpl) DeleteExpiredBearerToken(userID string) error {
 	now := s.timeProvider.NowUTC()
 	q1 := s.sqlBuilder.Tenant().
 		Select("a.id").
@@ -300,7 +300,7 @@ func (s *storeImpl) DeleteExpiredBearerToken(userID string) error {
 	return s.deleteBearerTokenByIDs(ids)
 }
 
-func (s *storeImpl) deleteBearerTokenByParentIDs(parentIDs []string) error {
+func (s *StoreImpl) deleteBearerTokenByParentIDs(parentIDs []string) error {
 	if len(parentIDs) <= 0 {
 		return nil
 	}
@@ -336,7 +336,7 @@ func (s *storeImpl) deleteBearerTokenByParentIDs(parentIDs []string) error {
 	return s.deleteBearerTokenByIDs(ids)
 }
 
-func (s *storeImpl) deleteBearerTokenByIDs(ids []string) error {
+func (s *StoreImpl) deleteBearerTokenByIDs(ids []string) error {
 	if len(ids) <= 0 {
 		return nil
 	}
@@ -359,7 +359,7 @@ func (s *storeImpl) deleteBearerTokenByIDs(ids []string) error {
 	return nil
 }
 
-func (s *storeImpl) CreateBearerToken(a *BearerTokenAuthenticator) error {
+func (s *StoreImpl) CreateBearerToken(a *BearerTokenAuthenticator) error {
 	q1 := s.sqlBuilder.Tenant().
 		Insert(s.sqlBuilder.FullTableName("authenticator")).
 		Columns(
@@ -401,7 +401,7 @@ func (s *storeImpl) CreateBearerToken(a *BearerTokenAuthenticator) error {
 	return nil
 }
 
-func (s *storeImpl) GetBearerTokenByToken(userID string, token string) (*BearerTokenAuthenticator, error) {
+func (s *StoreImpl) GetBearerTokenByToken(userID string, token string) (*BearerTokenAuthenticator, error) {
 	q1 := s.sqlBuilder.Tenant().
 		Select(
 			"a.id",
@@ -447,7 +447,7 @@ func (s *storeImpl) GetBearerTokenByToken(userID string, token string) (*BearerT
 	return &a, nil
 }
 
-func (s *storeImpl) ListAuthenticators(userID string) ([]Authenticator, error) {
+func (s *StoreImpl) ListAuthenticators(userID string) ([]Authenticator, error) {
 	q1 := s.sqlBuilder.Tenant().
 		Select(
 			"a.id",
@@ -530,7 +530,7 @@ func (s *storeImpl) ListAuthenticators(userID string) ([]Authenticator, error) {
 	return output, nil
 }
 
-func (s *storeImpl) CreateTOTP(a *TOTPAuthenticator) error {
+func (s *StoreImpl) CreateTOTP(a *TOTPAuthenticator) error {
 	q1 := s.sqlBuilder.Tenant().
 		Insert(s.sqlBuilder.FullTableName("authenticator")).
 		Columns(
@@ -574,7 +574,7 @@ func (s *storeImpl) CreateTOTP(a *TOTPAuthenticator) error {
 	return nil
 }
 
-func (s *storeImpl) GetTOTP(userID string, id string) (*TOTPAuthenticator, error) {
+func (s *StoreImpl) GetTOTP(userID string, id string) (*TOTPAuthenticator, error) {
 	q1 := s.sqlBuilder.Tenant().
 		Select(
 			"a.id",
@@ -610,7 +610,7 @@ func (s *storeImpl) GetTOTP(userID string, id string) (*TOTPAuthenticator, error
 	return &a, nil
 }
 
-func (s *storeImpl) UpdateTOTP(a *TOTPAuthenticator) error {
+func (s *StoreImpl) UpdateTOTP(a *TOTPAuthenticator) error {
 	q1 := s.sqlBuilder.Tenant().
 		Update(s.sqlBuilder.FullTableName("authenticator_totp")).
 		Set("activated", a.Activated).
@@ -623,11 +623,11 @@ func (s *storeImpl) UpdateTOTP(a *TOTPAuthenticator) error {
 	return err
 }
 
-func (s *storeImpl) DeleteTOTP(a *TOTPAuthenticator) error {
+func (s *StoreImpl) DeleteTOTP(a *TOTPAuthenticator) error {
 	return s.deleteTOTPByIDs([]string{a.ID})
 }
 
-func (s *storeImpl) deleteTOTPByIDs(ids []string) error {
+func (s *StoreImpl) deleteTOTPByIDs(ids []string) error {
 	if len(ids) <= 0 {
 		return nil
 	}
@@ -671,7 +671,7 @@ func (s *storeImpl) deleteTOTPByIDs(ids []string) error {
 	return nil
 }
 
-func (s *storeImpl) DeleteInactiveTOTP(userID string) error {
+func (s *StoreImpl) DeleteInactiveTOTP(userID string) error {
 	q1 := s.sqlBuilder.Tenant().
 		Select("a.id").
 		From(s.sqlBuilder.FullTableName("authenticator"), "a").
@@ -701,7 +701,7 @@ func (s *storeImpl) DeleteInactiveTOTP(userID string) error {
 	return s.deleteTOTPByIDs(ids)
 }
 
-func (s *storeImpl) GetOnlyInactiveTOTP(userID string) (*TOTPAuthenticator, error) {
+func (s *StoreImpl) GetOnlyInactiveTOTP(userID string) (*TOTPAuthenticator, error) {
 	q1 := s.sqlBuilder.Tenant().
 		Select(
 			"a.id",
@@ -737,7 +737,7 @@ func (s *storeImpl) GetOnlyInactiveTOTP(userID string) (*TOTPAuthenticator, erro
 	return &a, nil
 }
 
-func (s *storeImpl) CreateOOB(a *OOBAuthenticator) error {
+func (s *StoreImpl) CreateOOB(a *OOBAuthenticator) error {
 	q1 := s.sqlBuilder.Tenant().
 		Insert(s.sqlBuilder.FullTableName("authenticator")).
 		Columns(
@@ -783,7 +783,7 @@ func (s *storeImpl) CreateOOB(a *OOBAuthenticator) error {
 	return nil
 }
 
-func (s *storeImpl) GetOOB(userID string, id string) (*OOBAuthenticator, error) {
+func (s *StoreImpl) GetOOB(userID string, id string) (*OOBAuthenticator, error) {
 	q1 := s.sqlBuilder.Tenant().
 		Select(
 			"a.id",
@@ -820,7 +820,7 @@ func (s *storeImpl) GetOOB(userID string, id string) (*OOBAuthenticator, error) 
 	return &a, nil
 }
 
-func (s *storeImpl) GetOnlyInactiveOOB(userID string) (*OOBAuthenticator, error) {
+func (s *StoreImpl) GetOnlyInactiveOOB(userID string) (*OOBAuthenticator, error) {
 	q1 := s.sqlBuilder.Tenant().
 		Select(
 			"a.id",
@@ -857,7 +857,7 @@ func (s *storeImpl) GetOnlyInactiveOOB(userID string) (*OOBAuthenticator, error)
 	return &a, nil
 }
 
-func (s *storeImpl) GetOOBByChannel(userID string, channel coreAuth.AuthenticatorOOBChannel, phone string, email string) (*OOBAuthenticator, error) {
+func (s *StoreImpl) GetOOBByChannel(userID string, channel coreAuth.AuthenticatorOOBChannel, phone string, email string) (*OOBAuthenticator, error) {
 	q1 := s.sqlBuilder.Tenant().
 		Select(
 			"a.id",
@@ -901,7 +901,7 @@ func (s *storeImpl) GetOOBByChannel(userID string, channel coreAuth.Authenticato
 	return &a, nil
 }
 
-func (s *storeImpl) UpdateOOB(a *OOBAuthenticator) error {
+func (s *StoreImpl) UpdateOOB(a *OOBAuthenticator) error {
 	q1 := s.sqlBuilder.Tenant().
 		Update(s.sqlBuilder.FullTableName("authenticator_oob")).
 		Set("activated", a.Activated).
@@ -914,11 +914,11 @@ func (s *storeImpl) UpdateOOB(a *OOBAuthenticator) error {
 	return err
 }
 
-func (s *storeImpl) DeleteOOB(a *OOBAuthenticator) error {
+func (s *StoreImpl) DeleteOOB(a *OOBAuthenticator) error {
 	return s.deleteOOBByIDs([]string{a.ID})
 }
 
-func (s *storeImpl) DeleteInactiveOOB(userID string, exceptID string) error {
+func (s *StoreImpl) DeleteInactiveOOB(userID string, exceptID string) error {
 	q1 := s.sqlBuilder.Tenant().
 		Select("a.id").
 		From(s.sqlBuilder.FullTableName("authenticator"), "a").
@@ -950,7 +950,7 @@ func (s *storeImpl) DeleteInactiveOOB(userID string, exceptID string) error {
 	return s.deleteOOBByIDs(ids)
 }
 
-func (s *storeImpl) deleteOOBByIDs(ids []string) error {
+func (s *StoreImpl) deleteOOBByIDs(ids []string) error {
 	if len(ids) <= 0 {
 		return nil
 	}
@@ -998,7 +998,7 @@ func (s *storeImpl) deleteOOBByIDs(ids []string) error {
 	return nil
 }
 
-func (s *storeImpl) GetValidOOBCode(userID string, t gotime.Time) ([]OOBCode, error) {
+func (s *StoreImpl) GetValidOOBCode(userID string, t gotime.Time) ([]OOBCode, error) {
 	q1 := s.sqlBuilder.Tenant().
 		Select(
 			"aoc.id",
@@ -1041,7 +1041,7 @@ func (s *storeImpl) GetValidOOBCode(userID string, t gotime.Time) ([]OOBCode, er
 	return output, nil
 }
 
-func (s *storeImpl) CreateOOBCode(c *OOBCode) error {
+func (s *StoreImpl) CreateOOBCode(c *OOBCode) error {
 	q1 := s.sqlBuilder.Tenant().
 		Insert(s.sqlBuilder.FullTableName("authenticator_oob_code")).
 		Columns(
@@ -1065,7 +1065,7 @@ func (s *storeImpl) CreateOOBCode(c *OOBCode) error {
 	return nil
 }
 
-func (s *storeImpl) DeleteOOBCode(c *OOBCode) error {
+func (s *StoreImpl) DeleteOOBCode(c *OOBCode) error {
 	q1 := s.sqlBuilder.Tenant().
 		Delete(s.sqlBuilder.FullTableName("authenticator_oob_code")).
 		Where("id = ?", c.ID)
@@ -1076,7 +1076,7 @@ func (s *storeImpl) DeleteOOBCode(c *OOBCode) error {
 	return nil
 }
 
-func (s *storeImpl) deleteOOBCodeByAuthenticatorIDs(authenticatorIDs []string) error {
+func (s *StoreImpl) deleteOOBCodeByAuthenticatorIDs(authenticatorIDs []string) error {
 	if len(authenticatorIDs) <= 0 {
 		return nil
 	}
@@ -1093,5 +1093,5 @@ func (s *storeImpl) deleteOOBCodeByAuthenticatorIDs(authenticatorIDs []string) e
 }
 
 var (
-	_ Store = &storeImpl{}
+	_ Store = &StoreImpl{}
 )
