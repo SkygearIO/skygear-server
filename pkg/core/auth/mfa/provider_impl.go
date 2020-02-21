@@ -12,15 +12,15 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
 )
 
-type providerImpl struct {
+type ProviderImpl struct {
 	store            Store
 	mfaConfiguration *config.MFAConfiguration
 	timeProvider     time.Provider
 	sender           Sender
 }
 
-func NewProvider(store Store, mfaConfiguration *config.MFAConfiguration, timeProvider time.Provider, sender Sender) Provider {
-	return &providerImpl{
+func NewProvider(store Store, mfaConfiguration *config.MFAConfiguration, timeProvider time.Provider, sender Sender) *ProviderImpl {
+	return &ProviderImpl{
 		store:            store,
 		mfaConfiguration: mfaConfiguration,
 		timeProvider:     timeProvider,
@@ -28,7 +28,7 @@ func NewProvider(store Store, mfaConfiguration *config.MFAConfiguration, timePro
 	}
 }
 
-func (p *providerImpl) GetRecoveryCode(userID string) ([]string, error) {
+func (p *ProviderImpl) GetRecoveryCode(userID string) ([]string, error) {
 	aa, err := p.store.GetRecoveryCode(userID)
 	if err != nil {
 		return nil, errors.HandledWithMessage(err, "failed to get recovery code")
@@ -40,7 +40,7 @@ func (p *providerImpl) GetRecoveryCode(userID string) ([]string, error) {
 	return codes, nil
 }
 
-func (p *providerImpl) GenerateRecoveryCode(userID string) ([]string, error) {
+func (p *ProviderImpl) GenerateRecoveryCode(userID string) ([]string, error) {
 	aa, err := p.store.GenerateRecoveryCode(userID)
 	if err != nil {
 		return nil, errors.HandledWithMessage(err, "failed to generate recovery code")
@@ -52,7 +52,7 @@ func (p *providerImpl) GenerateRecoveryCode(userID string) ([]string, error) {
 	return codes, nil
 }
 
-func (p *providerImpl) AuthenticateRecoveryCode(userID string, code string) (*RecoveryCodeAuthenticator, error) {
+func (p *ProviderImpl) AuthenticateRecoveryCode(userID string, code string) (*RecoveryCodeAuthenticator, error) {
 	recoveryCodes, err := p.store.GetRecoveryCode(userID)
 	if err != nil {
 		return nil, errors.HandledWithMessage(err, "failed to get recovery code")
@@ -81,7 +81,7 @@ func (p *providerImpl) AuthenticateRecoveryCode(userID string, code string) (*Re
 	return nil, errInvalidRecoveryCode
 }
 
-func (p *providerImpl) DeleteAllBearerToken(userID string) error {
+func (p *ProviderImpl) DeleteAllBearerToken(userID string) error {
 	err := p.store.DeleteAllBearerToken(userID)
 	if err != nil {
 		return errors.HandledWithMessage(err, "failed to delete all bearer tokens")
@@ -89,7 +89,7 @@ func (p *providerImpl) DeleteAllBearerToken(userID string) error {
 	return nil
 }
 
-func (p *providerImpl) DeleteExpiredBearerToken(userID string) error {
+func (p *ProviderImpl) DeleteExpiredBearerToken(userID string) error {
 	err := p.store.DeleteExpiredBearerToken(userID)
 	if err != nil {
 		return errors.HandledWithMessage(err, "failed to delete expired bearer tokens")
@@ -97,7 +97,7 @@ func (p *providerImpl) DeleteExpiredBearerToken(userID string) error {
 	return nil
 }
 
-func (p *providerImpl) AuthenticateBearerToken(userID string, token string) (*BearerTokenAuthenticator, error) {
+func (p *ProviderImpl) AuthenticateBearerToken(userID string, token string) (*BearerTokenAuthenticator, error) {
 	a, err := p.store.GetBearerTokenByToken(userID, token)
 	if err != nil {
 		if errors.Is(err, ErrNoAuthenticators) {
@@ -112,7 +112,7 @@ func (p *providerImpl) AuthenticateBearerToken(userID string, token string) (*Be
 	return a, nil
 }
 
-func (p *providerImpl) ListAuthenticators(userID string) ([]Authenticator, error) {
+func (p *ProviderImpl) ListAuthenticators(userID string) ([]Authenticator, error) {
 	authenticators, err := p.store.ListAuthenticators(userID)
 	if err != nil {
 		return nil, errors.HandledWithMessage(err, "failed to list authenticators")
@@ -120,7 +120,7 @@ func (p *providerImpl) ListAuthenticators(userID string) ([]Authenticator, error
 	return MaskAuthenticators(authenticators), nil
 }
 
-func (p *providerImpl) CreateTOTP(userID string, displayName string) (*TOTPAuthenticator, error) {
+func (p *ProviderImpl) CreateTOTP(userID string, displayName string) (*TOTPAuthenticator, error) {
 	secret, err := GenerateTOTPSecret()
 	if err != nil {
 		return nil, errors.HandledWithMessage(err, "failed to generate TOTP secret")
@@ -153,7 +153,7 @@ func (p *providerImpl) CreateTOTP(userID string, displayName string) (*TOTPAuthe
 	return &a, nil
 }
 
-func (p *providerImpl) ActivateTOTP(userID string, code string) ([]string, error) {
+func (p *ProviderImpl) ActivateTOTP(userID string, code string) ([]string, error) {
 	a, err := p.store.GetOnlyInactiveTOTP(userID)
 	if err != nil {
 		if errors.Is(err, ErrNoAuthenticators) {
@@ -198,7 +198,7 @@ func (p *providerImpl) ActivateTOTP(userID string, code string) ([]string, error
 	return nil, nil
 }
 
-func (p *providerImpl) AuthenticateTOTP(userID string, code string, generateBearerToken bool) (*TOTPAuthenticator, string, error) {
+func (p *ProviderImpl) AuthenticateTOTP(userID string, code string, generateBearerToken bool) (*TOTPAuthenticator, string, error) {
 	authenticators, err := p.store.ListAuthenticators(userID)
 	if err != nil {
 		return nil, "", errors.HandledWithMessage(err, "failed to list TOTP")
@@ -229,7 +229,7 @@ func (p *providerImpl) AuthenticateTOTP(userID string, code string, generateBear
 	return nil, "", errInvalidMFACode
 }
 
-func (p *providerImpl) DeleteAuthenticator(userID string, id string) error {
+func (p *ProviderImpl) DeleteAuthenticator(userID string, id string) error {
 	totp, err := p.store.GetTOTP(userID, id)
 	if err == nil {
 		err = p.deleteTOTPAuthenticator(totp)
@@ -255,7 +255,7 @@ func (p *providerImpl) DeleteAuthenticator(userID string, id string) error {
 	return errAuthenticatorNotFound
 }
 
-func (p *providerImpl) deleteTOTPAuthenticator(a *TOTPAuthenticator) error {
+func (p *ProviderImpl) deleteTOTPAuthenticator(a *TOTPAuthenticator) error {
 	authenticators, err := p.store.ListAuthenticators(a.UserID)
 	if err != nil {
 		return err
@@ -277,7 +277,7 @@ func (p *providerImpl) deleteTOTPAuthenticator(a *TOTPAuthenticator) error {
 	return nil
 }
 
-func (p *providerImpl) deleteOOBAuthenticator(a *OOBAuthenticator) error {
+func (p *ProviderImpl) deleteOOBAuthenticator(a *OOBAuthenticator) error {
 	authenticators, err := p.store.ListAuthenticators(a.UserID)
 	if err != nil {
 		return err
@@ -299,7 +299,7 @@ func (p *providerImpl) deleteOOBAuthenticator(a *OOBAuthenticator) error {
 	return nil
 }
 
-func (p *providerImpl) CreateOOB(userID string, channel coreAuth.AuthenticatorOOBChannel, phone string, email string) (*OOBAuthenticator, error) {
+func (p *ProviderImpl) CreateOOB(userID string, channel coreAuth.AuthenticatorOOBChannel, phone string, email string) (*OOBAuthenticator, error) {
 	exceptID := ""
 	createNew := false
 
@@ -358,7 +358,7 @@ func (p *providerImpl) CreateOOB(userID string, channel coreAuth.AuthenticatorOO
 	return a, nil
 }
 
-func (p *providerImpl) TriggerOOB(userID string, id string) (err error) {
+func (p *ProviderImpl) TriggerOOB(userID string, id string) (err error) {
 	// Resolve the OOBAuthenticator
 	// If id is given, simply get it by ID
 	// Otherwise, loop through activated authenticators and assert the only one.
@@ -443,7 +443,7 @@ func (p *providerImpl) TriggerOOB(userID string, id string) (err error) {
 	return nil
 }
 
-func (p *providerImpl) ActivateOOB(userID string, code string) ([]string, error) {
+func (p *ProviderImpl) ActivateOOB(userID string, code string) ([]string, error) {
 	a, err := p.store.GetOnlyInactiveOOB(userID)
 	if err != nil {
 		if errors.Is(err, ErrNoAuthenticators) {
@@ -508,7 +508,7 @@ func (p *providerImpl) ActivateOOB(userID string, code string) ([]string, error)
 	return nil, nil
 }
 
-func (p *providerImpl) createBearerToken(userID string, parentID string, now gotime.Time) (string, error) {
+func (p *ProviderImpl) createBearerToken(userID string, parentID string, now gotime.Time) (string, error) {
 	expireAt := now.Add(gotime.Duration(p.mfaConfiguration.BearerToken.ExpireInDays) * gotime.Hour * 24)
 	token := GenerateRandomBearerToken()
 	bt := BearerTokenAuthenticator{
@@ -527,7 +527,7 @@ func (p *providerImpl) createBearerToken(userID string, parentID string, now got
 	return token, nil
 }
 
-func (p *providerImpl) AuthenticateOOB(userID string, code string, generateBearerToken bool) (*OOBAuthenticator, string, error) {
+func (p *ProviderImpl) AuthenticateOOB(userID string, code string, generateBearerToken bool) (*OOBAuthenticator, string, error) {
 	now := p.timeProvider.NowUTC()
 	oobCodes, err := p.store.GetValidOOBCode(userID, now)
 	if err != nil {
@@ -581,7 +581,7 @@ func (p *providerImpl) AuthenticateOOB(userID string, code string, generateBeare
 	return nil, "", errInvalidMFACode
 }
 
-func (p *providerImpl) StepMFA(a *coreAuth.AuthnSession, opts coreAuth.AuthnSessionStepMFAOptions) error {
+func (p *ProviderImpl) StepMFA(a *coreAuth.AuthnSession, opts coreAuth.AuthnSessionStepMFAOptions) error {
 	now := p.timeProvider.NowUTC()
 	step, ok := a.NextStep()
 	if !ok || step != coreAuth.AuthnSessionStepMFA {
@@ -597,5 +597,5 @@ func (p *providerImpl) StepMFA(a *coreAuth.AuthnSession, opts coreAuth.AuthnSess
 }
 
 var (
-	_ Provider = &providerImpl{}
+	_ Provider = &ProviderImpl{}
 )

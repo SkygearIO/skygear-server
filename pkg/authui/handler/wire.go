@@ -179,6 +179,15 @@ func ProvideMFAStore(
 	return mfa.NewStore(tConfig.AppConfig.MFA, sqlBuilder, sqlExecutor, timeProvider)
 }
 
+func ProvideMFAProvider(
+	store mfa.Store,
+	tConfig *config.TenantConfiguration,
+	timeProvider coreTime.Provider,
+	sender mfa.Sender,
+) *mfa.ProviderImpl {
+	return mfa.NewProvider(store, tConfig.AppConfig.MFA, timeProvider, sender)
+}
+
 var DefaultSet = wire.NewSet(
 	ProvideTenantConfig,
 	ProvideContext,
@@ -238,9 +247,10 @@ var DefaultSet = wire.NewSet(
 
 	wire.Bind(new(mfa.Sender), new(*mfa.SenderImpl)),
 	mfa.NewSender,
-
 	wire.Bind(new(mfa.Store), new(*mfa.StoreImpl)),
 	ProvideMFAStore,
+	wire.Bind(new(mfa.Provider), new(*mfa.ProviderImpl)),
+	ProvideMFAProvider,
 )
 
 func InjectRootHandler(r *http.Request) *RootHandler {
