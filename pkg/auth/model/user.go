@@ -17,8 +17,8 @@ package model
 import (
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	"github.com/skygeario/skygear-server/pkg/core/auth/userprofile"
 )
 
 // User is the unify way of returning a AuthInfo with LoginID to SDK
