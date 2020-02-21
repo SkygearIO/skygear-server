@@ -6,7 +6,6 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	coreTemplate "github.com/skygeario/skygear-server/pkg/core/template"
 
 	"github.com/skygeario/skygear-server/pkg/authui/inject"
 	"github.com/skygeario/skygear-server/pkg/authui/provider"
@@ -14,23 +13,23 @@ import (
 )
 
 type AuthorizeHandler struct {
-	TemplateEngine      *coreTemplate.Engine
-	ValidateProvider    provider.ValidateProvider
-	RenderProvider      provider.RenderProvider
-	AuthContextProvider provider.AuthContextProvider
+	ValidateProvider       provider.ValidateProvider
+	RenderProvider         provider.RenderProvider
+	AuthContextProvider    provider.AuthContextProvider
+	AuthenticationProvider provider.AuthenticationProvider
 }
 
 func NewAuthorizeHandler(
-	templateEngine *coreTemplate.Engine,
 	validateProvider provider.ValidateProvider,
 	renderProvider provider.RenderProvider,
 	authContextProvider provider.AuthContextProvider,
+	authenticationProvider provider.AuthenticationProvider,
 ) *AuthorizeHandler {
 	return &AuthorizeHandler{
-		TemplateEngine:      templateEngine,
-		ValidateProvider:    validateProvider,
-		RenderProvider:      renderProvider,
-		AuthContextProvider: authContextProvider,
+		ValidateProvider:       validateProvider,
+		RenderProvider:         renderProvider,
+		AuthContextProvider:    authContextProvider,
+		AuthenticationProvider: authenticationProvider,
 	}
 }
 
