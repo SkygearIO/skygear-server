@@ -7,22 +7,25 @@ import (
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 type storeImpl struct {
-	sqlBuilder  db.SQLBuilder
-	sqlExecutor db.SQLExecutor
+	sqlBuilder   db.SQLBuilder
+	sqlExecutor  db.SQLExecutor
+	timeProvider coreTime.Provider
 }
 
-func NewUserProfileStore(builder db.SQLBuilder, executor db.SQLExecutor) Store {
+func NewUserProfileStore(builder db.SQLBuilder, executor db.SQLExecutor, timeProvider coreTime.Provider) Store {
 	return &storeImpl{
-		sqlBuilder:  builder,
-		sqlExecutor: executor,
+		sqlBuilder:   builder,
+		sqlExecutor:  executor,
+		timeProvider: timeProvider,
 	}
 }
 
-func (u storeImpl) CreateUserProfile(userID string, data Data) (profile UserProfile, err error) {
-	now := timeNow()
+func (u *storeImpl) CreateUserProfile(userID string, data Data) (profile UserProfile, err error) {
+	now := u.timeProvider.NowUTC()
 	var dataBytes []byte
 	dataBytes, err = json.Marshal(data)
 	if err != nil {
@@ -57,7 +60,7 @@ func (u storeImpl) CreateUserProfile(userID string, data Data) (profile UserProf
 	return
 }
 
-func (u storeImpl) GetUserProfile(userID string) (profile UserProfile, err error) {
+func (u *storeImpl) GetUserProfile(userID string) (profile UserProfile, err error) {
 	builder := u.sqlBuilder.Tenant().
 		Select("created_at", "updated_at", "data").
 		From(u.sqlBuilder.FullTableName("user_profile")).
@@ -94,7 +97,7 @@ func (u storeImpl) GetUserProfile(userID string) (profile UserProfile, err error
 	return
 }
 
-func (u storeImpl) UpdateUserProfile(userID string, data Data) (profile UserProfile, err error) {
+func (u *storeImpl) UpdateUserProfile(userID string, data Data) (profile UserProfile, err error) {
 	profile, err = u.GetUserProfile(userID)
 	if err != nil {
 		return
@@ -108,7 +111,7 @@ func (u storeImpl) UpdateUserProfile(userID string, data Data) (profile UserProf
 		return
 	}
 
-	now := timeNow()
+	now := u.timeProvider.NowUTC()
 	builder := u.sqlBuilder.Tenant().
 		Update(u.sqlBuilder.FullTableName("user_profile")).
 		Set("updated_at", now).
@@ -124,7 +127,7 @@ func (u storeImpl) UpdateUserProfile(userID string, data Data) (profile UserProf
 	return
 }
 
-func (u storeImpl) toUserProfile(userID string, data Data, createdAt time.Time, updatedAt time.Time) UserProfile {
+func (u *storeImpl) toUserProfile(userID string, data Data, createdAt time.Time, updatedAt time.Time) UserProfile {
 	return UserProfile{
 		ID:        userID,
 		CreatedAt: createdAt,

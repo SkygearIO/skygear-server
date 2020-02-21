@@ -139,6 +139,7 @@ func (m DependencyMap) Provide(
 		return userprofile.NewUserProfileStore(
 			newSQLBuilder(),
 			newSQLExecutor(),
+			newTimeProvider(),
 		)
 	}
 
