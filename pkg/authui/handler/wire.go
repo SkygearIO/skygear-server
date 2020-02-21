@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/wire"
 
+	"github.com/skygeario/skygear-server/pkg/core/audit"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/passwordhistory"
 	"github.com/skygeario/skygear-server/pkg/core/auth/principal/password"
@@ -150,6 +151,14 @@ func ProvidePasswordAuthProvider(
 	)
 }
 
+func ProvideAuditTrail(tConfig *config.TenantConfiguration) audit.Trail {
+	t, err := audit.NewTrail(tConfig.AppConfig.UserAudit.Enabled, tConfig.AppConfig.UserAudit.TrailHandlerURL)
+	if err != nil {
+		panic(err)
+	}
+	return t
+}
+
 var DefaultSet = wire.NewSet(
 	ProvideTenantConfig,
 	ProvideContext,
@@ -198,6 +207,8 @@ var DefaultSet = wire.NewSet(
 
 	wire.Bind(new(password.Provider), new(*password.ProviderImpl)),
 	ProvidePasswordAuthProvider,
+
+	ProvideAuditTrail,
 )
 
 func InjectRootHandler(r *http.Request) *RootHandler {
