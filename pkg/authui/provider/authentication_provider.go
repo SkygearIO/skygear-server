@@ -16,8 +16,6 @@ type AuthenticationProvider interface {
 
 	// ToToken stores a AuthnSession as a token.
 	ToToken(*coreAuth.AuthnSession) (string, error)
-
-	// TODO(authui): Handle MFA
 }
 
 var reKeepDigit = regexp.MustCompile(`[^0-9]`)

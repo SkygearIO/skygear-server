@@ -144,30 +144,56 @@ func (h *AuthorizeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	step := r.Form.Get("x_step")
 	switch step {
 	case "submit_password":
-		data := provider.FormToJSON(r.Form)
-		err := h.ValidateProvider.Validate("#AuthorizeEnterPasswordRequest", data)
-		var t config.TemplateItemType
-		if err != nil {
-			t = template.TemplateItemTypeAuthUIEnterPasswordHTML
-		} else {
-			// TODO(authui): authentication session
-			t = template.TemplateItemTypeAuthUIEnterPasswordHTML
-		}
+		t, data, err := h.SubmitPassword(w, r)
 		h.RenderProvider.WritePage(w, r, t, data, err)
 	case "submit_login_id":
-		data := provider.FormToJSON(r.Form)
-		err := h.ValidateProvider.Validate("#AuthorizeLoginIDRequest", data)
-		var t config.TemplateItemType
-		if err != nil {
-			t = template.TemplateItemTypeAuthUIAuthorizeHTML
-		} else {
-			t = template.TemplateItemTypeAuthUIEnterPasswordHTML
-		}
+		t, data, err := h.SubmitLoginID(w, r)
 		h.RenderProvider.WritePage(w, r, t, data, err)
 	default:
-		// Initial step: serve the authorize page
-		data := provider.FormToJSON(r.Form)
-		err := h.ValidateProvider.Validate("#AuthorizeRequest", data)
-		h.RenderProvider.WritePage(w, r, template.TemplateItemTypeAuthUIAuthorizeHTML, data, err)
+		t, data, err := h.Default(w, r)
+		h.RenderProvider.WritePage(w, r, t, data, err)
 	}
+}
+
+func (h *AuthorizeHandler) Default(w http.ResponseWriter, r *http.Request) (t config.TemplateItemType, data map[string]interface{}, err error) {
+	t = template.TemplateItemTypeAuthUIAuthorizeHTML
+	data = provider.FormToJSON(r.Form)
+	err = h.ValidateProvider.Validate("#AuthorizeRequest", data)
+	return
+}
+
+func (h *AuthorizeHandler) SubmitLoginID(w http.ResponseWriter, r *http.Request) (t config.TemplateItemType, data map[string]interface{}, err error) {
+	t = template.TemplateItemTypeAuthUIAuthorizeHTML
+	data = provider.FormToJSON(r.Form)
+	err = h.ValidateProvider.Validate("#AuthorizeLoginIDRequest", data)
+	if err == nil {
+		t = template.TemplateItemTypeAuthUIEnterPasswordHTML
+	}
+	return
+}
+
+func (h *AuthorizeHandler) SubmitPassword(w http.ResponseWriter, r *http.Request) (t config.TemplateItemType, data map[string]interface{}, err error) {
+	t = template.TemplateItemTypeAuthUIEnterPasswordHTML
+	data = provider.FormToJSON(r.Form)
+	err = h.ValidateProvider.Validate("#AuthorizeEnterPasswordRequest", data)
+	if err != nil {
+		return
+	}
+
+	loginID := provider.DeriveLoginID(r.Form)
+	password := r.Form.Get("x_password")
+	authnSession, err := h.AuthenticationProvider.AuthenticateWithPassword(loginID, password)
+	if err != nil {
+		return
+	}
+
+	// TODO(authui): Handle MFA
+	if !authnSession.IsFinished() {
+		panic("TODO(authui): Handle MFA")
+	}
+
+	// TODO(authui): Create session
+	// TODO(authui): Dispatch hook
+	// TODO(authui): Generate authorization code and redirect
+	panic("TODO(authui)")
 }

@@ -15,6 +15,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
+	"github.com/skygeario/skygear-server/pkg/core/loginid"
 	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 )
 
@@ -97,7 +98,7 @@ func (p *AuthenticationProviderImpl) AuthenticateWithPassword(loginID string, pl
 	}()
 
 	var prin password.Principal
-	err = p.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("", loginID, "", &prin)
+	err = p.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("", loginID, loginid.DefaultRealm, &prin)
 	if err != nil {
 		if errors.Is(err, principal.ErrNotFound) {
 			err = password.ErrInvalidCredentials
