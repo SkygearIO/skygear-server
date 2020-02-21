@@ -59,3 +59,27 @@ func TestAuthnSession(t *testing.T) {
 		})
 	})
 }
+
+func TestAuthnSessionToken(t *testing.T) {
+	Convey("AuthnSessionToken", t, func() {
+		secret := "secret"
+		claims := AuthnSessionClaims{
+			AuthnSession: AuthnSession{
+				ClientID:                "clientid",
+				UserID:                  "user",
+				PrincipalID:             "principal",
+				RequiredSteps:           []AuthnSessionStep{"identity", "mfa"},
+				FinishedSteps:           []AuthnSessionStep{"identity"},
+				SessionCreateReason:     "reason",
+				AuthenticatorID:         "authenticator",
+				AuthenticatorType:       "totp",
+				AuthenticatorOOBChannel: "sms",
+			},
+		}
+		token, err := NewAuthnSessionToken(secret, claims)
+		So(err, ShouldBeNil)
+		expected, err := ParseAuthnSessionToken(secret, token)
+		So(err, ShouldBeNil)
+		So(&claims, ShouldResemble, expected)
+	})
+}

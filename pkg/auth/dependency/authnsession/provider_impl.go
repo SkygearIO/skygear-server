@@ -25,36 +25,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
-type Claims struct {
-	jwt.StandardClaims
-	AuthnSession auth.AuthnSession `json:"authn_session"`
-}
-
-func newAuthnSessionToken(secret string, claims Claims) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(secret))
-}
-
-func parseAuthnSessionToken(secret string, tokenString string) (*Claims, error) {
-	t, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-		if token.Method != jwt.SigningMethodHS256 {
-			return nil, errors.New("unexpected JWT alg")
-		}
-		return []byte(secret), nil
-	})
-	if err != nil {
-		return nil, errInvalidToken
-	}
-	claims, ok := t.Claims.(*Claims)
-	if !ok {
-		return nil, errInvalidToken
-	}
-	if !t.Valid {
-		return nil, errInvalidToken
-	}
-	return claims, nil
-}
-
 type providerImpl struct {
 	authContextGetter                  auth.ContextGetter
 	mfaConfiguration                   *config.MFAConfiguration
@@ -98,14 +68,14 @@ func NewProvider(
 }
 
 func NewAuthenticationSessionError(token string, step auth.AuthnSessionStep) error {
-	return AuthenticationSessionRequired.NewWithInfo(
+	return auth.AuthenticationSessionRequired.NewWithInfo(
 		"authentication session is required",
 		skyerr.Details{"token": token, "step": step},
 	)
 }
 
 func (p *providerImpl) NewFromToken(token string) (*auth.AuthnSession, error) {
-	claims, err := parseAuthnSessionToken(p.authenticationSessionConfiguration.Secret, token)
+	claims, err := auth.ParseAuthnSessionToken(p.authenticationSessionConfiguration.Secret, token)
 	if err != nil {
 		return nil, err
 	}
@@ -194,14 +164,14 @@ func (p *providerImpl) GenerateResponseAndUpdateLastLoginAt(authnSess auth.Authn
 	}
 	now := p.timeProvider.NowUTC()
 	expiresAt := now.Add(5 * gotime.Minute)
-	claims := Claims{
+	claims := auth.AuthnSessionClaims{
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expiresAt.Unix(),
 			IssuedAt:  now.Unix(),
 		},
 		AuthnSession: authnSess,
 	}
-	token, err := newAuthnSessionToken(p.authenticationSessionConfiguration.Secret, claims)
+	token, err := auth.NewAuthnSessionToken(p.authenticationSessionConfiguration.Secret, claims)
 	if err != nil {
 		return nil, err
 	}
@@ -276,7 +246,7 @@ func (p *providerImpl) Resolve(authContext auth.ContextGetter, authnSessionToken
 
 	step, ok := authnSession.NextStep()
 	if !ok {
-		err = errInvalidToken
+		err = auth.ErrInvalidAuthnSessionToken
 		return
 	}
 
