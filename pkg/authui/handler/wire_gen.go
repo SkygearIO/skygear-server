@@ -16,6 +16,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session/redis"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/loginid"
 	"github.com/skygeario/skygear-server/pkg/core/sentry"
@@ -147,5 +148,5 @@ var DefaultSet = wire.NewSet(
 	ProvideAssetGearLoader,
 	ProvideEnableFileSystemTemplate,
 	ProvideValidator,
-	ProvideReservedNameChecker, template.NewEngine, wire.Bind(new(time.Provider), new(time.ProviderImpl)), time.NewProvider, wire.Bind(new(provider.RenderProvider), new(*provider.RenderProviderImpl)), provider.NewRenderProvider, wire.Bind(new(provider.ValidateProvider), new(*provider.ValidateProviderImpl)), provider.NewValidateProvider, wire.Bind(new(auth.ContextGetter), new(*provider.AuthContextProviderImpl)), wire.Bind(new(provider.AuthContextProvider), new(*provider.AuthContextProviderImpl)), provider.NewAuthContextProvider, wire.Bind(new(logging.Factory), new(*logging.FactoryImpl)), ProvideLoggingFactory, wire.Bind(new(session.Store), new(*redis.StoreImpl)), ProvideSessionStore, wire.Bind(new(session.EventStore), new(*redis.EventStoreImpl)), ProvideSessionEventStore, wire.Bind(new(session.Provider), new(*session.ProviderImpl)), ProvideSessionProvider,
+	ProvideReservedNameChecker, template.NewEngine, wire.Bind(new(time.Provider), new(time.ProviderImpl)), time.NewProvider, wire.Bind(new(provider.RenderProvider), new(*provider.RenderProviderImpl)), provider.NewRenderProvider, wire.Bind(new(provider.ValidateProvider), new(*provider.ValidateProviderImpl)), provider.NewValidateProvider, wire.Bind(new(auth.ContextGetter), new(*provider.AuthContextProviderImpl)), wire.Bind(new(provider.AuthContextProvider), new(*provider.AuthContextProviderImpl)), provider.NewAuthContextProvider, wire.Bind(new(logging.Factory), new(*logging.FactoryImpl)), ProvideLoggingFactory, wire.Bind(new(session.Store), new(*redis.StoreImpl)), ProvideSessionStore, wire.Bind(new(session.EventStore), new(*redis.EventStoreImpl)), ProvideSessionEventStore, wire.Bind(new(session.Provider), new(*session.ProviderImpl)), ProvideSessionProvider, wire.Bind(new(db.Context), new(*db.ContextImpl)), wire.Bind(new(db.TxContext), new(*db.ContextImpl)), wire.Bind(new(db.SafeTxContext), new(*db.ContextImpl)), db.NewContextImpl,
 )

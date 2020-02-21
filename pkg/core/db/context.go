@@ -71,10 +71,14 @@ type contextContainer struct {
 	tx   *sqlx.Tx
 }
 
-type dbContext struct {
+type ContextImpl struct {
 	context.Context
 	tConfig config.TenantConfiguration
 }
+
+var _ Context = &ContextImpl{}
+var _ TxContext = &ContextImpl{}
+var _ SafeTxContext = &ContextImpl{}
 
 func InitDBContext(ctx context.Context, pool Pool) context.Context {
 	container := &contextContainer{pool: pool}
@@ -86,26 +90,26 @@ func InitRequestDBContext(req *http.Request, pool Pool) *http.Request {
 	return req.WithContext(InitDBContext(req.Context(), pool))
 }
 
-func newDBContext(ctx context.Context, tConfig config.TenantConfiguration) *dbContext {
-	return &dbContext{Context: ctx, tConfig: tConfig}
+func NewContextImpl(ctx context.Context, tConfig config.TenantConfiguration) *ContextImpl {
+	return &ContextImpl{Context: ctx, tConfig: tConfig}
 }
 
 // NewContextWithContext creates a new context.DB from context
 func NewContextWithContext(ctx context.Context, tConfig config.TenantConfiguration) Context {
-	return newDBContext(ctx, tConfig)
+	return NewContextImpl(ctx, tConfig)
 }
 
 // NewTxContextWithContext creates a new context.Tx from context
 func NewTxContextWithContext(ctx context.Context, tConfig config.TenantConfiguration) TxContext {
-	return newDBContext(ctx, tConfig)
+	return NewContextImpl(ctx, tConfig)
 }
 
 // NewSafeTxContextWithContext creates a new context.Tx from context
 func NewSafeTxContextWithContext(ctx context.Context, tConfig config.TenantConfiguration) SafeTxContext {
-	return newDBContext(ctx, tConfig)
+	return NewContextImpl(ctx, tConfig)
 }
 
-func (d *dbContext) DB() (ExtContext, error) {
+func (d *ContextImpl) DB() (ExtContext, error) {
 	if d.tx() != nil {
 		return d.tx(), nil
 	}
@@ -113,17 +117,17 @@ func (d *dbContext) DB() (ExtContext, error) {
 	return d.lazydb()
 }
 
-func (d *dbContext) HasTx() bool {
+func (d *ContextImpl) HasTx() bool {
 	return d.tx() != nil
 }
 
-func (d *dbContext) EnsureTx() {
+func (d *ContextImpl) EnsureTx() {
 	if d.tx() == nil {
 		panic("skydb: a transaction has not begun")
 	}
 }
 
-func (d *dbContext) BeginTx() error {
+func (d *ContextImpl) BeginTx() error {
 	if d.tx() != nil {
 		panic("skydb: a transaction has already begun")
 	}
@@ -145,7 +149,7 @@ func (d *dbContext) BeginTx() error {
 	return nil
 }
 
-func (d *dbContext) CommitTx() error {
+func (d *ContextImpl) CommitTx() error {
 	if d.tx() == nil {
 		panic("skydb: a transaction has not begun")
 	}
@@ -160,7 +164,7 @@ func (d *dbContext) CommitTx() error {
 	return nil
 }
 
-func (d *dbContext) RollbackTx() error {
+func (d *ContextImpl) RollbackTx() error {
 	if d.tx() == nil {
 		panic("skydb: a transaction has not begun")
 	}
@@ -175,15 +179,15 @@ func (d *dbContext) RollbackTx() error {
 	return nil
 }
 
-func (d *dbContext) db() *sqlx.DB {
+func (d *ContextImpl) db() *sqlx.DB {
 	return d.container().db
 }
 
-func (d *dbContext) tx() *sqlx.Tx {
+func (d *ContextImpl) tx() *sqlx.Tx {
 	return d.container().tx
 }
 
-func (d *dbContext) lazydb() (*sqlx.DB, error) {
+func (d *ContextImpl) lazydb() (*sqlx.DB, error) {
 	db := d.db()
 	if db == nil {
 		container := d.container()
@@ -199,6 +203,6 @@ func (d *dbContext) lazydb() (*sqlx.DB, error) {
 	return db, nil
 }
 
-func (d *dbContext) container() *contextContainer {
+func (d *ContextImpl) container() *contextContainer {
 	return d.Value(keyContainer).(*contextContainer)
 }

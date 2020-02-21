@@ -13,6 +13,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	redisSession "github.com/skygeario/skygear-server/pkg/core/auth/session/redis"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/loginid"
 	"github.com/skygeario/skygear-server/pkg/core/sentry"
@@ -152,6 +153,11 @@ var DefaultSet = wire.NewSet(
 	ProvideSessionEventStore,
 	wire.Bind(new(session.Provider), new(*session.ProviderImpl)),
 	ProvideSessionProvider,
+
+	wire.Bind(new(db.Context), new(*db.ContextImpl)),
+	wire.Bind(new(db.TxContext), new(*db.ContextImpl)),
+	wire.Bind(new(db.SafeTxContext), new(*db.ContextImpl)),
+	db.NewContextImpl,
 )
 
 func InjectRootHandler(r *http.Request) *RootHandler {
