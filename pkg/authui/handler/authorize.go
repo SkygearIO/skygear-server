@@ -144,7 +144,8 @@ func (h *AuthorizeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	step := r.Form.Get("x_step")
 	switch step {
 	case "submit_password":
-		data, err := h.ValidateProvider.Validate("#AuthorizeEnterPasswordRequest", r.Form)
+		data := provider.FormToJSON(r.Form)
+		err := h.ValidateProvider.Validate("#AuthorizeEnterPasswordRequest", data)
 		var t config.TemplateItemType
 		if err != nil {
 			t = template.TemplateItemTypeAuthUIEnterPasswordHTML
@@ -154,7 +155,8 @@ func (h *AuthorizeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		h.RenderProvider.WritePage(w, r, t, data, err)
 	case "submit_login_id":
-		data, err := h.ValidateProvider.Validate("#AuthorizeLoginIDRequest", r.Form)
+		data := provider.FormToJSON(r.Form)
+		err := h.ValidateProvider.Validate("#AuthorizeLoginIDRequest", data)
 		var t config.TemplateItemType
 		if err != nil {
 			t = template.TemplateItemTypeAuthUIAuthorizeHTML
@@ -164,7 +166,8 @@ func (h *AuthorizeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.RenderProvider.WritePage(w, r, t, data, err)
 	default:
 		// Initial step: serve the authorize page
-		data, err := h.ValidateProvider.Validate("#AuthorizeRequest", r.Form)
+		data := provider.FormToJSON(r.Form)
+		err := h.ValidateProvider.Validate("#AuthorizeRequest", data)
 		h.RenderProvider.WritePage(w, r, template.TemplateItemTypeAuthUIAuthorizeHTML, data, err)
 	}
 }

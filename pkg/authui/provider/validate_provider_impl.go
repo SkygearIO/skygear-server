@@ -14,6 +14,8 @@ type ValidateProviderImpl struct {
 	AuthContextProvider AuthContextProvider
 }
 
+var _ ValidateProvider = &ValidateProviderImpl{}
+
 func NewValidateProvider(
 	tConfig *config.TenantConfiguration,
 	validator *validation.Validator,
@@ -46,17 +48,15 @@ func (p *ValidateProviderImpl) Prevalidate(form url.Values) {
 	}
 }
 
-func (p *ValidateProviderImpl) Validate(schemaID string, form url.Values) (map[string]interface{}, error) {
-	j := make(map[string]interface{})
-	// Do not support recurring parameter
-	for name := range form {
-		j[name] = form.Get(name)
+func (p *ValidateProviderImpl) Validate(schemaID string, form map[string]interface{}) (err error) {
+	err = p.Validator.ValidateGoValue(schemaID, form)
+	if err != nil {
+		return
 	}
-	err := p.Validator.ValidateGoValue(schemaID, j)
 
 	// Validate client_id
 	if err == nil {
-		if _, ok := j["client_id"].(string); ok {
+		if _, ok := form["client_id"].(string); ok {
 			accessKey := p.AuthContextProvider.AccessKey()
 			if accessKey.Type != model.APIAccessKeyType {
 				causes := []validation.ErrorCause{
@@ -67,11 +67,12 @@ func (p *ValidateProviderImpl) Validate(schemaID string, form url.Values) (map[s
 					},
 				}
 				err = validation.NewValidationFailed("validation failed", causes)
+				return
 			}
 		}
 	}
 
 	// TODO(authui): validate redirect_uri
 
-	return j, err
+	return nil
 }

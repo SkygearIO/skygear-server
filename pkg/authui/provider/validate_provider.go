@@ -11,7 +11,14 @@ type ValidateProvider interface {
 	// making the JSON schema keyword required useless.
 	Prevalidate(form url.Values)
 	// Validate validates form against schemaID.
-	// In either case, the form is converted to JSON and
-	// be returned as the first result.
-	Validate(schemaID string, form url.Values) (map[string]interface{}, error)
+	Validate(schemaID string, formJSON map[string]interface{}) error
+}
+
+func FormToJSON(form url.Values) map[string]interface{} {
+	j := make(map[string]interface{})
+	// Do not support recurring parameter
+	for name := range form {
+		j[name] = form.Get(name)
+	}
+	return j
 }
