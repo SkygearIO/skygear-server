@@ -5,6 +5,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/loginid"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -16,4 +17,5 @@ type BootTimeDependency struct {
 	RedisPool                     *redis.Pool
 	StandaloneTenantConfiguration *config.TenantConfiguration
 	Validator                     *validation.Validator
+	ReservedNameChecker           *loginid.ReservedNameChecker
 }

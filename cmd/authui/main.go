@@ -11,6 +11,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
+	"github.com/skygeario/skygear-server/pkg/core/loginid"
 	"github.com/skygeario/skygear-server/pkg/core/redis"
 	"github.com/skygeario/skygear-server/pkg/core/sentry"
 	"github.com/skygeario/skygear-server/pkg/core/server"
@@ -45,6 +46,11 @@ func main() {
 		logger.Fatalf("fail to create redis pool: %v", err.Error())
 	}
 
+	reservedNameChecker, err := loginid.NewReservedNameCheckerWithFile(configuration.ReservedNameSourceFile)
+	if err != nil {
+		logger.Fatalf("fail to load reserved name source file: %v", err.Error())
+	}
+
 	var standaloneConfig *config.TenantConfiguration
 	if configuration.Standalone {
 		filename := configuration.StandaloneTenantConfigurationFile
@@ -72,6 +78,7 @@ func main() {
 		RedisPool:                     redisPool,
 		StandaloneTenantConfiguration: standaloneConfig,
 		Validator:                     validator,
+		ReservedNameChecker:           reservedNameChecker,
 	}
 	router := authui.NewRouter(dep)
 

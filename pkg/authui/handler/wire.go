@@ -14,6 +14,7 @@ import (
 	redisSession "github.com/skygeario/skygear-server/pkg/core/auth/session/redis"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
+	"github.com/skygeario/skygear-server/pkg/core/loginid"
 	"github.com/skygeario/skygear-server/pkg/core/sentry"
 	coreTemplate "github.com/skygeario/skygear-server/pkg/core/template"
 	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
@@ -63,6 +64,10 @@ func ProvideEnableFileSystemTemplate(dep *inject.BootTimeDependency) inject.Enab
 
 func ProvideValidator(dep *inject.BootTimeDependency) *validation.Validator {
 	return dep.Validator
+}
+
+func ProvideReservedNameChecker(dep *inject.BootTimeDependency) *loginid.ReservedNameChecker {
+	return dep.ReservedNameChecker
 }
 
 func ProvideLoggingFactory(tConfig *config.TenantConfiguration, ctx context.Context, r *http.Request) *logging.FactoryImpl {
@@ -121,6 +126,7 @@ var DefaultSet = wire.NewSet(
 	ProvideAssetGearLoader,
 	ProvideEnableFileSystemTemplate,
 	ProvideValidator,
+	ProvideReservedNameChecker,
 
 	template.NewEngine,
 
