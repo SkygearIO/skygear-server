@@ -121,6 +121,14 @@ func ProvideSessionProvider(
 	)
 }
 
+func ProvideSQLBuilder(tConfig *config.TenantConfiguration) db.SQLBuilder {
+	return db.NewSQLBuilder("authui", tConfig.DatabaseConfig.DatabaseSchema, tConfig.AppID)
+}
+
+func ProvideSQLExecutor(ctx context.Context, dbContext db.Context) db.SQLExecutor {
+	return db.NewSQLExecutor(ctx, dbContext)
+}
+
 var DefaultSet = wire.NewSet(
 	ProvideTenantConfig,
 	ProvideContext,
@@ -128,6 +136,8 @@ var DefaultSet = wire.NewSet(
 	ProvideEnableFileSystemTemplate,
 	ProvideValidator,
 	ProvideReservedNameChecker,
+	ProvideSQLBuilder,
+	ProvideSQLExecutor,
 
 	template.NewEngine,
 
