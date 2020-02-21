@@ -22,19 +22,19 @@ type Store interface {
 	UpdatePassword(principal *Principal, password string) (err error)
 }
 
-type storeImpl struct {
+type StoreImpl struct {
 	sqlBuilder  db.SQLBuilder
 	sqlExecutor db.SQLExecutor
 }
 
-func NewStore(builder db.SQLBuilder, executor db.SQLExecutor) Store {
-	return &storeImpl{
+func NewStore(builder db.SQLBuilder, executor db.SQLExecutor) *StoreImpl {
+	return &StoreImpl{
 		sqlBuilder:  builder,
 		sqlExecutor: executor,
 	}
 }
 
-func (s *storeImpl) CreatePrincipal(principal *Principal) (err error) {
+func (s *StoreImpl) CreatePrincipal(principal *Principal) (err error) {
 	builder := s.sqlBuilder.Tenant().
 		Insert(s.sqlBuilder.FullTableName("principal")).
 		Columns(
@@ -91,7 +91,7 @@ func (s *storeImpl) CreatePrincipal(principal *Principal) (err error) {
 	return
 }
 
-func (s *storeImpl) DeletePrincipal(principal *Principal) error {
+func (s *StoreImpl) DeletePrincipal(principal *Principal) error {
 	builder := s.sqlBuilder.Tenant().
 		Delete(s.sqlBuilder.FullTableName("provider_password")).
 		Where("principal_id = ?", principal.ID)
@@ -113,7 +113,7 @@ func (s *storeImpl) DeletePrincipal(principal *Principal) error {
 	return nil
 }
 
-func (s *storeImpl) GetPrincipals(loginIDKey string, loginID string, realm *string) (principals []*Principal, err error) {
+func (s *StoreImpl) GetPrincipals(loginIDKey string, loginID string, realm *string) (principals []*Principal, err error) {
 	builder := s.selectBuilder().
 		Where(`pp.login_id = ? AND pp.login_id_key = ?`, loginID, loginIDKey)
 	if realm != nil {
@@ -138,7 +138,7 @@ func (s *storeImpl) GetPrincipals(loginIDKey string, loginID string, realm *stri
 	return
 }
 
-func (s *storeImpl) GetPrincipalByID(principalID string) (principal.Principal, error) {
+func (s *StoreImpl) GetPrincipalByID(principalID string) (principal.Principal, error) {
 	builder := s.selectBuilder().
 		Where(`p.id = ?`, principalID)
 
@@ -160,7 +160,7 @@ func (s *storeImpl) GetPrincipalByID(principalID string) (principal.Principal, e
 	return &pp, nil
 }
 
-func (s *storeImpl) GetPrincipalsByUserID(userID string) (principals []*Principal, err error) {
+func (s *StoreImpl) GetPrincipalsByUserID(userID string) (principals []*Principal, err error) {
 	builder := s.selectBuilder().
 		Where("p.user_id = ?", userID)
 
@@ -184,7 +184,7 @@ func (s *storeImpl) GetPrincipalsByUserID(userID string) (principals []*Principa
 	return
 }
 
-func (s *storeImpl) GetPrincipalsByClaim(claimName string, claimValue string) (principals []*Principal, err error) {
+func (s *StoreImpl) GetPrincipalsByClaim(claimName string, claimValue string) (principals []*Principal, err error) {
 	builder := s.selectBuilder().
 		Where("(pp.claims #>> ?) = ?", pq.Array([]string{claimName}), claimValue)
 
@@ -208,7 +208,7 @@ func (s *storeImpl) GetPrincipalsByClaim(claimName string, claimValue string) (p
 	return
 }
 
-func (s *storeImpl) UpdatePassword(principal *Principal, password string) (err error) {
+func (s *StoreImpl) UpdatePassword(principal *Principal, password string) (err error) {
 	builder := s.sqlBuilder.Tenant().
 		Update(s.sqlBuilder.FullTableName("provider_password")).
 		Set("password", principal.HashedPassword).
@@ -218,7 +218,7 @@ func (s *storeImpl) UpdatePassword(principal *Principal, password string) (err e
 	return
 }
 
-func (s *storeImpl) selectBuilder() db.SelectBuilder {
+func (s *StoreImpl) selectBuilder() db.SelectBuilder {
 	return s.sqlBuilder.Tenant().
 		Select(
 			"p.id",
@@ -235,7 +235,7 @@ func (s *storeImpl) selectBuilder() db.SelectBuilder {
 		Join(s.sqlBuilder.FullTableName("provider_password"), "pp", "p.id = pp.principal_id")
 }
 
-func (s *storeImpl) scan(scanner db.Scanner, principal *Principal) error {
+func (s *StoreImpl) scan(scanner db.Scanner, principal *Principal) error {
 	var claimsValueBytes []byte
 
 	err := scanner.Scan(
@@ -271,5 +271,5 @@ func isUniqueViolated(err error) bool {
 }
 
 var (
-	_ Store = &storeImpl{}
+	_ Store = &StoreImpl{}
 )

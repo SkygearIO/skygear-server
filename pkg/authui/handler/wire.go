@@ -10,6 +10,7 @@ import (
 	"github.com/google/wire"
 
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/auth/principal/password"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	redisSession "github.com/skygeario/skygear-server/pkg/core/auth/session/redis"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -168,6 +169,9 @@ var DefaultSet = wire.NewSet(
 	wire.Bind(new(db.TxContext), new(*db.ContextImpl)),
 	wire.Bind(new(db.SafeTxContext), new(*db.ContextImpl)),
 	db.NewContextImpl,
+
+	wire.Bind(new(password.Store), new(*password.StoreImpl)),
+	password.NewStore,
 )
 
 func InjectRootHandler(r *http.Request) *RootHandler {
