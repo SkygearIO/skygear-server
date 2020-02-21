@@ -19,7 +19,9 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/loginid"
+	"github.com/skygeario/skygear-server/pkg/core/mail"
 	"github.com/skygeario/skygear-server/pkg/core/sentry"
+	"github.com/skygeario/skygear-server/pkg/core/sms"
 	coreTemplate "github.com/skygeario/skygear-server/pkg/core/template"
 	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
@@ -159,6 +161,14 @@ func ProvideAuditTrail(tConfig *config.TenantConfiguration) audit.Trail {
 	return t
 }
 
+func ProvideSMSClient(tConfig *config.TenantConfiguration) *sms.ClientImpl {
+	return sms.NewClient(tConfig.AppConfig)
+}
+
+func ProvideMailSender(tConfig *config.TenantConfiguration) *mail.SenderImpl {
+	return mail.NewSender(tConfig.AppConfig.SMTP)
+}
+
 var DefaultSet = wire.NewSet(
 	ProvideTenantConfig,
 	ProvideContext,
@@ -209,6 +219,12 @@ var DefaultSet = wire.NewSet(
 	ProvidePasswordAuthProvider,
 
 	ProvideAuditTrail,
+
+	wire.Bind(new(sms.Client), new(*sms.ClientImpl)),
+	ProvideSMSClient,
+
+	wire.Bind(new(mail.Sender), new(*mail.SenderImpl)),
+	ProvideMailSender,
 )
 
 func InjectRootHandler(r *http.Request) *RootHandler {

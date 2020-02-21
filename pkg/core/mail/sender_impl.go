@@ -10,11 +10,11 @@ import (
 
 var ErrMissingSMTPConfiguration = errors.New("mail: configuration is missing")
 
-type senderImpl struct {
+type SenderImpl struct {
 	GomailDialer *gomail.Dialer
 }
 
-func NewSender(c *config.SMTPConfiguration) Sender {
+func NewSender(c *config.SMTPConfiguration) *SenderImpl {
 	var dialer *gomail.Dialer
 	if c != nil && c.IsValid() {
 		dialer = gomail.NewPlainDialer(c.Host, c.Port, c.Login, c.Password)
@@ -25,14 +25,14 @@ func NewSender(c *config.SMTPConfiguration) Sender {
 	case config.SMTPModeSSL:
 		dialer.SSL = true
 	}
-	return &senderImpl{
+	return &SenderImpl{
 		GomailDialer: dialer,
 	}
 }
 
 type updateGomailMessageFunc func(opts *SendOptions, msg *gomail.Message) error
 
-func (s *senderImpl) Send(opts SendOptions) (err error) {
+func (s *SenderImpl) Send(opts SendOptions) (err error) {
 	if s.GomailDialer == nil {
 		err = ErrMissingSMTPConfiguration
 		return
