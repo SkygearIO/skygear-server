@@ -2,9 +2,23 @@ package provider
 
 import (
 	"fmt"
+	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"net/url"
 	"regexp"
 )
+
+type AuthenticationProvider interface {
+	// AuthenticateWithPassword creates a new AuthnSession.
+	AuthenticateWithPassword(loginID string, password string) (*coreAuth.AuthnSession, error)
+
+	// FromToken restores a AuthnSession from a token.
+	FromToken(token string) (*coreAuth.AuthnSession, error)
+
+	// ToToken stores a AuthnSession as a token.
+	ToToken(*coreAuth.AuthnSession) (string, error)
+
+	// TODO(authui): Handle MFA
+}
 
 var reKeepDigit = regexp.MustCompile(`[^0-9]`)
 
