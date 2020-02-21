@@ -710,6 +710,10 @@ type PasswordPolicyConfiguration struct {
 	ExpiryDays  int `json:"expiry_days,omitempty" yaml:"expiry_days" msg:"expiry_days"`
 }
 
+func (c *PasswordPolicyConfiguration) IsPasswordHistoryEnabled() bool {
+	return c.HistorySize > 0 || c.HistoryDays > 0
+}
+
 type ForgotPasswordConfiguration struct {
 	SecureMatch      bool   `json:"secure_match,omitempty" yaml:"secure_match" msg:"secure_match"`
 	Sender           string `json:"sender,omitempty" yaml:"sender" msg:"sender"`

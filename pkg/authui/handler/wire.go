@@ -131,6 +131,25 @@ func ProvideSQLExecutor(ctx context.Context, dbContext db.Context) db.SQLExecuto
 	return db.NewSQLExecutor(ctx, dbContext)
 }
 
+func ProvidePasswordAuthProvider(
+	store password.Store,
+	historyStore passwordhistory.Store,
+	loggerFactory logging.Factory,
+	tConfig *config.TenantConfiguration,
+	reservedNameChecker *loginid.ReservedNameChecker,
+) *password.ProviderImpl {
+	return password.NewProvider(
+		store,
+		historyStore,
+		loggerFactory,
+		tConfig.AppConfig.Auth.LoginIDKeys,
+		tConfig.AppConfig.Auth.LoginIDTypes,
+		tConfig.AppConfig.Auth.AllowedRealms,
+		tConfig.AppConfig.PasswordPolicy.IsPasswordHistoryEnabled(),
+		reservedNameChecker,
+	)
+}
+
 var DefaultSet = wire.NewSet(
 	ProvideTenantConfig,
 	ProvideContext,
@@ -176,6 +195,9 @@ var DefaultSet = wire.NewSet(
 
 	wire.Bind(new(passwordhistory.Store), new(*passwordhistory.StoreImpl)),
 	passwordhistory.NewPasswordHistoryStore,
+
+	wire.Bind(new(password.Provider), new(*password.ProviderImpl)),
+	ProvidePasswordAuthProvider,
 )
 
 func InjectRootHandler(r *http.Request) *RootHandler {

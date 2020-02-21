@@ -38,7 +38,7 @@ func TestProvider(t *testing.T) {
 			},
 		}
 		reservedNameChecker, _ := loginid.NewReservedNameCheckerWithFile("../../../../../reserved_name.txt")
-		pwProvider := &providerImpl{
+		pwProvider := &ProviderImpl{
 			store:        NewMockStore(),
 			logger:       loggerEntry,
 			loginIDsKeys: loginIDsKeys,

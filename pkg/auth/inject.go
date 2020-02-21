@@ -142,13 +142,6 @@ func (m DependencyMap) Provide(
 		)
 	}
 
-	// TODO:
-	// from tConfig
-	isPasswordHistoryEnabled := func() bool {
-		return tConfig.AppConfig.PasswordPolicy.HistorySize > 0 ||
-			tConfig.AppConfig.PasswordPolicy.HistoryDays > 0
-	}
-
 	newPasswordAuthProvider := func() password.Provider {
 		return password.NewProvider(
 			newPasswordStore(),
@@ -157,7 +150,7 @@ func (m DependencyMap) Provide(
 			tConfig.AppConfig.Auth.LoginIDKeys,
 			tConfig.AppConfig.Auth.LoginIDTypes,
 			tConfig.AppConfig.Auth.AllowedRealms,
-			isPasswordHistoryEnabled(),
+			tConfig.AppConfig.PasswordPolicy.IsPasswordHistoryEnabled(),
 			m.ReservedNameChecker,
 		)
 	}
@@ -305,7 +298,7 @@ func (m DependencyMap) Provide(
 			//PwExcludedFields:       tConfig.AppConfig.PasswordPolicy.ExcludedFields,
 			PwHistorySize:          tConfig.AppConfig.PasswordPolicy.HistorySize,
 			PwHistoryDays:          tConfig.AppConfig.PasswordPolicy.HistoryDays,
-			PasswordHistoryEnabled: tConfig.AppConfig.PasswordPolicy.HistorySize > 0 || tConfig.AppConfig.PasswordPolicy.HistoryDays > 0,
+			PasswordHistoryEnabled: tConfig.AppConfig.PasswordPolicy.IsPasswordHistoryEnabled(),
 			PasswordHistoryStore:   newPasswordHistoryStore(),
 		}
 	case "PwHousekeeper":
@@ -314,7 +307,7 @@ func (m DependencyMap) Provide(
 			newLoggerFactory(),
 			tConfig.AppConfig.PasswordPolicy.HistorySize,
 			tConfig.AppConfig.PasswordPolicy.HistoryDays,
-			isPasswordHistoryEnabled(),
+			tConfig.AppConfig.PasswordPolicy.IsPasswordHistoryEnabled(),
 		)
 	case "PasswordAuthProvider":
 		return newPasswordAuthProvider()

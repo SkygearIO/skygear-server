@@ -19,7 +19,7 @@ var (
 	timeNow = func() time.Time { return time.Now().UTC() }
 )
 
-type providerImpl struct {
+type ProviderImpl struct {
 	store                    Store
 	logger                   *logrus.Entry
 	loginIDsKeys             []config.LoginIDKeyConfiguration
@@ -40,8 +40,8 @@ func newProvider(
 	allowedRealms []string,
 	passwordHistoryEnabled bool,
 	reservedNameChecker *loginid.ReservedNameChecker,
-) *providerImpl {
-	return &providerImpl{
+) *ProviderImpl {
+	return &ProviderImpl{
 		store:        passwordStore,
 		logger:       loggerFactory.NewLogger("password-provider"),
 		loginIDsKeys: loginIDsKeys,
@@ -69,31 +69,31 @@ func NewProvider(
 	allowedRealms []string,
 	passwordHistoryEnabled bool,
 	reservedNameChecker *loginid.ReservedNameChecker,
-) Provider {
+) *ProviderImpl {
 	return newProvider(passwordStore, passwordHistoryStore, loggerFactory, loginIDsKeys, loginIDTypes, allowedRealms, passwordHistoryEnabled, reservedNameChecker)
 }
 
-func (p *providerImpl) ValidateLoginID(loginID loginid.LoginID) error {
+func (p *ProviderImpl) ValidateLoginID(loginID loginid.LoginID) error {
 	return p.loginIDChecker.ValidateOne(loginID)
 }
 
-func (p *providerImpl) ValidateLoginIDs(loginIDs []loginid.LoginID) error {
+func (p *ProviderImpl) ValidateLoginIDs(loginIDs []loginid.LoginID) error {
 	return p.loginIDChecker.Validate(loginIDs)
 }
 
-func (p *providerImpl) CheckLoginIDKeyType(loginIDKey string, standardKey metadata.StandardKey) bool {
+func (p *ProviderImpl) CheckLoginIDKeyType(loginIDKey string, standardKey metadata.StandardKey) bool {
 	return p.loginIDChecker.CheckType(loginIDKey, standardKey)
 }
 
-func (p *providerImpl) IsRealmValid(realm string) bool {
+func (p *ProviderImpl) IsRealmValid(realm string) bool {
 	return p.realmChecker.IsValid(realm)
 }
 
-func (p *providerImpl) IsDefaultAllowedRealms() bool {
+func (p *ProviderImpl) IsDefaultAllowedRealms() bool {
 	return len(p.allowedRealms) == 1 && p.allowedRealms[0] == loginid.DefaultRealm
 }
 
-func (p *providerImpl) MakePrincipal(userID string, password string, loginID loginid.LoginID, realm string) (*Principal, error) {
+func (p *ProviderImpl) MakePrincipal(userID string, password string, loginID loginid.LoginID, realm string) (*Principal, error) {
 	normalizer := p.loginIDNormalizerFactory.NewNormalizer(loginID.Key)
 	loginIDValue := loginID.Value
 	normalizedloginIDValue, err := normalizer.Normalize(loginID.Value)
@@ -122,7 +122,7 @@ func (p *providerImpl) MakePrincipal(userID string, password string, loginID log
 	return &principal, nil
 }
 
-func (p *providerImpl) CreatePrincipalsByLoginID(userID string, password string, loginIDs []loginid.LoginID, realm string) ([]*Principal, error) {
+func (p *ProviderImpl) CreatePrincipalsByLoginID(userID string, password string, loginIDs []loginid.LoginID, realm string) ([]*Principal, error) {
 	var principals []*Principal
 	for _, loginID := range loginIDs {
 		principal, err := p.MakePrincipal(userID, password, loginID, realm)
@@ -144,7 +144,7 @@ func (p *providerImpl) CreatePrincipalsByLoginID(userID string, password string,
 	return principals, nil
 }
 
-func (p *providerImpl) CreatePrincipal(principal *Principal) (err error) {
+func (p *ProviderImpl) CreatePrincipal(principal *Principal) (err error) {
 	// Create principal
 	err = p.store.CreatePrincipal(principal)
 	if err != nil {
@@ -156,7 +156,7 @@ func (p *providerImpl) CreatePrincipal(principal *Principal) (err error) {
 	return
 }
 
-func (p *providerImpl) DeletePrincipal(principal *Principal) error {
+func (p *ProviderImpl) DeletePrincipal(principal *Principal) error {
 	err := p.store.DeletePrincipal(principal)
 	if err != nil {
 		return err
@@ -164,7 +164,7 @@ func (p *providerImpl) DeletePrincipal(principal *Principal) error {
 	return nil
 }
 
-func (p *providerImpl) savePasswordHistory(principal *Principal) error {
+func (p *ProviderImpl) savePasswordHistory(principal *Principal) error {
 	if p.passwordHistoryEnabled {
 		err := p.passwordHistoryStore.CreatePasswordHistory(
 			principal.UserID, principal.HashedPassword, timeNow(),
@@ -176,7 +176,7 @@ func (p *providerImpl) savePasswordHistory(principal *Principal) error {
 	return nil
 }
 
-func (p *providerImpl) GetPrincipalByLoginIDWithRealm(loginIDKey string, loginID string, realm string, pp *Principal) (err error) {
+func (p *ProviderImpl) GetPrincipalByLoginIDWithRealm(loginIDKey string, loginID string, realm string, pp *Principal) (err error) {
 	var principals []*Principal
 	for _, loginIDKeyConfig := range p.loginIDsKeys {
 		if loginIDKey == "" || loginIDKeyConfig.Key == loginIDKey {
@@ -216,11 +216,11 @@ func (p *providerImpl) GetPrincipalByLoginIDWithRealm(loginIDKey string, loginID
 	return
 }
 
-func (p *providerImpl) GetPrincipalsByUserID(userID string) (principals []*Principal, err error) {
+func (p *ProviderImpl) GetPrincipalsByUserID(userID string) (principals []*Principal, err error) {
 	return p.store.GetPrincipalsByUserID(userID)
 }
 
-func (p *providerImpl) GetPrincipalsByLoginID(loginIDKey string, loginID string) (principals []*Principal, err error) {
+func (p *ProviderImpl) GetPrincipalsByLoginID(loginIDKey string, loginID string) (principals []*Principal, err error) {
 	var result []*Principal
 	for _, loginIDKeyConfig := range p.loginIDsKeys {
 		if loginIDKey == "" || loginIDKeyConfig.Key == loginIDKey {
@@ -245,7 +245,7 @@ func (p *providerImpl) GetPrincipalsByLoginID(loginIDKey string, loginID string)
 	return
 }
 
-func (p *providerImpl) UpdatePassword(principal *Principal, password string) (err error) {
+func (p *ProviderImpl) UpdatePassword(principal *Principal, password string) (err error) {
 	var isPasswordChanged = !principal.IsSamePassword(password)
 
 	err = principal.setPassword(password)
@@ -271,7 +271,7 @@ func (p *providerImpl) UpdatePassword(principal *Principal, password string) (er
 	return
 }
 
-func (p *providerImpl) MigratePassword(principal *Principal, password string) (err error) {
+func (p *ProviderImpl) MigratePassword(principal *Principal, password string) (err error) {
 	migrated, err := principal.migratePassword(password)
 	if err != nil {
 		err = errors.HandledWithMessage(err, "failed to migrate password")
@@ -289,15 +289,15 @@ func (p *providerImpl) MigratePassword(principal *Principal, password string) (e
 	return
 }
 
-func (p *providerImpl) ID() string {
+func (p *ProviderImpl) ID() string {
 	return string(coreAuth.PrincipalTypePassword)
 }
 
-func (p *providerImpl) GetPrincipalByID(principalID string) (principal.Principal, error) {
+func (p *ProviderImpl) GetPrincipalByID(principalID string) (principal.Principal, error) {
 	return p.store.GetPrincipalByID(principalID)
 }
 
-func (p *providerImpl) ListPrincipalsByClaim(claimName string, claimValue string) ([]principal.Principal, error) {
+func (p *ProviderImpl) ListPrincipalsByClaim(claimName string, claimValue string) ([]principal.Principal, error) {
 	principals, err := p.store.GetPrincipalsByClaim(claimName, claimValue)
 	if err != nil {
 		return nil, err
@@ -311,7 +311,7 @@ func (p *providerImpl) ListPrincipalsByClaim(claimName string, claimValue string
 	return genericPrincipals, nil
 }
 
-func (p *providerImpl) ListPrincipalsByUserID(userID string) ([]principal.Principal, error) {
+func (p *ProviderImpl) ListPrincipalsByUserID(userID string) ([]principal.Principal, error) {
 	principals, err := p.store.GetPrincipalsByUserID(userID)
 	if err != nil {
 		return nil, err
@@ -327,5 +327,5 @@ func (p *providerImpl) ListPrincipalsByUserID(userID string) ([]principal.Princi
 
 // this ensures that our structure conform to certain interfaces.
 var (
-	_ Provider = &providerImpl{}
+	_ Provider = &ProviderImpl{}
 )
