@@ -44,8 +44,12 @@ var EventStreamKey = redisSession.EventStreamKeyFunc(func(appID string, sessionI
 	return fmt.Sprintf("%s:auth-ui:event:%s", appID, sessionID)
 })
 
-func ProvideTenantConfig(r *http.Request) *config.TenantConfiguration {
+func ProvideTenantConfigPtr(r *http.Request) *config.TenantConfiguration {
 	return config.GetTenantConfig(r.Context())
+}
+
+func ProvideTenantConfig(r *http.Request) config.TenantConfiguration {
+	return *config.GetTenantConfig(r.Context())
 }
 
 func ProvideContext(r *http.Request) context.Context {
@@ -190,6 +194,7 @@ func ProvideMFAProvider(
 
 var DefaultSet = wire.NewSet(
 	ProvideTenantConfig,
+	ProvideTenantConfigPtr,
 	ProvideContext,
 	ProvideAssetGearLoader,
 	ProvideEnableFileSystemTemplate,

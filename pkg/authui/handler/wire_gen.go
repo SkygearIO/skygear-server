@@ -40,7 +40,7 @@ func InjectRootHandler(r *http.Request) *RootHandler {
 }
 
 func InjectAuthorizeHandler(r *http.Request, dep *inject.BootTimeDependency) *AuthorizeHandler {
-	tenantConfiguration := ProvideTenantConfig(r)
+	tenantConfiguration := ProvideTenantConfigPtr(r)
 	enableFileSystemTemplate := ProvideEnableFileSystemTemplate(dep)
 	assetGearLoader := ProvideAssetGearLoader(dep)
 	engine := template.NewEngine(tenantConfiguration, enableFileSystemTemplate, assetGearLoader)
@@ -66,8 +66,12 @@ var EventStreamKey = redis.EventStreamKeyFunc(func(appID string, sessionID strin
 	return fmt.Sprintf("%s:auth-ui:event:%s", appID, sessionID)
 })
 
-func ProvideTenantConfig(r *http.Request) *config.TenantConfiguration {
+func ProvideTenantConfigPtr(r *http.Request) *config.TenantConfiguration {
 	return config.GetTenantConfig(r.Context())
+}
+
+func ProvideTenantConfig(r *http.Request) config.TenantConfiguration {
+	return *config.GetTenantConfig(r.Context())
 }
 
 func ProvideContext(r *http.Request) context.Context {
@@ -211,6 +215,7 @@ func ProvideMFAProvider(
 
 var DefaultSet = wire.NewSet(
 	ProvideTenantConfig,
+	ProvideTenantConfigPtr,
 	ProvideContext,
 	ProvideAssetGearLoader,
 	ProvideEnableFileSystemTemplate,
