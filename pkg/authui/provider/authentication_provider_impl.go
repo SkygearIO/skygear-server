@@ -14,11 +14,12 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/principal/password"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
+	"github.com/skygeario/skygear-server/pkg/core/logging"
 	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 type AuthenticationProviderImpl struct {
-	PassworAuthProvider                password.Provider
+	PasswordAuthProvider               password.Provider
 	AuditTrail                         audit.Trail
 	Logger                             *logrus.Entry
 	TimeProvider                       coreTime.Provider
@@ -29,6 +30,27 @@ type AuthenticationProviderImpl struct {
 }
 
 var _ AuthenticationProvider = &AuthenticationProviderImpl{}
+
+func NewAuthenticationProvider(
+	passwordAuthProvider password.Provider,
+	auditTrail audit.Trail,
+	loggerFactory logging.Factory,
+	timeProvider coreTime.Provider,
+	authContextProvider AuthContextProvider,
+	mfaProvider mfa.Provider,
+	tConfig *config.TenantConfiguration,
+) *AuthenticationProviderImpl {
+	return &AuthenticationProviderImpl{
+		PasswordAuthProvider:               passwordAuthProvider,
+		AuditTrail:                         auditTrail,
+		Logger:                             loggerFactory.NewLogger("authentication-provider"),
+		TimeProvider:                       timeProvider,
+		AuthContextProvider:                authContextProvider,
+		MFAProvider:                        mfaProvider,
+		MFAConfiguration:                   tConfig.AppConfig.MFA,
+		AuthenticationSessionConfiguration: tConfig.AppConfig.Auth.AuthenticationSession,
+	}
+}
 
 func (p *AuthenticationProviderImpl) FromToken(token string) (*coreAuth.AuthnSession, error) {
 	claims, err := coreAuth.ParseAuthnSessionToken(p.AuthenticationSessionConfiguration.Secret, token)
@@ -75,7 +97,7 @@ func (p *AuthenticationProviderImpl) AuthenticateWithPassword(loginID string, pl
 	}()
 
 	var prin password.Principal
-	err = p.PassworAuthProvider.GetPrincipalByLoginIDWithRealm("", loginID, "", &prin)
+	err = p.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("", loginID, "", &prin)
 	if err != nil {
 		if errors.Is(err, principal.ErrNotFound) {
 			err = password.ErrInvalidCredentials
@@ -94,7 +116,7 @@ func (p *AuthenticationProviderImpl) AuthenticateWithPassword(loginID string, pl
 	}
 
 	// This err is non-critical
-	if err := p.PassworAuthProvider.MigratePassword(&prin, plainPassword); err != nil {
+	if err := p.PasswordAuthProvider.MigratePassword(&prin, plainPassword); err != nil {
 		p.Logger.WithError(err).Error("Failed to migrate password")
 	}
 

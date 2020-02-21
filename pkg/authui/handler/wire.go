@@ -256,6 +256,9 @@ var DefaultSet = wire.NewSet(
 	ProvideMFAStore,
 	wire.Bind(new(mfa.Provider), new(*mfa.ProviderImpl)),
 	ProvideMFAProvider,
+
+	wire.Bind(new(provider.AuthenticationProvider), new(*provider.AuthenticationProviderImpl)),
+	provider.NewAuthenticationProvider,
 )
 
 func InjectRootHandler(r *http.Request) *RootHandler {
