@@ -132,7 +132,8 @@ func ProvideSessionProvider(
 }
 
 func ProvideSQLBuilder(tConfig *config.TenantConfiguration) db.SQLBuilder {
-	return db.NewSQLBuilder("authui", tConfig.DatabaseConfig.DatabaseSchema, tConfig.AppID)
+	// We still have to reference _auth_* tables.
+	return db.NewSQLBuilder("auth", tConfig.DatabaseConfig.DatabaseSchema, tConfig.AppID)
 }
 
 func ProvideSQLExecutor(ctx context.Context, dbContext db.Context) db.SQLExecutor {

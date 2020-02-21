@@ -171,7 +171,8 @@ func ProvideSessionProvider(
 }
 
 func ProvideSQLBuilder(tConfig *config.TenantConfiguration) db.SQLBuilder {
-	return db.NewSQLBuilder("authui", tConfig.DatabaseConfig.DatabaseSchema, tConfig.AppID)
+
+	return db.NewSQLBuilder("auth", tConfig.DatabaseConfig.DatabaseSchema, tConfig.AppID)
 }
 
 func ProvideSQLExecutor(ctx context.Context, dbContext db.Context) db.SQLExecutor {
