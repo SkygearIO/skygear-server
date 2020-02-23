@@ -151,7 +151,7 @@ func (h RevokeHandler) Handle(payload RevokeRequestPayload) (resp interface{}, e
 		}
 
 		user := model.NewUser(*authInfo, profile)
-		identity := model.NewIdentity(h.IdentityProvider, principal)
+		identity := model.NewIdentity(principal)
 		session := format.SessionFromSession(s)
 
 		err = h.HookProvider.DispatchEvent(

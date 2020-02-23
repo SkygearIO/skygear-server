@@ -282,7 +282,7 @@ func (h SignupHandler) Handle(payload SignupRequestPayload) (resp interface{}, t
 	user := model.NewUser(info, userProfile)
 	identities := []model.Identity{}
 	for _, principal := range principals {
-		identity := model.NewIdentity(h.IdentityProvider, principal)
+		identity := model.NewIdentity(principal)
 		identities = append(identities, identity)
 	}
 

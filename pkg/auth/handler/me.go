@@ -99,7 +99,7 @@ func (h MeHandler) Handle(w http.ResponseWriter, r *http.Request) (resp interfac
 			return err
 		}
 
-		identity := coreAuthModel.NewIdentity(h.IdentityProvider, principal)
+		identity := coreAuthModel.NewIdentity(principal)
 		user := coreAuthModel.NewUser(*authInfo, userProfile)
 
 		resp = model.NewAuthResponseWithUserIdentity(user, identity)

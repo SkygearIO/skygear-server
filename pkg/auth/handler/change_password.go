@@ -181,7 +181,7 @@ func (h ChangePasswordHandler) Handle(w http.ResponseWriter, r *http.Request) (r
 		}
 
 		user := coreAuthModel.NewUser(*authinfo, userProfile)
-		identity := coreAuthModel.NewIdentity(h.IdentityProvider, principal)
+		identity := coreAuthModel.NewIdentity(principal)
 
 		err = h.HookProvider.DispatchEvent(
 			event.PasswordUpdateEvent{

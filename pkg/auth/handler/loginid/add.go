@@ -175,7 +175,7 @@ func (h AddLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) error 
 			}
 			principals = append(principals, newPrincipal)
 
-			identity := model.NewIdentity(h.IdentityProvider, newPrincipal)
+			identity := model.NewIdentity(newPrincipal)
 			err = h.HookProvider.DispatchEvent(
 				event.IdentityCreateEvent{
 					User:     user,

@@ -154,7 +154,7 @@ func (h UnlinkHandler) Handle() (resp interface{}, err error) {
 		}
 
 		user := model.NewUser(*authInfo, userProfile)
-		identity := model.NewIdentity(h.IdentityProvider, principal)
+		identity := model.NewIdentity(principal)
 		err = h.HookProvider.DispatchEvent(
 			event.IdentityDeleteEvent{
 				User:     user,

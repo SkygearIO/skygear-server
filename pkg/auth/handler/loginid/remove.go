@@ -167,7 +167,7 @@ func (h RemoveLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) err
 			return err
 		}
 
-		identity := model.NewIdentity(h.IdentityProvider, &p)
+		identity := model.NewIdentity(&p)
 		err = h.HookProvider.DispatchEvent(
 			event.IdentityDeleteEvent{
 				User:     user,

@@ -28,7 +28,7 @@ type Identity struct {
 	Claims principal.Claims
 }
 
-func NewIdentity(identityProvider principal.IdentityProvider, principal principal.Principal) Identity {
+func NewIdentity(principal principal.Principal) Identity {
 	return Identity{
 		ID:         principal.PrincipalID(),
 		Type:       principal.ProviderID(),

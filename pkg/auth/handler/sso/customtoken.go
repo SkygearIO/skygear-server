@@ -276,7 +276,7 @@ func (h CustomTokenLoginHandler) Handle(payload CustomTokenLoginPayload) (resp i
 	}
 
 	user := model.NewUser(info, userProfile)
-	identity := model.NewIdentity(h.IdentityProvider, principal)
+	identity := model.NewIdentity(principal)
 
 	if createNewUser {
 		err = h.HookProvider.DispatchEvent(

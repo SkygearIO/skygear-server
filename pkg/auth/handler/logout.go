@@ -124,7 +124,7 @@ func (h LogoutHandler) Handle() (resp interface{}, err error) {
 	}
 
 	user := authModel.NewUser(*authInfo, profile)
-	identity := authModel.NewIdentity(h.IdentityProvider, principal)
+	identity := authModel.NewIdentity(principal)
 	session := format.SessionFromSession(sess)
 
 	err = h.HookProvider.DispatchEvent(

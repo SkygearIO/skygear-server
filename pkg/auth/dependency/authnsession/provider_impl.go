@@ -124,7 +124,7 @@ func (p *providerImpl) GenerateResponseAndUpdateLastLoginAt(authnSess auth.Authn
 		if err != nil {
 			return nil, err
 		}
-		identity := coreAuthModel.NewIdentity(p.identityProvider, prin)
+		identity := coreAuthModel.NewIdentity(prin)
 
 		beforeCreate := func(sess *auth.Session) error {
 			sessionModel := format.SessionFromSession(sess)
@@ -197,7 +197,7 @@ func (p *providerImpl) GenerateResponseWithSession(sess *auth.Session, mfaBearer
 	if err != nil {
 		return nil, err
 	}
-	identity := coreAuthModel.NewIdentity(p.identityProvider, prin)
+	identity := coreAuthModel.NewIdentity(prin)
 
 	resp := model.NewAuthResponse(user, identity, auth.SessionTokens{ID: sess.ID}, mfaBearerToken)
 	return resp, nil

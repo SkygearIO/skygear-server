@@ -63,7 +63,7 @@ func (h respHandler) LoginCode(oauthAuthInfo sso.AuthInfo, codeChallenge string,
 	}
 
 	user := coreAuthModel.NewUser(info, userProfile)
-	identity := coreAuthModel.NewIdentity(h.IdentityProvider, principal)
+	identity := coreAuthModel.NewIdentity(principal)
 
 	if createNewUser {
 		err = h.HookProvider.DispatchEvent(
@@ -146,7 +146,7 @@ func (h respHandler) LinkCode(oauthAuthInfo sso.AuthInfo, codeChallenge string, 
 	}
 
 	user := coreAuthModel.NewUser(info, userProfile)
-	identity := coreAuthModel.NewIdentity(h.IdentityProvider, principal)
+	identity := coreAuthModel.NewIdentity(principal)
 	err = h.HookProvider.DispatchEvent(
 		event.IdentityCreateEvent{
 			User:     user,

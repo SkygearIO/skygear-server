@@ -113,7 +113,7 @@ func (h RevokeAllHandler) Handle() (resp interface{}, err error) {
 			if principal, err = h.IdentityProvider.GetPrincipalByID(session.PrincipalID); err != nil {
 				return err
 			}
-			identity := model.NewIdentity(h.IdentityProvider, principal)
+			identity := model.NewIdentity(principal)
 			sessionModel := format.SessionFromSession(session)
 
 			err = h.HookProvider.DispatchEvent(

@@ -209,7 +209,7 @@ func (h UpdateLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) (in
 			return err
 		}
 
-		newIdentity := coreAuthModel.NewIdentity(h.IdentityProvider, newPrincipal)
+		newIdentity := coreAuthModel.NewIdentity(newPrincipal)
 		err = h.HookProvider.DispatchEvent(
 			event.IdentityCreateEvent{
 				User:     user,
@@ -220,7 +220,7 @@ func (h UpdateLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) (in
 		if err != nil {
 			return err
 		}
-		oldIdentity := coreAuthModel.NewIdentity(h.IdentityProvider, &oldPrincipal)
+		oldIdentity := coreAuthModel.NewIdentity(&oldPrincipal)
 		err = h.HookProvider.DispatchEvent(
 			event.IdentityDeleteEvent{
 				User:     user,
