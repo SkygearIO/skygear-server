@@ -7,8 +7,8 @@ import (
 
 	"github.com/ua-parser/uap-go/uaparser"
 
-	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/auth/model"
 )
 
 func Format(session *auth.Session) (mSession model.Session) {

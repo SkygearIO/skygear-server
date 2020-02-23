@@ -1,6 +1,6 @@
 package welcemail
 
-import "github.com/skygeario/skygear-server/pkg/auth/model"
+import "github.com/skygeario/skygear-server/pkg/core/auth/model"
 
 type MockSender struct {
 	LastEmail      string

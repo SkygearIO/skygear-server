@@ -15,6 +15,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	coreAuthModel "github.com/skygeario/skygear-server/pkg/core/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth/principal"
 	"github.com/skygeario/skygear-server/pkg/core/auth/principal/password"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
@@ -200,7 +201,7 @@ func (h UpdateLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) (in
 		if err != nil {
 			return err
 		}
-		user := model.NewUser(*authInfo, userProfile)
+		user := coreAuthModel.NewUser(*authInfo, userProfile)
 
 		delete(authInfo.VerifyInfo, oldPrincipal.LoginID)
 		err = h.UserVerificationProvider.UpdateVerificationState(authInfo, h.AuthInfoStore, principals)
@@ -208,7 +209,7 @@ func (h UpdateLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) (in
 			return err
 		}
 
-		newIdentity := model.NewIdentity(h.IdentityProvider, newPrincipal)
+		newIdentity := coreAuthModel.NewIdentity(h.IdentityProvider, newPrincipal)
 		err = h.HookProvider.DispatchEvent(
 			event.IdentityCreateEvent{
 				User:     user,
@@ -219,7 +220,7 @@ func (h UpdateLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) (in
 		if err != nil {
 			return err
 		}
-		oldIdentity := model.NewIdentity(h.IdentityProvider, &oldPrincipal)
+		oldIdentity := coreAuthModel.NewIdentity(h.IdentityProvider, &oldPrincipal)
 		err = h.HookProvider.DispatchEvent(
 			event.IdentityDeleteEvent{
 				User:     user,
@@ -246,7 +247,7 @@ func (h UpdateLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) (in
 			}
 		}
 
-		user = model.NewUser(*authInfo, userProfile)
+		user = coreAuthModel.NewUser(*authInfo, userProfile)
 		resp = model.NewAuthResponseWithUserIdentity(user, newIdentity)
 		return nil
 	})

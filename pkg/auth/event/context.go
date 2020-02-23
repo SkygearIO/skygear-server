@@ -1,7 +1,7 @@
 package event
 
 import (
-	"github.com/skygeario/skygear-server/pkg/auth/model"
+	"github.com/skygeario/skygear-server/pkg/core/auth/model"
 )
 
 // @JSONSchema

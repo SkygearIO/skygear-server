@@ -3,8 +3,8 @@ package session
 import (
 	"testing"
 
-	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/auth/model"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

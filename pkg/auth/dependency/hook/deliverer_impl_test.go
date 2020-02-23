@@ -10,7 +10,7 @@ import (
 	"github.com/h2non/gock"
 
 	"github.com/skygeario/skygear-server/pkg/auth/event"
-	"github.com/skygeario/skygear-server/pkg/auth/model"
+	"github.com/skygeario/skygear-server/pkg/core/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/http"

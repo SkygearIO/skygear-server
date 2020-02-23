@@ -6,11 +6,12 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
-	authModel "github.com/skygeario/skygear-server/pkg/auth/model"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	coreAuthModel "github.com/skygeario/skygear-server/pkg/core/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth/principal"
 	"github.com/skygeario/skygear-server/pkg/core/auth/principal/password"
 	"github.com/skygeario/skygear-server/pkg/core/auth/userprofile"
@@ -162,8 +163,8 @@ func (h UpdateMetadataHandler) Handle(resp http.ResponseWriter, req *http.Reques
 			return err
 		}
 
-		oldUser := authModel.NewUser(authInfo, oldProfile)
-		user := authModel.NewUser(authInfo, newProfile)
+		oldUser := coreAuthModel.NewUser(authInfo, oldProfile)
+		user := coreAuthModel.NewUser(authInfo, newProfile)
 
 		err = h.HookProvider.DispatchEvent(
 			event.UserUpdateEvent{
@@ -177,7 +178,7 @@ func (h UpdateMetadataHandler) Handle(resp http.ResponseWriter, req *http.Reques
 			return err
 		}
 
-		result = authModel.NewAuthResponseWithUser(user)
+		result = model.NewAuthResponseWithUser(user)
 		return nil
 	})
 	return

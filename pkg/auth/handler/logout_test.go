@@ -7,8 +7,8 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
-	"github.com/skygeario/skygear-server/pkg/auth/model"
 	coreAudit "github.com/skygeario/skygear-server/pkg/core/audit"
+	"github.com/skygeario/skygear-server/pkg/core/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth/principal"
 	"github.com/skygeario/skygear-server/pkg/core/auth/principal/password"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"

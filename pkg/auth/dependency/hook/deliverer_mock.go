@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/auth/event"
-	"github.com/skygeario/skygear-server/pkg/auth/model"
+	"github.com/skygeario/skygear-server/pkg/core/auth/model"
 )
 
 type mockDeliverer struct {

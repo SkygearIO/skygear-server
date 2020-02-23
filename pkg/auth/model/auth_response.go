@@ -16,31 +16,32 @@ package model
 
 import (
 	"github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/auth/model"
 )
 
 type AuthResponse struct {
-	User           User      `json:"user"`
-	Identity       *Identity `json:"identity,omitempty"`
-	AccessToken    string    `json:"access_token,omitempty"`
-	RefreshToken   string    `json:"refresh_token,omitempty"`
-	MFABearerToken string    `json:"mfa_bearer_token,omitempty"`
-	SessionID      string    `json:"session_id,omitempty"`
+	User           model.User      `json:"user"`
+	Identity       *model.Identity `json:"identity,omitempty"`
+	AccessToken    string          `json:"access_token,omitempty"`
+	RefreshToken   string          `json:"refresh_token,omitempty"`
+	MFABearerToken string          `json:"mfa_bearer_token,omitempty"`
+	SessionID      string          `json:"session_id,omitempty"`
 }
 
-func NewAuthResponseWithUser(user User) AuthResponse {
+func NewAuthResponseWithUser(user model.User) AuthResponse {
 	return AuthResponse{
 		User: user,
 	}
 }
 
-func NewAuthResponseWithUserIdentity(user User, identity Identity) AuthResponse {
+func NewAuthResponseWithUserIdentity(user model.User, identity model.Identity) AuthResponse {
 	return AuthResponse{
 		User:     user,
 		Identity: &identity,
 	}
 }
 
-func NewAuthResponse(user User, identity Identity, tokens auth.SessionTokens, mfaBearerToken string) AuthResponse {
+func NewAuthResponse(user model.User, identity model.Identity, tokens auth.SessionTokens, mfaBearerToken string) AuthResponse {
 	return AuthResponse{
 		User:           user,
 		Identity:       &identity,

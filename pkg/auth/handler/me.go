@@ -11,6 +11,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	coreAuthModel "github.com/skygeario/skygear-server/pkg/core/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth/principal/password"
 	"github.com/skygeario/skygear-server/pkg/core/auth/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -98,8 +99,8 @@ func (h MeHandler) Handle(w http.ResponseWriter, r *http.Request) (resp interfac
 			return err
 		}
 
-		identity := model.NewIdentity(h.IdentityProvider, principal)
-		user := model.NewUser(*authInfo, userProfile)
+		identity := coreAuthModel.NewIdentity(h.IdentityProvider, principal)
+		user := coreAuthModel.NewUser(*authInfo, userProfile)
 
 		resp = model.NewAuthResponseWithUserIdentity(user, identity)
 		return nil

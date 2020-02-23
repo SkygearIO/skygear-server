@@ -15,6 +15,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authnsession"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/mfa"
+	coreAuthModel "github.com/skygeario/skygear-server/pkg/core/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth/principal"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/auth/userprofile"
@@ -117,13 +118,13 @@ func (p *providerImpl) GenerateResponseAndUpdateLastLoginAt(authnSess auth.Authn
 			return nil, err
 		}
 
-		user := model.NewUser(authInfo, userProfile)
+		user := coreAuthModel.NewUser(authInfo, userProfile)
 
 		prin, err := p.identityProvider.GetPrincipalByID(authnSess.PrincipalID)
 		if err != nil {
 			return nil, err
 		}
-		identity := model.NewIdentity(p.identityProvider, prin)
+		identity := coreAuthModel.NewIdentity(p.identityProvider, prin)
 
 		beforeCreate := func(sess *auth.Session) error {
 			sessionModel := authSession.Format(sess)
@@ -190,13 +191,13 @@ func (p *providerImpl) GenerateResponseWithSession(sess *auth.Session, mfaBearer
 	if err != nil {
 		return nil, err
 	}
-	user := model.NewUser(authInfo, userProfile)
+	user := coreAuthModel.NewUser(authInfo, userProfile)
 
 	prin, err := p.identityProvider.GetPrincipalByID(sess.PrincipalID)
 	if err != nil {
 		return nil, err
 	}
-	identity := model.NewIdentity(p.identityProvider, prin)
+	identity := coreAuthModel.NewIdentity(p.identityProvider, prin)
 
 	resp := model.NewAuthResponse(user, identity, auth.SessionTokens{ID: sess.ID}, mfaBearerToken)
 	return resp, nil

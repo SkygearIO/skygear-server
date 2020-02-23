@@ -16,6 +16,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	coreAuthModel "github.com/skygeario/skygear-server/pkg/core/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth/passwordpolicy"
 	"github.com/skygeario/skygear-server/pkg/core/auth/principal"
 	"github.com/skygeario/skygear-server/pkg/core/auth/principal/password"
@@ -179,8 +180,8 @@ func (h ChangePasswordHandler) Handle(w http.ResponseWriter, r *http.Request) (r
 			return err
 		}
 
-		user := model.NewUser(*authinfo, userProfile)
-		identity := model.NewIdentity(h.IdentityProvider, principal)
+		user := coreAuthModel.NewUser(*authinfo, userProfile)
+		identity := coreAuthModel.NewIdentity(h.IdentityProvider, principal)
 
 		err = h.HookProvider.DispatchEvent(
 			event.PasswordUpdateEvent{

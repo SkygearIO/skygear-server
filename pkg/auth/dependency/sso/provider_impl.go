@@ -5,7 +5,7 @@ import (
 	"crypto/subtle"
 	"encoding/base64"
 
-	"github.com/skygeario/skygear-server/pkg/auth/model"
+	"github.com/skygeario/skygear-server/pkg/core/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 

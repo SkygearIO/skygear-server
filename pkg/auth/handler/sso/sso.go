@@ -13,6 +13,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	coreAuthModel "github.com/skygeario/skygear-server/pkg/core/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth/principal"
 	"github.com/skygeario/skygear-server/pkg/core/auth/principal/password"
 	"github.com/skygeario/skygear-server/pkg/core/auth/userprofile"
@@ -61,14 +62,14 @@ func (h respHandler) LoginCode(oauthAuthInfo sso.AuthInfo, codeChallenge string,
 		return
 	}
 
-	user := model.NewUser(info, userProfile)
-	identity := model.NewIdentity(h.IdentityProvider, principal)
+	user := coreAuthModel.NewUser(info, userProfile)
+	identity := coreAuthModel.NewIdentity(h.IdentityProvider, principal)
 
 	if createNewUser {
 		err = h.HookProvider.DispatchEvent(
 			event.UserCreateEvent{
 				User:       user,
-				Identities: []model.Identity{identity},
+				Identities: []coreAuthModel.Identity{identity},
 			},
 			&user,
 		)
@@ -144,8 +145,8 @@ func (h respHandler) LinkCode(oauthAuthInfo sso.AuthInfo, codeChallenge string, 
 		return
 	}
 
-	user := model.NewUser(info, userProfile)
-	identity := model.NewIdentity(h.IdentityProvider, principal)
+	user := coreAuthModel.NewUser(info, userProfile)
+	identity := coreAuthModel.NewIdentity(h.IdentityProvider, principal)
 	err = h.HookProvider.DispatchEvent(
 		event.IdentityCreateEvent{
 			User:     user,
@@ -177,7 +178,7 @@ func (h respHandler) CodeToResponse(code *sso.SkygearAuthorizationCode) (resp in
 		if err != nil {
 			return
 		}
-		user := model.NewUser(info, userProfile)
+		user := coreAuthModel.NewUser(info, userProfile)
 		resp = model.NewAuthResponseWithUser(user)
 		return
 	}
@@ -267,11 +268,11 @@ func (h respHandler) handleLogin(
 	// Case: OAuth principal was not found and some principals were found
 	// => Complex case
 	switch loginState.OnUserDuplicate {
-	case model.OnUserDuplicateAbort:
+	case coreAuthModel.OnUserDuplicateAbort:
 		err = password.ErrLoginIDAlreadyUsed
-	case model.OnUserDuplicateCreate:
+	case coreAuthModel.OnUserDuplicateCreate:
 		createFunc()
-	case model.OnUserDuplicateMerge:
+	case coreAuthModel.OnUserDuplicateMerge:
 		// Case: The same email is shared by multiple users
 		if len(userIDs) > 1 {
 			err = password.ErrLoginIDAlreadyUsed

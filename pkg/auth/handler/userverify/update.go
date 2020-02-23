@@ -7,11 +7,12 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
-	authModel "github.com/skygeario/skygear-server/pkg/auth/model"
+	model "github.com/skygeario/skygear-server/pkg/auth/model"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	coreAuthModel "github.com/skygeario/skygear-server/pkg/core/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth/principal/password"
 	"github.com/skygeario/skygear-server/pkg/core/auth/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -124,7 +125,7 @@ func (h UpdateHandler) Handle(w http.ResponseWriter, r *http.Request) (resp inte
 			return err
 		}
 
-		oldUser := authModel.NewUser(info, profile)
+		oldUser := coreAuthModel.NewUser(info, profile)
 
 		principals, err := h.PasswordAuthProvider.GetPrincipalsByUserID(info.ID)
 		if err != nil {
@@ -149,7 +150,7 @@ func (h UpdateHandler) Handle(w http.ResponseWriter, r *http.Request) (resp inte
 			return err
 		}
 
-		user := authModel.NewUser(info, profile)
+		user := coreAuthModel.NewUser(info, profile)
 
 		isVerified := info.IsVerified()
 		err = h.HookProvider.DispatchEvent(
@@ -165,7 +166,7 @@ func (h UpdateHandler) Handle(w http.ResponseWriter, r *http.Request) (resp inte
 			return err
 		}
 
-		resp = authModel.NewAuthResponseWithUser(user)
+		resp = model.NewAuthResponseWithUser(user)
 		return nil
 	})
 	return
