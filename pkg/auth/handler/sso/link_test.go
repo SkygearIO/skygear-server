@@ -8,11 +8,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/event"
+	"github.com/skygeario/skygear-server/pkg/core/auth/hook"
 	"github.com/skygeario/skygear-server/pkg/core/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth/principal"
 	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"

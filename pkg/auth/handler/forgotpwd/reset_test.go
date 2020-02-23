@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	authHook "github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/core/auth/event"
+	authHook "github.com/skygeario/skygear-server/pkg/core/auth/hook"
 	"github.com/skygeario/skygear-server/pkg/core/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth/userprofile"
 
