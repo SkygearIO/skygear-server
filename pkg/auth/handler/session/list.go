@@ -4,11 +4,11 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/auth/model"
+	"github.com/skygeario/skygear-server/pkg/core/auth/model/format"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -113,7 +113,7 @@ func (h ListHandler) Handle() (resp interface{}, err error) {
 
 		sessionModels := make([]model.Session, len(sessions))
 		for i, session := range sessions {
-			sessionModels[i] = authSession.Format(session)
+			sessionModels[i] = format.SessionFromSession(session)
 		}
 
 		resp = ListResponse{Sessions: sessionModels}

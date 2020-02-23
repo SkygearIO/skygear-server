@@ -1,4 +1,4 @@
-package session
+package format
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/model"
 )
 
-func Format(session *auth.Session) (mSession model.Session) {
+func SessionFromSession(session *auth.Session) (mSession model.Session) {
 	mSession.ID = session.ID
 
 	mSession.IdentityID = session.PrincipalID

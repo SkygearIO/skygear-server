@@ -5,13 +5,13 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
-	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/auth/event"
 	authModel "github.com/skygeario/skygear-server/pkg/core/auth/model"
+	"github.com/skygeario/skygear-server/pkg/core/auth/model/format"
 	"github.com/skygeario/skygear-server/pkg/core/auth/principal"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/auth/userprofile"
@@ -125,7 +125,7 @@ func (h LogoutHandler) Handle() (resp interface{}, err error) {
 
 	user := authModel.NewUser(*authInfo, profile)
 	identity := authModel.NewIdentity(h.IdentityProvider, principal)
-	session := authSession.Format(sess)
+	session := format.SessionFromSession(sess)
 
 	err = h.HookProvider.DispatchEvent(
 		event.SessionDeleteEvent{

@@ -7,7 +7,6 @@ import (
 	"github.com/dgrijalva/jwt-go"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
-	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
@@ -16,6 +15,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/event"
 	"github.com/skygeario/skygear-server/pkg/core/auth/mfa"
 	coreAuthModel "github.com/skygeario/skygear-server/pkg/core/auth/model"
+	"github.com/skygeario/skygear-server/pkg/core/auth/model/format"
 	"github.com/skygeario/skygear-server/pkg/core/auth/principal"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/auth/userprofile"
@@ -127,7 +127,7 @@ func (p *providerImpl) GenerateResponseAndUpdateLastLoginAt(authnSess auth.Authn
 		identity := coreAuthModel.NewIdentity(p.identityProvider, prin)
 
 		beforeCreate := func(sess *auth.Session) error {
-			sessionModel := authSession.Format(sess)
+			sessionModel := format.SessionFromSession(sess)
 			return p.hookProvider.DispatchEvent(
 				event.SessionCreateEvent{
 					Reason:   auth.SessionCreateReason(authnSess.SessionCreateReason),

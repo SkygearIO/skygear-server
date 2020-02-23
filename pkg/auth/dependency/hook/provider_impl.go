@@ -7,11 +7,11 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/event"
 	"github.com/skygeario/skygear-server/pkg/core/auth/model"
+	"github.com/skygeario/skygear-server/pkg/core/auth/model/format"
 	"github.com/skygeario/skygear-server/pkg/core/auth/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
@@ -209,7 +209,7 @@ func (provider *providerImpl) makeContext() event.Context {
 	} else {
 		userID = &authInfo.ID
 		principalID = &sess.PrincipalID
-		s := authSession.Format(sess)
+		s := format.SessionFromSession(sess)
 		session = &s
 	}
 

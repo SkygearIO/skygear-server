@@ -4,11 +4,11 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/auth/model"
+	"github.com/skygeario/skygear-server/pkg/core/auth/model/format"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
@@ -138,7 +138,7 @@ func (h GetHandler) Handle(payload GetRequestPayload) (resp interface{}, err err
 			return errSessionNotFound
 		}
 
-		resp = GetResponse{Session: authSession.Format(s)}
+		resp = GetResponse{Session: format.SessionFromSession(s)}
 		return nil
 	})
 	return
