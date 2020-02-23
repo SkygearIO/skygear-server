@@ -1,6 +1,6 @@
 package hook
 
-import "github.com/skygeario/skygear-server/pkg/auth/event"
+import "github.com/skygeario/skygear-server/pkg/core/auth/event"
 
 type mockStore struct {
 	nextSequenceNumber int64

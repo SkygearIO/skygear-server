@@ -3,7 +3,7 @@ package hook
 import (
 	"fmt"
 
-	"github.com/skygeario/skygear-server/pkg/auth/event"
+	"github.com/skygeario/skygear-server/pkg/core/auth/event"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 )
 
