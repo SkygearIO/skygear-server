@@ -1,9 +1,9 @@
 package sso
 
 import (
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
+	"github.com/skygeario/skygear-server/pkg/core/urlprefix"
 )
 
 // OAuthProvider is OAuth 2.0 based provider.
