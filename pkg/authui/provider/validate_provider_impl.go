@@ -5,11 +5,13 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/model"
+	"github.com/skygeario/skygear-server/pkg/core/oauth"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 type ValidateProviderImpl struct {
 	LoginIDKeys         []config.LoginIDKeyConfiguration
+	OAuthConfiguration  *config.OAuthConfiguration
 	Validator           *validation.Validator
 	AuthContextProvider AuthContextProvider
 }
@@ -23,6 +25,7 @@ func NewValidateProvider(
 ) *ValidateProviderImpl {
 	return &ValidateProviderImpl{
 		LoginIDKeys:         tConfig.AppConfig.Auth.LoginIDKeys,
+		OAuthConfiguration:  tConfig.AppConfig.SSO.OAuth,
 		Validator:           validator,
 		AuthContextProvider: authContextProvider,
 	}
@@ -54,25 +57,37 @@ func (p *ValidateProviderImpl) Validate(schemaID string, form map[string]interfa
 		return
 	}
 
+	failWith := func(cause validation.ErrorCause) error {
+		return validation.NewValidationFailed("validation failed", []validation.ErrorCause{
+			cause,
+		})
+	}
+
 	// Validate client_id
-	if err == nil {
-		if _, ok := form["client_id"].(string); ok {
-			accessKey := p.AuthContextProvider.AccessKey()
-			if accessKey.Type != model.APIAccessKeyType {
-				causes := []validation.ErrorCause{
-					validation.ErrorCause{
-						Kind:    validation.ErrorGeneral,
-						Message: "invalid client_id",
-						Pointer: "/client_id",
-					},
-				}
-				err = validation.NewValidationFailed("validation failed", causes)
-				return
-			}
+	if _, ok := form["client_id"].(string); ok {
+		accessKey := p.AuthContextProvider.AccessKey()
+		if accessKey.Type != model.APIAccessKeyType {
+			err = failWith(validation.ErrorCause{
+				Kind:    validation.ErrorGeneral,
+				Message: "invalid client_id",
+				Pointer: "/client_id",
+			})
+			return
 		}
 	}
 
-	// TODO(authui): validate redirect_uri
+	// Validate redirect_uri
+	if redirectURI, ok := form["redirect_uri"].(string); ok {
+		err = oauth.ValidateRedirectURI(p.OAuthConfiguration.AllowedCallbackURLs, redirectURI)
+		if err != nil {
+			err = failWith(validation.ErrorCause{
+				Kind:    validation.ErrorGeneral,
+				Message: "invalid redirect_uri",
+				Pointer: "/redirect_uri",
+			})
+			return
+		}
+	}
 
 	return nil
 }
