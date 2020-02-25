@@ -20,7 +20,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/urlprefix"
 )
 
-type providerImpl struct {
+type ProviderImpl struct {
 	RequestID               string
 	BaseURL                 *url.URL
 	Store                   Store
@@ -43,8 +43,8 @@ func NewProvider(
 	userProfileStore userprofile.Store,
 	deliverer Deliverer,
 	loggerFactory logging.Factory,
-) Provider {
-	return &providerImpl{
+) *ProviderImpl {
+	return &ProviderImpl{
 		RequestID:        requestID,
 		BaseURL:          urlprefix.Value(),
 		Store:            store,
@@ -57,7 +57,7 @@ func NewProvider(
 	}
 }
 
-func (provider *providerImpl) DispatchEvent(payload event.Payload, user *model.User) (err error) {
+func (provider *ProviderImpl) DispatchEvent(payload event.Payload, user *model.User) (err error) {
 	var seq int64
 	switch typedPayload := payload.(type) {
 	case event.OperationPayload:
@@ -93,7 +93,7 @@ func (provider *providerImpl) DispatchEvent(payload event.Payload, user *model.U
 	}
 }
 
-func (provider *providerImpl) WillCommitTx() error {
+func (provider *ProviderImpl) WillCommitTx() error {
 	err := provider.dispatchSyncUserEventIfNeeded()
 	if err != nil {
 		return err
@@ -144,7 +144,7 @@ func (provider *providerImpl) WillCommitTx() error {
 	return nil
 }
 
-func (provider *providerImpl) DidCommitTx() {
+func (provider *ProviderImpl) DidCommitTx() {
 	// TODO(webhook): deliver persisted events
 	events, _ := provider.Store.GetEventsForDelivery()
 	for _, event := range events {
@@ -155,7 +155,7 @@ func (provider *providerImpl) DidCommitTx() {
 	}
 }
 
-func (provider *providerImpl) dispatchSyncUserEventIfNeeded() error {
+func (provider *ProviderImpl) dispatchSyncUserEventIfNeeded() error {
 	userIDToSync := []string{}
 
 	for _, payload := range provider.PersistentEventPayloads {
@@ -190,7 +190,7 @@ func (provider *providerImpl) dispatchSyncUserEventIfNeeded() error {
 	return nil
 }
 
-func (provider *providerImpl) makeContext() event.Context {
+func (provider *ProviderImpl) makeContext() event.Context {
 	var requestID, userID, principalID *string
 	var session *model.Session
 

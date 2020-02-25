@@ -18,7 +18,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
-type delivererImpl struct {
+type DelivererImpl struct {
 	Hooks            *[]config.Hook
 	HookAppConfig    *config.HookAppConfiguration
 	HookTenantConfig *config.HookTenantConfiguration
@@ -27,8 +27,8 @@ type delivererImpl struct {
 	HTTPClient       gohttp.Client
 }
 
-func NewDeliverer(config *config.TenantConfiguration, timeProvider time.Provider, mutator Mutator) Deliverer {
-	return &delivererImpl{
+func NewDeliverer(config *config.TenantConfiguration, timeProvider time.Provider, mutator Mutator) *DelivererImpl {
+	return &DelivererImpl{
 		Hooks:            &config.Hooks,
 		HookAppConfig:    config.AppConfig.Hook,
 		HookTenantConfig: config.Hook,
@@ -38,7 +38,7 @@ func NewDeliverer(config *config.TenantConfiguration, timeProvider time.Provider
 	}
 }
 
-func (deliverer *delivererImpl) WillDeliver(eventType event.Type) bool {
+func (deliverer *DelivererImpl) WillDeliver(eventType event.Type) bool {
 	for _, hook := range *deliverer.Hooks {
 		if hook.Event == string(eventType) {
 			return true
@@ -47,7 +47,7 @@ func (deliverer *delivererImpl) WillDeliver(eventType event.Type) bool {
 	return false
 }
 
-func (deliverer *delivererImpl) DeliverBeforeEvent(baseURL *url.URL, e *event.Event, user *model.User) error {
+func (deliverer *DelivererImpl) DeliverBeforeEvent(baseURL *url.URL, e *event.Event, user *model.User) error {
 	startTime := deliverer.TimeProvider.Now()
 	requestTimeout := gotime.Duration(deliverer.HookTenantConfig.SyncHookTimeout) * gotime.Second
 	totalTimeout := gotime.Duration(deliverer.HookTenantConfig.SyncHookTotalTimeout) * gotime.Second
@@ -103,7 +103,7 @@ func (deliverer *delivererImpl) DeliverBeforeEvent(baseURL *url.URL, e *event.Ev
 	return nil
 }
 
-func (deliverer *delivererImpl) DeliverNonBeforeEvent(baseURL *url.URL, e *event.Event, timeout gotime.Duration) error {
+func (deliverer *DelivererImpl) DeliverNonBeforeEvent(baseURL *url.URL, e *event.Event, timeout gotime.Duration) error {
 	client := deliverer.HTTPClient
 	client.CheckRedirect = noFollowRedirectPolicy
 	client.Timeout = timeout
@@ -127,7 +127,7 @@ func (deliverer *delivererImpl) DeliverNonBeforeEvent(baseURL *url.URL, e *event
 	return nil
 }
 
-func (deliverer *delivererImpl) prepareRequest(baseURL *url.URL, hook config.Hook, event *event.Event) (*gohttp.Request, error) {
+func (deliverer *DelivererImpl) prepareRequest(baseURL *url.URL, hook config.Hook, event *event.Event) (*gohttp.Request, error) {
 	hookURL, err := url.Parse(hook.URL)
 	if err != nil {
 		return nil, newErrorDeliveryFailed(err)

@@ -40,7 +40,7 @@ func TestDispatchEvent(t *testing.T) {
 			userProfileStore,
 			deliverer,
 			logging.NewNullFactory(),
-		).(*providerImpl)
+		)
 
 		authInfoStore.AuthInfoMap = map[string]authinfo.AuthInfo{}
 		userProfileStore.Data = map[string]map[string]interface{}{}

@@ -75,7 +75,8 @@ func TestMutator(t *testing.T) {
 
 		newBool := func(v bool) *bool { return &v }
 
-		mutator := NewMutator(verifyConfig, passwordAuthProvider, authInfoStore, userProfileStore)
+		var mutator Mutator
+		mutator = NewMutator(verifyConfig, passwordAuthProvider, authInfoStore, userProfileStore)
 
 		Convey("should do nothing", func() {
 			user := model.User{

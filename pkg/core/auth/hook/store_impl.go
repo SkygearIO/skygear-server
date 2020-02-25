@@ -7,20 +7,20 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/db"
 )
 
-type storeImpl struct {
+type StoreImpl struct {
 	sqlBuilder  db.SQLBuilder
 	sqlExecutor db.SQLExecutor
 	events      []*event.Event
 }
 
-func NewStore(builder db.SQLBuilder, executor db.SQLExecutor) Store {
-	return &storeImpl{
+func NewStore(builder db.SQLBuilder, executor db.SQLExecutor) *StoreImpl {
+	return &StoreImpl{
 		sqlBuilder:  builder,
 		sqlExecutor: executor,
 	}
 }
 
-func (store *storeImpl) NextSequenceNumber() (seq int64, err error) {
+func (store *StoreImpl) NextSequenceNumber() (seq int64, err error) {
 	builder := store.sqlBuilder.Global().
 		Select(fmt.Sprintf("nextval('%s')", store.sqlBuilder.FullTableName("event_sequence")))
 	row, err := store.sqlExecutor.QueryRowWith(builder)
@@ -31,13 +31,13 @@ func (store *storeImpl) NextSequenceNumber() (seq int64, err error) {
 	return
 }
 
-func (store *storeImpl) AddEvents(events []*event.Event) error {
+func (store *StoreImpl) AddEvents(events []*event.Event) error {
 	// TODO(webhook): persist events
 	store.events = append(store.events, events...)
 	return nil
 }
 
-func (store *storeImpl) GetEventsForDelivery() ([]*event.Event, error) {
+func (store *StoreImpl) GetEventsForDelivery() ([]*event.Event, error) {
 	// TODO(webhook): get events
 	return store.events, nil
 }

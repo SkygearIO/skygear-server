@@ -10,7 +10,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
-type mutatorImpl struct {
+type MutatorImpl struct {
 	Event                  *event.Event
 	User                   *model.User
 	UserPasswordPrincipals *[]*password.Principal
@@ -27,8 +27,8 @@ func NewMutator(
 	passwordProvider password.Provider,
 	authInfoStore authinfo.Store,
 	userProfileStore userprofile.Store,
-) Mutator {
-	return &mutatorImpl{
+) *MutatorImpl {
+	return &MutatorImpl{
 		UserVerificationConfig: verifyConfig,
 		PasswordAuthProvider:   passwordProvider,
 		AuthInfoStore:          authInfoStore,
@@ -36,7 +36,7 @@ func NewMutator(
 	}
 }
 
-func (mutator *mutatorImpl) New(ev *event.Event, user *model.User) Mutator {
+func (mutator *MutatorImpl) New(ev *event.Event, user *model.User) Mutator {
 	newMutator := *mutator
 	newMutator.Event = ev
 	newMutator.User = user
@@ -44,7 +44,7 @@ func (mutator *mutatorImpl) New(ev *event.Event, user *model.User) Mutator {
 	return &newMutator
 }
 
-func (mutator *mutatorImpl) Add(mutations event.Mutations) error {
+func (mutator *MutatorImpl) Add(mutations event.Mutations) error {
 	// update computed verified status if needed
 	if mutations.VerifyInfo != nil || mutations.IsManuallyVerified != nil {
 		// update IsVerified
@@ -77,7 +77,7 @@ func (mutator *mutatorImpl) Add(mutations event.Mutations) error {
 	return nil
 }
 
-func (mutator *mutatorImpl) Apply() error {
+func (mutator *MutatorImpl) Apply() error {
 	mutations := mutator.Mutations
 
 	// mutate user profile

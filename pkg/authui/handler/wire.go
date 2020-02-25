@@ -13,6 +13,7 @@ import (
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	authinfopq "github.com/skygeario/skygear-server/pkg/core/auth/authinfo/pq"
+	"github.com/skygeario/skygear-server/pkg/core/auth/hook"
 	"github.com/skygeario/skygear-server/pkg/core/auth/mfa"
 	"github.com/skygeario/skygear-server/pkg/core/auth/passwordhistory"
 	"github.com/skygeario/skygear-server/pkg/core/auth/principal/password"
@@ -21,6 +22,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/loginid"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
@@ -197,6 +199,39 @@ func ProvideMFAProvider(
 	return mfa.NewProvider(store, tConfig.AppConfig.MFA, timeProvider, sender)
 }
 
+func ProvideHookMutator(
+	tConfig *config.TenantConfiguration,
+	passwordProvider password.Provider,
+	authInfoStore authinfo.Store,
+	userProfileStore userprofile.Store,
+) *hook.MutatorImpl {
+	return hook.NewMutator(tConfig.AppConfig.UserVerification, passwordProvider, authInfoStore, userProfileStore)
+}
+
+func ProvideHookProvider(
+	r *http.Request,
+	urlprefix urlprefix.Provider,
+	store hook.Store,
+	authContext coreAuth.ContextGetter,
+	timeProvider coreTime.Provider,
+	authInfoStore authinfo.Store,
+	userProfileStore userprofile.Store,
+	deliverer hook.Deliverer,
+	loggerFactory logging.Factory,
+) *hook.ProviderImpl {
+	return hook.NewProvider(
+		r.Header.Get(coreHttp.HeaderRequestID),
+		urlprefix,
+		store,
+		authContext,
+		timeProvider,
+		authInfoStore,
+		userProfileStore,
+		deliverer,
+		loggerFactory,
+	)
+}
+
 var DefaultSet = wire.NewSet(
 	ProvideTenantConfig,
 	ProvideTenantConfigPtr,
@@ -269,6 +304,15 @@ var DefaultSet = wire.NewSet(
 	ProvideMFAStore,
 	wire.Bind(new(mfa.Provider), new(*mfa.ProviderImpl)),
 	ProvideMFAProvider,
+
+	wire.Bind(new(hook.Store), new(*hook.StoreImpl)),
+	hook.NewStore,
+	wire.Bind(new(hook.Mutator), new(*hook.MutatorImpl)),
+	ProvideHookMutator,
+	wire.Bind(new(hook.Deliverer), new(*hook.DelivererImpl)),
+	hook.NewDeliverer,
+	wire.Bind(new(hook.Provider), new(*hook.ProviderImpl)),
+	ProvideHookProvider,
 
 	wire.Bind(new(provider.AuthenticationProvider), new(*provider.AuthenticationProviderImpl)),
 	provider.NewAuthenticationProvider,

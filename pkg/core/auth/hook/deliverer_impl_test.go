@@ -38,7 +38,7 @@ func TestDeliverer(t *testing.T) {
 
 		httpClient := gohttp.Client{}
 		gock.InterceptClient(&httpClient)
-		deliverer := delivererImpl{
+		deliverer := &DelivererImpl{
 			HookAppConfig:    hookAppConfig,
 			HookTenantConfig: hookTenantConfig,
 			TimeProvider:     &timeProvider,
