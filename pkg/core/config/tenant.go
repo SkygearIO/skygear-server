@@ -517,6 +517,7 @@ type AppConfiguration struct {
 	MasterKey        string                         `json:"master_key,omitempty" yaml:"master_key" msg:"master_key"`
 	CORS             *CORSConfiguration             `json:"cors,omitempty" yaml:"cors" msg:"cors" default_zero_value:"true"`
 	Auth             *AuthConfiguration             `json:"auth,omitempty" yaml:"auth" msg:"auth" default_zero_value:"true"`
+	AuthUI           *AuthUIConfiguration           `json:"auth_ui,omitempty" yaml:"auth_ui" msg:"auth_ui" default_zero_value:"true"`
 	MFA              *MFAConfiguration              `json:"mfa,omitempty" yaml:"mfa" msg:"mfa" default_zero_value:"true"`
 	UserAudit        *UserAuditConfiguration        `json:"user_audit,omitempty" yaml:"user_audit" msg:"user_audit" default_zero_value:"true"`
 	PasswordPolicy   *PasswordPolicyConfiguration   `json:"password_policy,omitempty" yaml:"password_policy" msg:"password_policy" default_zero_value:"true"`
@@ -576,6 +577,12 @@ type APIClientConfiguration struct {
 // https://github.com/iawaknahc/originmatcher
 type CORSConfiguration struct {
 	Origin string `json:"origin,omitempty" yaml:"origin" msg:"origin"`
+}
+
+type AuthUIConfiguration struct {
+	LogoURL               string `json:"logo_url,omitempty" yaml:"logo_url" msg:"logo_url"`
+	CSS                   string `json:"css,omitempty" yaml:"css" msg:"css"`
+	ContentSecurityPolicy string `json:"content_security_policy,omitempty" yaml:"content_security_policy" msg:"content_security_policy"`
 }
 
 type AuthConfiguration struct {

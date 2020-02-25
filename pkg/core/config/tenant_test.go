@@ -142,6 +142,11 @@ func makeFullTenantConfig() TenantConfiguration {
 			Asset: &AssetConfiguration{
 				Secret: "assetsecret",
 			},
+			AuthUI: &AuthUIConfiguration{
+				CSS:                   `.a { color: red; }`,
+				LogoURL:               "https://example.com/static/logo.png",
+				ContentSecurityPolicy: "frame-ancestors 'self'",
+			},
 			Auth: &AuthConfiguration{
 				AuthenticationSession: &AuthenticationSessionConfiguration{
 					Secret: "authnsessionsecret",

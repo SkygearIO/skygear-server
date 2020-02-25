@@ -64,6 +64,7 @@ var (
 			},
 			"master_key": { "$ref": "#NonEmptyString" },
 			"cors": { "$ref": "#CORSConfiguration" },
+			"auth_ui": { "$ref": "#AuthUIConfiguration" },
 			"auth": { "$ref": "#AuthConfiguration" },
 			"mfa": { "$ref": "#MFAConfiguration" },
 			"user_audit": { "$ref": "#UserAuditConfiguration" },
@@ -116,6 +117,16 @@ var (
 		"additionalProperties": false,
 		"properties": {
 			"origin": { "type": "string" }
+		}
+	},
+	"AuthUIConfiguration": {
+		"$id": "#AuthUIConfiguration",
+		"type": "object",
+		"additionalProperties": false,
+		"properties": {
+			"css": { "type": "string" },
+			"logo_url": { "type": "string" },
+			"content_security_policy": { "type": "string" }
 		}
 	},
 	"AuthConfiguration": {
