@@ -118,6 +118,8 @@ html {
 
 .logo {
 	height: 139px;
+	/* TODO(authui): empty logo image */
+	background-color: #eaf1fc;
 	background-position: center;
 	background-size: cover;
 	background-repeat: no-repeat;
@@ -278,7 +280,11 @@ const defineHidden = `
 
 const defineLogo = `
 {{ define "LOGO" }}
+{{ if .logo_url }}
 <div class="logo" style="background-image: url('{{ .logo_url }}')"></div>
+{{ else }}
+<div class="logo"></div>
+{{ end }}
 {{ end }}
 `
 

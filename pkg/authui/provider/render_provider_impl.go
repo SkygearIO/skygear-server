@@ -13,18 +13,20 @@ import (
 )
 
 type RenderProviderImpl struct {
-	AppName        string
-	TemplateEngine *template.Engine
-	LoginIDKeys    []config.LoginIDKeyConfiguration
+	AppName             string
+	TemplateEngine      *template.Engine
+	LoginIDKeys         []config.LoginIDKeyConfiguration
+	AuthUIConfiguration *config.AuthUIConfiguration
 }
 
 var _ RenderProvider = &RenderProviderImpl{}
 
 func NewRenderProvider(tConfig *config.TenantConfiguration, templateEngine *template.Engine) *RenderProviderImpl {
 	return &RenderProviderImpl{
-		AppName:        tConfig.AppConfig.DisplayAppName,
-		TemplateEngine: templateEngine,
-		LoginIDKeys:    tConfig.AppConfig.Auth.LoginIDKeys,
+		AppName:             tConfig.AppConfig.DisplayAppName,
+		TemplateEngine:      templateEngine,
+		LoginIDKeys:         tConfig.AppConfig.Auth.LoginIDKeys,
+		AuthUIConfiguration: tConfig.AppConfig.AuthUI,
 	}
 }
 
@@ -37,8 +39,11 @@ func (p *RenderProviderImpl) WritePage(
 ) {
 	data["appname"] = p.AppName
 
-	// TODO(authui): configure logo URL
-	data["logo_url"] = "https://via.placeholder.com/150"
+	if p.AuthUIConfiguration.LogoURL != "" {
+		data["logo_url"] = p.AuthUIConfiguration.LogoURL
+	} else {
+		data["logo_url"] = ""
+	}
 
 	// TODO(authui): asset skygear logo URL
 	data["skygear_logo_url"] = "https://via.placeholder.com/65x15?text=Skygear"
