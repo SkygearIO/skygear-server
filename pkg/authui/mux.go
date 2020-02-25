@@ -41,8 +41,12 @@ func NewRouter(dep *inject.BootTimeDependency) *mux.Router {
 	router.Use(middleware.RedisMiddleware{Pool: dep.RedisPool}.Handle)
 	router.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// TODO(authui): configure content-security-policy
-			w.Header().Set("Content-Security-Policy", "frame-ancestors 'self'")
+			contentSecurityPolicy := "frame-ancestors 'self'"
+			tConfig := config.GetTenantConfig(r.Context())
+			if tConfig.AppConfig.AuthUI.ContentSecurityPolicy != "" {
+				contentSecurityPolicy = tConfig.AppConfig.AuthUI.ContentSecurityPolicy
+			}
+			w.Header().Set("Content-Security-Policy", contentSecurityPolicy)
 			next.ServeHTTP(w, r)
 		})
 	})
