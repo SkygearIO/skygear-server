@@ -27,23 +27,19 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
-type authInfoStore struct {
+type StoreImpl struct {
 	sqlBuilder  db.SQLBuilder
 	sqlExecutor db.SQLExecutor
 }
 
-func newAuthInfoStore(builder db.SQLBuilder, executor db.SQLExecutor) *authInfoStore {
-	return &authInfoStore{
+func NewAuthInfoStore(builder db.SQLBuilder, executor db.SQLExecutor) *StoreImpl {
+	return &StoreImpl{
 		sqlBuilder:  builder,
 		sqlExecutor: executor,
 	}
 }
 
-func NewAuthInfoStore(builder db.SQLBuilder, executor db.SQLExecutor) authinfo.Store {
-	return newAuthInfoStore(builder, executor)
-}
-
-func (s authInfoStore) CreateAuth(authinfo *authinfo.AuthInfo) error {
+func (s StoreImpl) CreateAuth(authinfo *authinfo.AuthInfo) error {
 	var (
 		lastSeenAt     *time.Time
 		lastLoginAt    *time.Time
@@ -105,7 +101,7 @@ func (s authInfoStore) CreateAuth(authinfo *authinfo.AuthInfo) error {
 
 // UpdateAuth updates an existing AuthInfo matched by the ID field.
 // nolint: gocyclo
-func (s authInfoStore) UpdateAuth(info *authinfo.AuthInfo) error {
+func (s StoreImpl) UpdateAuth(info *authinfo.AuthInfo) error {
 	var (
 		lastSeenAt     *time.Time
 		lastLoginAt    *time.Time
@@ -159,7 +155,7 @@ func (s authInfoStore) UpdateAuth(info *authinfo.AuthInfo) error {
 	return nil
 }
 
-func (s authInfoStore) baseUserBuilder() db.SelectBuilder {
+func (s StoreImpl) baseUserBuilder() db.SelectBuilder {
 	return s.sqlBuilder.Tenant().
 		Select(
 			"id",
@@ -175,7 +171,7 @@ func (s authInfoStore) baseUserBuilder() db.SelectBuilder {
 		From(s.sqlBuilder.FullTableName("user"))
 }
 
-func (s authInfoStore) doScanAuth(authinfo *authinfo.AuthInfo, scanner sq.RowScanner) error {
+func (s StoreImpl) doScanAuth(authinfo *authinfo.AuthInfo, scanner sq.RowScanner) error {
 	var (
 		id               string
 		lastSeenAt       pq.NullTime
@@ -239,7 +235,7 @@ func (s authInfoStore) doScanAuth(authinfo *authinfo.AuthInfo, scanner sq.RowSca
 	return nil
 }
 
-func (s authInfoStore) GetAuth(id string, info *authinfo.AuthInfo) error {
+func (s StoreImpl) GetAuth(id string, info *authinfo.AuthInfo) error {
 	builder := s.baseUserBuilder().Where("id = ?", id)
 	scanner, err := s.sqlExecutor.QueryRowWith(builder)
 	if err != nil {
@@ -255,7 +251,7 @@ func (s authInfoStore) GetAuth(id string, info *authinfo.AuthInfo) error {
 	return nil
 }
 
-func (s authInfoStore) DeleteAuth(id string) error {
+func (s StoreImpl) DeleteAuth(id string) error {
 	builder := s.sqlBuilder.Tenant().
 		Delete(s.sqlBuilder.FullTableName("user")).
 		Where("id = ?", id)
@@ -277,5 +273,5 @@ func (s authInfoStore) DeleteAuth(id string) error {
 
 // this ensures that our structure conform to certain interfaces.
 var (
-	_ authinfo.Store = &authInfoStore{}
+	_ authinfo.Store = &StoreImpl{}
 )

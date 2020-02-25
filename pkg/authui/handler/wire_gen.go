@@ -14,11 +14,14 @@ import (
 	"github.com/skygeario/skygear-server/pkg/authui/template"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo/pq"
 	"github.com/skygeario/skygear-server/pkg/core/auth/mfa"
 	"github.com/skygeario/skygear-server/pkg/core/auth/passwordhistory"
 	"github.com/skygeario/skygear-server/pkg/core/auth/principal/password"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session/redis"
+	"github.com/skygeario/skygear-server/pkg/core/auth/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
@@ -241,7 +244,7 @@ var DefaultSet = wire.NewSet(
 	ProvideValidator,
 	ProvideReservedNameChecker,
 	ProvideSQLBuilder,
-	ProvideSQLExecutor, template.NewEngine, wire.Bind(new(time.Provider), new(time.ProviderImpl)), time.NewProvider, wire.Bind(new(provider.RenderProvider), new(*provider.RenderProviderImpl)), provider.NewRenderProvider, wire.Bind(new(provider.ValidateProvider), new(*provider.ValidateProviderImpl)), provider.NewValidateProvider, wire.Bind(new(auth.ContextGetter), new(*provider.AuthContextProviderImpl)), wire.Bind(new(provider.AuthContextProvider), new(*provider.AuthContextProviderImpl)), provider.NewAuthContextProvider, wire.Bind(new(logging.Factory), new(*logging.FactoryImpl)), ProvideLoggingFactory, wire.Bind(new(session.Store), new(*redis.StoreImpl)), ProvideSessionStore, wire.Bind(new(session.EventStore), new(*redis.EventStoreImpl)), ProvideSessionEventStore, wire.Bind(new(session.Provider), new(*session.ProviderImpl)), ProvideSessionProvider, wire.Bind(new(db.Context), new(*db.ContextImpl)), wire.Bind(new(db.TxContext), new(*db.ContextImpl)), wire.Bind(new(db.SafeTxContext), new(*db.ContextImpl)), db.NewContextImpl, wire.Bind(new(password.Store), new(*password.StoreImpl)), password.NewStore, wire.Bind(new(passwordhistory.Store), new(*passwordhistory.StoreImpl)), passwordhistory.NewPasswordHistoryStore, wire.Bind(new(password.Provider), new(*password.ProviderImpl)), ProvidePasswordAuthProvider,
+	ProvideSQLExecutor, template.NewEngine, wire.Bind(new(time.Provider), new(time.ProviderImpl)), time.NewProvider, wire.Bind(new(provider.RenderProvider), new(*provider.RenderProviderImpl)), provider.NewRenderProvider, wire.Bind(new(provider.ValidateProvider), new(*provider.ValidateProviderImpl)), provider.NewValidateProvider, wire.Bind(new(auth.ContextGetter), new(*provider.AuthContextProviderImpl)), wire.Bind(new(provider.AuthContextProvider), new(*provider.AuthContextProviderImpl)), provider.NewAuthContextProvider, wire.Bind(new(logging.Factory), new(*logging.FactoryImpl)), ProvideLoggingFactory, wire.Bind(new(session.Store), new(*redis.StoreImpl)), ProvideSessionStore, wire.Bind(new(session.EventStore), new(*redis.EventStoreImpl)), ProvideSessionEventStore, wire.Bind(new(session.Provider), new(*session.ProviderImpl)), ProvideSessionProvider, wire.Bind(new(db.Context), new(*db.ContextImpl)), wire.Bind(new(db.TxContext), new(*db.ContextImpl)), wire.Bind(new(db.SafeTxContext), new(*db.ContextImpl)), db.NewContextImpl, wire.Bind(new(authinfo.Store), new(*pq.StoreImpl)), pq.NewAuthInfoStore, wire.Bind(new(userprofile.Store), new(*userprofile.StoreImpl)), userprofile.NewUserProfileStore, wire.Bind(new(password.Store), new(*password.StoreImpl)), password.NewStore, wire.Bind(new(passwordhistory.Store), new(*passwordhistory.StoreImpl)), passwordhistory.NewPasswordHistoryStore, wire.Bind(new(password.Provider), new(*password.ProviderImpl)), ProvidePasswordAuthProvider,
 
 	ProvideAuditTrail, wire.Bind(new(sms.Client), new(*sms.ClientImpl)), ProvideSMSClient, wire.Bind(new(mail.Sender), new(*mail.SenderImpl)), ProvideMailSender, wire.Bind(new(mfa.Sender), new(*mfa.SenderImpl)), mfa.NewSender, wire.Bind(new(mfa.Store), new(*mfa.StoreImpl)), ProvideMFAStore, wire.Bind(new(mfa.Provider), new(*mfa.ProviderImpl)), ProvideMFAProvider, wire.Bind(new(provider.AuthenticationProvider), new(*provider.AuthenticationProviderImpl)), provider.NewAuthenticationProvider,
 )

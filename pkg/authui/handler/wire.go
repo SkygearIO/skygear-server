@@ -11,11 +11,14 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	authinfopq "github.com/skygeario/skygear-server/pkg/core/auth/authinfo/pq"
 	"github.com/skygeario/skygear-server/pkg/core/auth/mfa"
 	"github.com/skygeario/skygear-server/pkg/core/auth/passwordhistory"
 	"github.com/skygeario/skygear-server/pkg/core/auth/principal/password"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	redisSession "github.com/skygeario/skygear-server/pkg/core/auth/session/redis"
+	"github.com/skygeario/skygear-server/pkg/core/auth/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
@@ -233,6 +236,12 @@ var DefaultSet = wire.NewSet(
 	wire.Bind(new(db.TxContext), new(*db.ContextImpl)),
 	wire.Bind(new(db.SafeTxContext), new(*db.ContextImpl)),
 	db.NewContextImpl,
+
+	wire.Bind(new(authinfo.Store), new(*authinfopq.StoreImpl)),
+	authinfopq.NewAuthInfoStore,
+
+	wire.Bind(new(userprofile.Store), new(*userprofile.StoreImpl)),
+	userprofile.NewUserProfileStore,
 
 	wire.Bind(new(password.Store), new(*password.StoreImpl)),
 	password.NewStore,

@@ -10,21 +10,21 @@ import (
 	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 )
 
-type storeImpl struct {
+type StoreImpl struct {
 	sqlBuilder   db.SQLBuilder
 	sqlExecutor  db.SQLExecutor
 	timeProvider coreTime.Provider
 }
 
-func NewUserProfileStore(builder db.SQLBuilder, executor db.SQLExecutor, timeProvider coreTime.Provider) Store {
-	return &storeImpl{
+func NewUserProfileStore(builder db.SQLBuilder, executor db.SQLExecutor, timeProvider coreTime.Provider) *StoreImpl {
+	return &StoreImpl{
 		sqlBuilder:   builder,
 		sqlExecutor:  executor,
 		timeProvider: timeProvider,
 	}
 }
 
-func (u *storeImpl) CreateUserProfile(userID string, data Data) (profile UserProfile, err error) {
+func (u *StoreImpl) CreateUserProfile(userID string, data Data) (profile UserProfile, err error) {
 	now := u.timeProvider.NowUTC()
 	var dataBytes []byte
 	dataBytes, err = json.Marshal(data)
@@ -60,7 +60,7 @@ func (u *storeImpl) CreateUserProfile(userID string, data Data) (profile UserPro
 	return
 }
 
-func (u *storeImpl) GetUserProfile(userID string) (profile UserProfile, err error) {
+func (u *StoreImpl) GetUserProfile(userID string) (profile UserProfile, err error) {
 	builder := u.sqlBuilder.Tenant().
 		Select("created_at", "updated_at", "data").
 		From(u.sqlBuilder.FullTableName("user_profile")).
@@ -97,7 +97,7 @@ func (u *storeImpl) GetUserProfile(userID string) (profile UserProfile, err erro
 	return
 }
 
-func (u *storeImpl) UpdateUserProfile(userID string, data Data) (profile UserProfile, err error) {
+func (u *StoreImpl) UpdateUserProfile(userID string, data Data) (profile UserProfile, err error) {
 	profile, err = u.GetUserProfile(userID)
 	if err != nil {
 		return
@@ -127,7 +127,7 @@ func (u *storeImpl) UpdateUserProfile(userID string, data Data) (profile UserPro
 	return
 }
 
-func (u *storeImpl) toUserProfile(userID string, data Data, createdAt time.Time, updatedAt time.Time) UserProfile {
+func (u *StoreImpl) toUserProfile(userID string, data Data, createdAt time.Time, updatedAt time.Time) UserProfile {
 	return UserProfile{
 		ID:        userID,
 		CreatedAt: createdAt,
