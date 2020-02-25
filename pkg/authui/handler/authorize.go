@@ -5,7 +5,9 @@ import (
 
 	"github.com/gorilla/mux"
 
+	"github.com/skygeario/skygear-server/pkg/core/auth/hook"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/db"
 
 	"github.com/skygeario/skygear-server/pkg/authui/inject"
 	"github.com/skygeario/skygear-server/pkg/authui/provider"
@@ -17,6 +19,8 @@ type AuthorizeHandler struct {
 	RenderProvider         provider.RenderProvider
 	AuthContextProvider    provider.AuthContextProvider
 	AuthenticationProvider provider.AuthenticationProvider
+	TxContext              db.TxContext
+	HookProvider           hook.Provider
 }
 
 func NewAuthorizeHandler(
@@ -24,12 +28,16 @@ func NewAuthorizeHandler(
 	renderProvider provider.RenderProvider,
 	authContextProvider provider.AuthContextProvider,
 	authenticationProvider provider.AuthenticationProvider,
+	txContext db.TxContext,
+	hookProvider hook.Provider,
 ) *AuthorizeHandler {
 	return &AuthorizeHandler{
 		ValidateProvider:       validateProvider,
 		RenderProvider:         renderProvider,
 		AuthContextProvider:    authContextProvider,
 		AuthenticationProvider: authenticationProvider,
+		TxContext:              txContext,
+		HookProvider:           hookProvider,
 	}
 }
 
@@ -141,18 +149,26 @@ func (h *AuthorizeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	h.ValidateProvider.Prevalidate(r.Form)
 
-	step := r.Form.Get("x_step")
-	switch step {
-	case "submit_password":
-		t, data, err := h.SubmitPassword(w, r)
-		h.RenderProvider.WritePage(w, r, t, data, err)
-	case "submit_login_id":
-		t, data, err := h.SubmitLoginID(w, r)
-		h.RenderProvider.WritePage(w, r, t, data, err)
-	default:
-		t, data, err := h.Default(w, r)
-		h.RenderProvider.WritePage(w, r, t, data, err)
+	do := func() error {
+		var t config.TemplateItemType
+		var data map[string]interface{}
+		var err error
+		step := r.Form.Get("x_step")
+		switch step {
+		case "submit_password":
+			t, data, err = h.SubmitPassword(w, r)
+			h.RenderProvider.WritePage(w, r, t, data, err)
+		case "submit_login_id":
+			t, data, err = h.SubmitLoginID(w, r)
+			h.RenderProvider.WritePage(w, r, t, data, err)
+		default:
+			t, data, err = h.Default(w, r)
+			h.RenderProvider.WritePage(w, r, t, data, err)
+		}
+		return err
 	}
+
+	_ = hook.WithTx(h.HookProvider, h.TxContext, do)
 }
 
 func (h *AuthorizeHandler) Default(w http.ResponseWriter, r *http.Request) (t config.TemplateItemType, data map[string]interface{}, err error) {

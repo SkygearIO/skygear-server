@@ -72,7 +72,14 @@ func InjectAuthorizeHandler(r *http.Request, dep *inject.BootTimeDependency) *Au
 	mfaSenderImpl := mfa.NewSender(configTenantConfiguration, clientImpl, senderImpl, engine)
 	mfaProviderImpl := ProvideMFAProvider(mfaStoreImpl, tenantConfiguration, providerImpl, mfaSenderImpl)
 	authenticationProviderImpl := provider.NewAuthenticationProvider(passwordProviderImpl, trail, factoryImpl, providerImpl, authContextProviderImpl, mfaProviderImpl, tenantConfiguration)
-	authorizeHandler := NewAuthorizeHandler(validateProviderImpl, renderProviderImpl, authContextProviderImpl, authenticationProviderImpl)
+	urlprefixProvider := urlprefix.NewProvider(r)
+	hookStoreImpl := hook.NewStore(sqlBuilder, sqlExecutor)
+	pqStoreImpl := pq.NewAuthInfoStore(sqlBuilder, sqlExecutor)
+	userprofileStoreImpl := userprofile.NewUserProfileStore(sqlBuilder, sqlExecutor, providerImpl)
+	mutatorImpl := ProvideHookMutator(tenantConfiguration, passwordProviderImpl, pqStoreImpl, userprofileStoreImpl)
+	delivererImpl := hook.NewDeliverer(tenantConfiguration, providerImpl, mutatorImpl)
+	hookProviderImpl := ProvideHookProvider(r, urlprefixProvider, hookStoreImpl, authContextProviderImpl, providerImpl, pqStoreImpl, userprofileStoreImpl, delivererImpl, factoryImpl)
+	authorizeHandler := NewAuthorizeHandler(validateProviderImpl, renderProviderImpl, authContextProviderImpl, authenticationProviderImpl, contextImpl, hookProviderImpl)
 	return authorizeHandler
 }
 
