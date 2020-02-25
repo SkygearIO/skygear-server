@@ -28,6 +28,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/sms"
 	coreTemplate "github.com/skygeario/skygear-server/pkg/core/template"
 	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
+	"github.com/skygeario/skygear-server/pkg/core/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 
 	"github.com/skygeario/skygear-server/pkg/authui/inject"
@@ -208,6 +209,8 @@ var DefaultSet = wire.NewSet(
 	ProvideSQLExecutor,
 
 	template.NewEngine,
+
+	urlprefix.NewProvider,
 
 	wire.Bind(new(coreTime.Provider), new(coreTime.ProviderImpl)),
 	coreTime.NewProvider,
