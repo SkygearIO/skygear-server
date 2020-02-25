@@ -262,6 +262,11 @@ html {
 }
 
 </style>
+{{ if .css }}
+<style>
+{{ .css }}
+</style>
+{{ end }}
 </head>
 {{ end }}
 `

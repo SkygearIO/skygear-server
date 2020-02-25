@@ -3,6 +3,7 @@ package provider
 import (
 	"encoding/json"
 	"fmt"
+	htmlTemplate "html/template"
 	"net/http"
 	"strconv"
 
@@ -39,11 +40,9 @@ func (p *RenderProviderImpl) WritePage(
 ) {
 	data["appname"] = p.AppName
 
-	if p.AuthUIConfiguration.LogoURL != "" {
-		data["logo_url"] = p.AuthUIConfiguration.LogoURL
-	} else {
-		data["logo_url"] = ""
-	}
+	data["logo_url"] = p.AuthUIConfiguration.LogoURL
+	// NOTE(authui): We assume the CSS provided by the developer is trusted.
+	data["css"] = htmlTemplate.CSS(p.AuthUIConfiguration.CSS)
 
 	// TODO(authui): asset skygear logo URL
 	data["skygear_logo_url"] = "https://via.placeholder.com/65x15?text=Skygear"
