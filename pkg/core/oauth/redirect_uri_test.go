@@ -1,4 +1,4 @@
-package sso
+package oauth
 
 import (
 	"testing"
@@ -6,15 +6,15 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestValidateCallbackURL(t *testing.T) {
-	Convey("Test ValidateCallbackURL", t, func() {
-		f := ValidateCallbackURL
+func TestValidateRedirectURI(t *testing.T) {
+	Convey("Test ValidateRedirectURI", t, func() {
+		f := ValidateRedirectURI
 
-		So(f(nil, ""), ShouldBeError, "missing callback URL")
+		So(f(nil, ""), ShouldBeError, "missing redirect URI")
 
 		cases := []struct {
 			urls        []string
-			callbackURL string
+			redirectURI string
 			valid       bool
 		}{
 			{nil, "a", false},
@@ -29,12 +29,12 @@ func TestValidateCallbackURL(t *testing.T) {
 			// no query nor fragment
 			{[]string{"/a"}, "/a", true},
 
-			// Ignore query in callbackURL
+			// Ignore query in redirectURI
 			{[]string{"/a"}, "/a?q=1", true},
 			// Does not ignore query in allowedCallbackURLs, leading to impossible match.
 			{[]string{"/a?q=1"}, "/a?q=1", false},
 
-			// Ignore fragment in callbackURL
+			// Ignore fragment in redirectURI
 			{[]string{"/a"}, "/a#f", true},
 			// Does not ignore fragment in allowedCallbackURLs, leading to impossible match.
 			{[]string{"/a#f"}, "/a#f", false},
@@ -71,7 +71,7 @@ func TestValidateCallbackURL(t *testing.T) {
 		}
 
 		for _, c := range cases {
-			So(f(c.urls, c.callbackURL) == nil, ShouldEqual, c.valid)
+			So(f(c.urls, c.redirectURI) == nil, ShouldEqual, c.valid)
 		}
 	})
 }

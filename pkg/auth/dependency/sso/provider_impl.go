@@ -7,6 +7,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/oauth"
 )
 
 type providerImpl struct {
@@ -48,7 +49,7 @@ func (f *providerImpl) IsAllowedOnUserDuplicate(a model.OnUserDuplicate) bool {
 }
 
 func (f *providerImpl) IsValidCallbackURL(u string) bool {
-	err := ValidateCallbackURL(f.OAuthConfig.AllowedCallbackURLs, u)
+	err := oauth.ValidateRedirectURI(f.OAuthConfig.AllowedCallbackURLs, u)
 	return err == nil
 }
 

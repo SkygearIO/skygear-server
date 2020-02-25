@@ -9,6 +9,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
+	"github.com/skygeario/skygear-server/pkg/core/oauth"
 )
 
 type MockSSOProvider struct {
@@ -102,7 +103,7 @@ func (f *MockSSOProvider) IsAllowedOnUserDuplicate(a model.OnUserDuplicate) bool
 }
 
 func (f *MockSSOProvider) IsValidCallbackURL(u string) bool {
-	err := ValidateCallbackURL(f.OAuthConfig.AllowedCallbackURLs, u)
+	err := oauth.ValidateRedirectURI(f.OAuthConfig.AllowedCallbackURLs, u)
 	return err == nil
 
 }
