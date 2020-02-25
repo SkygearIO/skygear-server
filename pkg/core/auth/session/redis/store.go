@@ -67,7 +67,7 @@ func (s *StoreImpl) Create(sess *auth.Session, expireAt gotime.Time) (err error)
 		return
 	}
 
-	_, err = goredis.String(conn.Do("SET", key, json, "PX", toMilliseconds(ttl), "NX"))
+	_, err = goredis.String(conn.Do("SET", key, json, "PX", time.ToMilliseconds(ttl), "NX"))
 	if errors.Is(err, goredis.ErrNil) {
 		err = errors.Newf("duplicated session ID: %w", err)
 		return
@@ -97,7 +97,7 @@ func (s *StoreImpl) Update(sess *auth.Session, expireAt gotime.Time) (err error)
 		return
 	}
 
-	_, err = goredis.String(conn.Do("SET", key, data, "PX", toMilliseconds(ttl), "XX"))
+	_, err = goredis.String(conn.Do("SET", key, data, "PX", time.ToMilliseconds(ttl), "XX"))
 	if errors.Is(err, goredis.ErrNil) {
 		err = session.ErrSessionNotFound
 	}
@@ -275,10 +275,6 @@ func (s *StoreImpl) List(userID string) (sessions []*auth.Session, err error) {
 
 	sort.Sort(sessionSlice(sessions))
 	return
-}
-
-func toMilliseconds(d gotime.Duration) int64 {
-	return int64(d / gotime.Millisecond)
 }
 
 type sessionSlice []*auth.Session
