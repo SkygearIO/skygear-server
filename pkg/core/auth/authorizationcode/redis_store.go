@@ -7,7 +7,6 @@ import (
 
 	goredis "github.com/gomodule/redigo/redis"
 
-	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/base32"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
@@ -28,8 +27,8 @@ type RedisStore struct {
 var _ Store = &RedisStore{}
 
 func NewRedisStore(
-	tConfig *config.TenantConfiguration,
 	context context.Context,
+	tConfig *config.TenantConfiguration,
 	timeProvider coreTime.Provider,
 	keyFunc KeyFunc,
 ) *RedisStore {
@@ -41,8 +40,8 @@ func NewRedisStore(
 	}
 }
 
-func (s *RedisStore) New(authnSession *auth.AuthnSession) (code string, err error) {
-	bytes, err := json.Marshal(authnSession)
+func (s *RedisStore) New(t *T) (code string, err error) {
+	bytes, err := json.Marshal(t)
 	if err != nil {
 		return
 	}
@@ -58,7 +57,7 @@ func (s *RedisStore) New(authnSession *auth.AuthnSession) (code string, err erro
 	return
 }
 
-func (s *RedisStore) Consume(code string) (authnSession *auth.AuthnSession, err error) {
+func (s *RedisStore) Consume(code string) (t *T, err error) {
 	conn := redis.GetConn(s.Context)
 	key := s.KeyFunc(s.AppID, code)
 
@@ -78,8 +77,8 @@ func (s *RedisStore) Consume(code string) (authnSession *auth.AuthnSession, err 
 		return
 	}
 
-	authnSession = &auth.AuthnSession{}
-	err = json.Unmarshal(bytes, authnSession)
+	t = &T{}
+	err = json.Unmarshal(bytes, t)
 	if err != nil {
 		return
 	}
