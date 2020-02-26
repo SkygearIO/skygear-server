@@ -11,23 +11,27 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/phone"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	"github.com/skygeario/skygear-server/pkg/core/template"
+
+	"github.com/skygeario/skygear-server/pkg/authui/inject"
 )
 
 type RenderProviderImpl struct {
-	AppName             string
-	TemplateEngine      *template.Engine
-	LoginIDKeys         []config.LoginIDKeyConfiguration
-	AuthUIConfiguration *config.AuthUIConfiguration
+	StaticAssetURLPrefix string
+	AppName              string
+	TemplateEngine       *template.Engine
+	LoginIDKeys          []config.LoginIDKeyConfiguration
+	AuthUIConfiguration  *config.AuthUIConfiguration
 }
 
 var _ RenderProvider = &RenderProviderImpl{}
 
-func NewRenderProvider(tConfig *config.TenantConfiguration, templateEngine *template.Engine) *RenderProviderImpl {
+func NewRenderProvider(dep *inject.BootTimeDependency, tConfig *config.TenantConfiguration, templateEngine *template.Engine) *RenderProviderImpl {
 	return &RenderProviderImpl{
-		AppName:             tConfig.AppConfig.DisplayAppName,
-		TemplateEngine:      templateEngine,
-		LoginIDKeys:         tConfig.AppConfig.Auth.LoginIDKeys,
-		AuthUIConfiguration: tConfig.AppConfig.AuthUI,
+		StaticAssetURLPrefix: dep.Configuration.StaticAssetURLPrefix,
+		AppName:              tConfig.AppConfig.DisplayAppName,
+		TemplateEngine:       templateEngine,
+		LoginIDKeys:          tConfig.AppConfig.Auth.LoginIDKeys,
+		AuthUIConfiguration:  tConfig.AppConfig.AuthUI,
 	}
 }
 
@@ -39,6 +43,8 @@ func (p *RenderProviderImpl) WritePage(
 	inputErr error,
 ) {
 	data["appname"] = p.AppName
+
+	data["static_asset_url_prefix"] = p.StaticAssetURLPrefix
 
 	data["logo_url"] = p.AuthUIConfiguration.LogoURL
 	// NOTE(authui): We assume the CSS provided by the developer is trusted.

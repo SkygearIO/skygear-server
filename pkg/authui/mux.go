@@ -51,5 +51,9 @@ func NewRouter(dep *inject.BootTimeDependency) *mux.Router {
 		})
 	})
 
+	if dep.Configuration.StaticAssetDir != "" {
+		router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(dep.Configuration.StaticAssetDir))))
+	}
+
 	return router
 }

@@ -53,7 +53,7 @@ func InjectAuthorizeHandler(r *http.Request, dep *inject.BootTimeDependency) *Au
 	enableFileSystemTemplate := ProvideEnableFileSystemTemplate(dep)
 	assetGearLoader := ProvideAssetGearLoader(dep)
 	engine := template.NewEngine(tenantConfiguration, enableFileSystemTemplate, assetGearLoader)
-	renderProviderImpl := provider.NewRenderProvider(tenantConfiguration, engine)
+	renderProviderImpl := provider.NewRenderProvider(dep, tenantConfiguration, engine)
 	sqlBuilder := ProvideSQLBuilder(tenantConfiguration)
 	context := ProvideContext(r)
 	configTenantConfiguration := ProvideTenantConfig(r)

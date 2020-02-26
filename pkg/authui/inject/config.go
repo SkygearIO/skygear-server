@@ -14,6 +14,12 @@ type Configuration struct {
 	Template                          TemplateConfiguration       `envconfig:"TEMPLATE"`
 	Default                           config.DefaultConfiguration `envconfig:"DEFAULT"`
 	ReservedNameSourceFile            string                      `envconfig:"RESERVED_NAME_SOURCE_FILE" default:"reserved_name.txt"`
+	// StaticAssetDir is for serving the static asset locally.
+	// It should not be used for production.
+	StaticAssetDir string `envconfig:"STATIC_ASSET_DIR"`
+	// StaticAssetURLPrefix sets the prefix for static asset.
+	// In production, it should look like https://code.skygear.io/v2/git-<commit-hash>/static
+	StaticAssetURLPrefix string `envconfig:"STATIC_ASSET_URL_PREFIX"`
 }
 
 type TemplateConfiguration struct {
