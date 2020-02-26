@@ -11,7 +11,6 @@ const (
 	TemplateItemTypeAuthUIEnterPasswordHTML config.TemplateItemType = "auth_ui_enter_password.html"
 )
 
-// TODO(authui): Apply autoprefixer on CSS.
 // TODO(authui): Introduce a build pipeline to upload asset.
 
 const defineHead = `
