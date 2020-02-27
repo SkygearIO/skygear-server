@@ -1,10 +1,6 @@
 {
   "name": "deploy-asset",
   "version": "1.0.0",
-  "scripts": {
-    "clean": "rm -rf dist",
-    "build": "cp -R ../../static/. dist && postcss '../../static/**/*.css' --base '../../static' --dir dist --config postcss.config.js"
-  },
   "devDependencies": {
     "cssnano": "4.1.10",
     "postcss": "7.0.27",

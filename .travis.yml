@@ -8,6 +8,8 @@ language: go
 go:
   - 1.13.3
 
+node_js: 12
+
 services:
   - docker
 
@@ -40,6 +42,9 @@ script:
   - make lint
   - make test
 
+before_deploy:
+  - make generate-static-asset
+
 deploy:
   - provider: releases
     api-key: "$GITHUB_RELEASE_TOKEN"
@@ -68,6 +73,19 @@ deploy:
     on:
       repo: SkygearIO/skygear-server
       branch: next
+      go: 1.13.3
+  - provider: s3
+    access_key_id: "$AWS_ACCESS_KEY"
+    secret_access_key: "$AWS_SECRET_KEY"
+    # This bucket is created in region us-east-1, same as code.skygear.io
+    # aws --region=us-east-1 s3api create-bucket --acl public-read --bucket "code.skygear.dev" --no-object-lock-enabled-for-bucket
+    bucket: "code.skygear.dev"
+    skip_cleanup: true
+    local_dir: ./scripts/deploy-asset/dist
+    upload-dir: dist
+    on:
+      repo: SkygearIO/skygear-server
+      all_branches: true
       go: 1.13.3
 
 notifications:
