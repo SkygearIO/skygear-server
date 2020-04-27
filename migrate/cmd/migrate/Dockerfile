@@ -1,4 +1,4 @@
-FROM golang:1.13.3-stretch as godev
+FROM golang:1.14.2-buster as godev
 
 ENV GO111MODULE on
 
@@ -10,7 +10,7 @@ RUN go mod download
 COPY . .
 RUN cd cmd/migrate; make build; mv skygear-migrate /tmp/
 
-FROM alpine:3.8
+FROM alpine:3.11
 
 RUN apk add --update --no-cache libc6-compat ca-certificates && \
     ln -s /lib /lib64

@@ -1,4 +1,4 @@
-FROM golang:1.13.3-stretch
+FROM golang:1.14.2-buster
 
 ENV GO111MODULE on
 SHELL ["/bin/bash", "-c"]
