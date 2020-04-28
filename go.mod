@@ -49,10 +49,10 @@ require (
 	github.com/ttacon/chalk v0.0.0-20160626202418-22c06c80ed31 // indirect
 	github.com/ua-parser/uap-go v0.0.0-20190826212731-daf92ba38329
 	github.com/xeipuuv/gojsonschema v1.2.0
-	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
-	golang.org/x/net v0.0.0-20190620200207-3b0461eec859
+	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550
+	golang.org/x/net v0.0.0-20200226121028-0de0cce0169b
 	golang.org/x/text v0.3.2
-	golang.org/x/tools v0.0.0-20190917162342-3b4f30a44f3b
+	golang.org/x/tools v0.0.0-20200428021058-7ae4988eb4d9
 	google.golang.org/api v0.9.0
 	gopkg.in/airbrake/gobrake.v2 v2.0.9 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
