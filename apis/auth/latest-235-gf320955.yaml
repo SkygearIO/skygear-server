@@ -1,0 +1,1780 @@
+openapi: 3.0.0
+info:
+  title: Auth Gear
+  version: 1.0.0
+servers:
+- url: '{base_url}/_auth'
+  description: Auth Gear URL
+  variables:
+    base_url:
+      default: https://my_app.skygearapis.com
+      description: Skygear App URL
+paths:
+  /challenge:
+    post:
+      tags:
+      - User
+      summary: Obtain new challenge
+      description: |-
+        Obtain a new challenge for challenge-based OAuth authentication.
+        Challenges can be used once only.
+      requestBody:
+        description: Describe purpose of the challenge.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OAuthChallengeRequest'
+      responses:
+        "200":
+          description: Created challenge information.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthChallengeResponse'
+  /change_password:
+    post:
+      tags:
+      - User
+      summary: Change password
+      description: Changes current user password.
+      requestBody:
+        description: Describe old and new password.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+      responses:
+        "200":
+          description: Return user and new access token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+      callbacks:
+        password_update:
+          $ref: '#/components/callbacks/PasswordUpdateEvent'
+        user_sync:
+          $ref: '#/components/callbacks/UserSyncEvent'
+      security:
+      - access_key: []
+      - access_token: []
+  /disable/set:
+    post:
+      tags:
+      - Administration
+      summary: Set user disabled status
+      description: Disable/enable target user.
+      requestBody:
+        description: Describe target user and desired disable status.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetDisableRequest'
+            examples:
+              DisableUser:
+                summary: Disable user permanently
+                value:
+                  auth_id: F1D4AAAC-A31A-4471-92B2-6E08376BDD87
+                  disabled: true
+              DisableUserExpiry:
+                summary: Disable user with expiry
+                value:
+                  auth_id: F1D4AAAC-A31A-4471-92B2-6E08376BDD87
+                  disabled: true
+                  expiry: "2019-07-31T09:39:22.349Z"
+                  message: Banned
+              EnableUser:
+                summary: Enable user
+                value:
+                  auth_id: F1D4AAAC-A31A-4471-92B2-6E08376BDD87
+                  disabled: false
+      responses:
+        "200":
+          $ref: '#/components/responses/EmptyResponse'
+      callbacks:
+        user_sync:
+          $ref: '#/components/callbacks/UserSyncEvent'
+        user_update:
+          $ref: '#/components/callbacks/UserUpdateEvent'
+      security:
+      - master_key: []
+      - access_token: []
+  /forgot_password:
+    post:
+      tags:
+      - Forgot Password
+      summary: Request password recovery
+      description: Request password recovery message to be sent to email.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForgotPasswordRequest'
+      responses:
+        "200":
+          $ref: '#/components/responses/EmptyResponse'
+  /forgot_password/reset_password:
+    post:
+      tags:
+      - Forgot Password
+      summary: Reset password
+      description: Reset password using received recovery code.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForgotPasswordResetRequest'
+      responses:
+        "200":
+          $ref: '#/components/responses/EmptyResponse'
+      callbacks:
+        password_update:
+          $ref: '#/components/callbacks/PasswordUpdateEvent'
+        user_sync:
+          $ref: '#/components/callbacks/UserSyncEvent'
+  /identity/list:
+    post:
+      tags:
+      - User
+      summary: List identities
+      description: Returns list of identities of current user.
+      responses:
+        "200":
+          description: Current user and identity info.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdentityListResponse'
+      security:
+      - access_key: []
+      - access_token: []
+  /login:
+    post:
+      tags:
+      - User
+      summary: Login using password
+      description: Login user with login ID and password.
+      requestBody:
+        description: Describe login ID and password.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        "200":
+          description: Logged in user and access token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+      callbacks:
+        session_create:
+          $ref: '#/components/callbacks/SessionCreateEvent'
+        user_sync:
+          $ref: '#/components/callbacks/UserSyncEvent'
+  /login_id/add:
+    post:
+      tags:
+      - User
+      summary: Add login ID
+      description: Add new login ID for current user.
+      requestBody:
+        description: Describe the new login ID.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddLoginIDRequest'
+      responses:
+        "200":
+          $ref: '#/components/responses/EmptyResponse'
+      callbacks:
+        identity_create:
+          $ref: '#/components/callbacks/UserSyncEvent'
+        user_sync:
+          $ref: '#/components/callbacks/UserSyncEvent'
+      security:
+      - access_key: []
+      - access_token: []
+  /login_id/remove:
+    post:
+      tags:
+      - User
+      summary: Remove login ID
+      description: Remove login ID from current user.
+      requestBody:
+        description: Describe the login ID to remove.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RemoveLoginIDRequest'
+      responses:
+        "200":
+          $ref: '#/components/responses/EmptyResponse'
+      callbacks:
+        identity_delete:
+          $ref: '#/components/callbacks/UserSyncEvent'
+        user_sync:
+          $ref: '#/components/callbacks/UserSyncEvent'
+      security:
+      - access_key: []
+      - access_token: []
+  /login_id/update:
+    post:
+      tags:
+      - User
+      summary: update login ID
+      description: |-
+        Update the specified login ID for current user.
+        This operation is same as adding the new login ID and then deleting
+        old login ID atomically.
+      requestBody:
+        description: Describe the new login ID.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateLoginIDRequest'
+      responses:
+        "200":
+          description: Updated user and identity info.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+      callbacks:
+        identity_create:
+          $ref: '#/components/callbacks/UserSyncEvent'
+        identity_delete:
+          $ref: '#/components/callbacks/UserSyncEvent'
+        user_sync:
+          $ref: '#/components/callbacks/UserSyncEvent'
+      security:
+      - access_key: []
+      - access_token: []
+  /logout:
+    post:
+      tags:
+      - User
+      summary: Logout current session
+      description: Logout current session.
+      responses:
+        "200":
+          $ref: '#/components/responses/EmptyResponse'
+      callbacks:
+        session_delete:
+          $ref: '#/components/callbacks/SessionDeleteEvent'
+        user_sync:
+          $ref: '#/components/callbacks/UserSyncEvent'
+      security:
+      - access_key: []
+      - access_token: []
+  /me:
+    post:
+      tags:
+      - User
+      summary: Get current user information
+      description: Returns information on current user and identity.
+      responses:
+        "200":
+          description: Current user and identity info.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+      security:
+      - access_key: []
+      - access_token: []
+  /refresh:
+    post:
+      tags:
+      - User
+      summary: Refresh access token
+      description: Returns new access token, using the refresh token.
+      requestBody:
+        description: Describe refresh token of session.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+      responses:
+        "200":
+          description: New access token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshResponse'
+  /reset_password:
+    post:
+      tags:
+      - Administration
+      summary: Reset user password
+      description: Reset password of target user.
+      requestBody:
+        description: Describe target user and new password.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+      responses:
+        "200":
+          $ref: '#/components/responses/EmptyResponse'
+      callbacks:
+        password_update:
+          $ref: '#/components/callbacks/PasswordUpdateEvent'
+        user_sync:
+          $ref: '#/components/callbacks/UserSyncEvent'
+      security:
+      - master_key: []
+      - access_token: []
+  /session/get:
+    post:
+      tags:
+      - User
+      summary: Get current user sessions
+      description: Get the sessions with specified ID of current user.
+      requestBody:
+        description: Describe the session ID.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SessionGetRequest'
+      responses:
+        "200":
+          description: The requested session.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionGetResponse'
+      security:
+      - access_key: []
+      - access_token: []
+  /session/list:
+    post:
+      tags:
+      - User
+      summary: Get current user sessions
+      description: List all sessions of current user, in ascending order of creation time.
+      responses:
+        "200":
+          description: List of all sessions.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionListResponse'
+      security:
+      - access_key: []
+      - access_token: []
+  /session/revoke:
+    post:
+      tags:
+      - User
+      summary: Revoke session
+      description: Update specified session. Current session cannot be revoked.
+      requestBody:
+        description: Describe the session ID.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SessionRevokeRequest'
+      responses:
+        "200":
+          $ref: '#/components/responses/EmptyResponse'
+      security:
+      - access_key: []
+      - access_token: []
+  /session/revoke_all:
+    post:
+      tags:
+      - User
+      summary: Revoke all sessions
+      description: Revoke all sessions, excluding current session.
+      responses:
+        "200":
+          $ref: '#/components/responses/EmptyResponse'
+      security:
+      - access_key: []
+      - access_token: []
+  /signup:
+    post:
+      tags:
+      - User
+      summary: Signup using password
+      description: Signup user with login IDs and password.
+      requestBody:
+        description: Describe login IDs, password, and initial metadata.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignupRequest'
+      responses:
+        "200":
+          description: Signed up user and access token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+      callbacks:
+        session_create:
+          $ref: '#/components/callbacks/SessionCreateEvent'
+        user_create:
+          $ref: '#/components/callbacks/UserCreateEvent'
+        user_sync:
+          $ref: '#/components/callbacks/UserSyncEvent'
+  /sso/{provider_id}/link:
+    post:
+      tags:
+      - SSO
+      summary: Link SSO provider with token
+      description: |-
+        Link the specified SSO provider with the current user, using access
+        token obtained from the provider.
+      parameters:
+      - $ref: '#/components/parameters/SSOProviderID'
+      requestBody:
+        description: Describe the access token of SSO provider.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SSOLinkRequest'
+      responses:
+        "200":
+          $ref: '#/components/responses/EmptyResponse'
+      callbacks:
+        identity_create:
+          $ref: '#/components/callbacks/UserSyncEvent'
+        user_sync:
+          $ref: '#/components/callbacks/UserSyncEvent'
+      security:
+      - access_key: []
+      - access_token: []
+  /sso/{provider_id}/link_auth_url:
+    post:
+      tags:
+      - SSO
+      summary: Get link SSO link url of provider
+      description: |-
+        Returns SSO auth URL. Client should redirect user agent to this URL to
+        initiate SSO link flow.
+      parameters:
+      - $ref: '#/components/parameters/SSOProviderID'
+      requestBody:
+        $ref: '#/components/requestBodies/AuthURLRequest'
+      responses:
+        "200":
+          $ref: '#/components/responses/AuthURLResponse'
+      callbacks:
+        identity_create:
+          $ref: '#/components/callbacks/UserSyncEvent'
+        session_create:
+          $ref: '#/components/callbacks/UserSyncEvent'
+        user_create:
+          $ref: '#/components/callbacks/UserSyncEvent'
+        user_sync:
+          $ref: '#/components/callbacks/UserSyncEvent'
+  /sso/{provider_id}/login:
+    post:
+      tags:
+      - SSO
+      summary: Login SSO provider with token
+      description: Login the specified SSO provider, using access token obtained from the provider.
+      parameters:
+      - $ref: '#/components/parameters/SSOProviderID'
+      requestBody:
+        description: Describe the access token of SSO provider and login behavior.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SSOLoginRequest'
+      responses:
+        "200":
+          $ref: '#/components/responses/EmptyResponse'
+      callbacks:
+        identity_create:
+          $ref: '#/components/callbacks/UserSyncEvent'
+        session_create:
+          $ref: '#/components/callbacks/UserSyncEvent'
+        user_create:
+          $ref: '#/components/callbacks/UserSyncEvent'
+        user_sync:
+          $ref: '#/components/callbacks/UserSyncEvent'
+  /sso/{provider_id}/login_auth_url:
+    post:
+      tags:
+      - SSO
+      summary: Get login SSO flow url of provider
+      description: |-
+        Returns SSO auth URL. Client should redirect user agent to this URL to
+        initiate SSO login flow.
+      parameters:
+      - $ref: '#/components/parameters/SSOProviderID'
+      requestBody:
+        $ref: '#/components/requestBodies/AuthURLRequest'
+      responses:
+        "200":
+          $ref: '#/components/responses/AuthURLResponse'
+      callbacks:
+        identity_create:
+          $ref: '#/components/callbacks/UserSyncEvent'
+        session_create:
+          $ref: '#/components/callbacks/UserSyncEvent'
+        user_create:
+          $ref: '#/components/callbacks/UserSyncEvent'
+        user_sync:
+          $ref: '#/components/callbacks/UserSyncEvent'
+  /sso/{provider_id}/unlink:
+    post:
+      tags:
+      - SSO
+      summary: Unlink SSO provider
+      description: Unlink the specified SSO provider from the current user.
+      parameters:
+      - $ref: '#/components/parameters/SSOProviderID'
+      responses:
+        "200":
+          $ref: '#/components/responses/EmptyResponse'
+      callbacks:
+        identity_delete:
+          $ref: '#/components/callbacks/UserSyncEvent'
+        user_sync:
+          $ref: '#/components/callbacks/UserSyncEvent'
+      security:
+      - access_key: []
+      - access_token: []
+  /update_metadata:
+    post:
+      tags:
+      - User
+      summary: Update metadata
+      description: |-
+        Changes metadata of current user.
+        If master key is used as access key, other users can be specified.
+      requestBody:
+        description: Describe target user and new metadata.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMetadataRequest'
+      responses:
+        "200":
+          description: User information with new metadata.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+      callbacks:
+        user_sync:
+          $ref: '#/components/callbacks/UserSyncEvent'
+        user_update:
+          $ref: '#/components/callbacks/UserUpdateEvent'
+      security:
+      - access_key: []
+      - access_token: []
+  /update_verify_state:
+    post:
+      tags:
+      - Administration
+      summary: Update user verification state
+      description: Update verification state of the target user.
+      requestBody:
+        description: Describe target user and desired verification state.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateVerifyStateRequest'
+      responses:
+        "200":
+          $ref: '#/components/responses/UserResponse'
+      callbacks:
+        user_sync:
+          $ref: '#/components/callbacks/UserSyncEvent'
+        user_update:
+          $ref: '#/components/callbacks/UserUpdateEvent'
+      security:
+      - master_key: []
+      - access_token: []
+  /verify_code:
+    post:
+      tags:
+      - User Verification
+      summary: Submit verification code
+      description: Verify user using received verification code.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyCodeRequest'
+      responses:
+        "200":
+          $ref: '#/components/responses/EmptyResponse'
+      callbacks:
+        user_sync:
+          $ref: '#/components/callbacks/UserSyncEvent'
+        user_update:
+          $ref: '#/components/callbacks/UserUpdateEvent'
+      security:
+      - access_key: []
+      - access_token: []
+  /verify_request:
+    post:
+      tags:
+      - User Verification
+      summary: Request verification
+      description: Request verification code to be sent to login ID.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyRequest'
+      responses:
+        "200":
+          $ref: '#/components/responses/EmptyResponse'
+      security:
+      - access_key: []
+      - access_token: []
+components:
+  schemas:
+    AddLoginIDRequest:
+      properties:
+        login_ids:
+          items:
+            properties:
+              key:
+                minLength: 1
+                type: string
+              value:
+                minLength: 1
+                type: string
+            required:
+            - key
+            - value
+            type: object
+          maxItems: 1
+          minItems: 1
+          type: array
+      required:
+      - login_ids
+      type: object
+    AfterIdentityCreateEvent:
+      properties:
+        context:
+          $ref: '#/components/schemas/EventContext'
+        id:
+          type: string
+        payload:
+          $ref: '#/components/schemas/IdentityCreateEventPayload'
+        seq:
+          type: integer
+        type:
+          enum:
+          - after_identity_create
+          type: string
+      type: object
+    AfterIdentityDeleteEvent:
+      properties:
+        context:
+          $ref: '#/components/schemas/EventContext'
+        id:
+          type: string
+        payload:
+          $ref: '#/components/schemas/IdentityDeleteEventPayload'
+        seq:
+          type: integer
+        type:
+          enum:
+          - after_identity_delete
+          type: string
+      type: object
+    AfterIdentityUpdateEvent:
+      properties:
+        context:
+          $ref: '#/components/schemas/EventContext'
+        id:
+          type: string
+        payload:
+          $ref: '#/components/schemas/IdentityUpdateEventPayload'
+        seq:
+          type: integer
+        type:
+          enum:
+          - after_identity_update
+          type: string
+      type: object
+    AfterPasswordUpdateEvent:
+      properties:
+        context:
+          $ref: '#/components/schemas/EventContext'
+        id:
+          type: string
+        payload:
+          $ref: '#/components/schemas/PasswordUpdateEventPayload'
+        seq:
+          type: integer
+        type:
+          enum:
+          - after_password_update
+          type: string
+      type: object
+    AfterSessionCreateEvent:
+      properties:
+        context:
+          $ref: '#/components/schemas/EventContext'
+        id:
+          type: string
+        payload:
+          $ref: '#/components/schemas/SessionCreateEventPayload'
+        seq:
+          type: integer
+        type:
+          enum:
+          - after_session_create
+          type: string
+      type: object
+    AfterSessionDeleteEvent:
+      properties:
+        context:
+          $ref: '#/components/schemas/EventContext'
+        id:
+          type: string
+        payload:
+          $ref: '#/components/schemas/SessionDeleteEventPayload'
+        seq:
+          type: integer
+        type:
+          enum:
+          - after_session_delete
+          type: string
+      type: object
+    AfterUserCreateEvent:
+      properties:
+        context:
+          $ref: '#/components/schemas/EventContext'
+        id:
+          type: string
+        payload:
+          $ref: '#/components/schemas/UserCreateEventPayload'
+        seq:
+          type: integer
+        type:
+          enum:
+          - after_user_create
+          type: string
+      type: object
+    AfterUserUpdateEvent:
+      properties:
+        context:
+          $ref: '#/components/schemas/EventContext'
+        id:
+          type: string
+        payload:
+          $ref: '#/components/schemas/UserUpdateEventPayload'
+        seq:
+          type: integer
+        type:
+          enum:
+          - after_user_update
+          type: string
+      type: object
+    AuthResponse:
+      properties:
+        result:
+          properties:
+            access_token:
+              type: string
+            refresh_token:
+              type: string
+            session_id:
+              type: string
+            user:
+              $ref: '#/components/schemas/User'
+          type: object
+      type: object
+    AuthResultRequest:
+      properties:
+        authorization_code:
+          minLength: 1
+          type: string
+        code_verifier:
+          minLength: 1
+          type: string
+      required:
+      - authorization_code
+      - code_verifier
+      type: object
+    BeforeIdentityCreateEvent:
+      properties:
+        context:
+          $ref: '#/components/schemas/EventContext'
+        id:
+          type: string
+        payload:
+          $ref: '#/components/schemas/IdentityCreateEventPayload'
+        seq:
+          type: integer
+        type:
+          enum:
+          - before_identity_create
+          type: string
+      type: object
+    BeforeIdentityDeleteEvent:
+      properties:
+        context:
+          $ref: '#/components/schemas/EventContext'
+        id:
+          type: string
+        payload:
+          $ref: '#/components/schemas/IdentityDeleteEventPayload'
+        seq:
+          type: integer
+        type:
+          enum:
+          - before_identity_delete
+          type: string
+      type: object
+    BeforeIdentityUpdateEvent:
+      properties:
+        context:
+          $ref: '#/components/schemas/EventContext'
+        id:
+          type: string
+        payload:
+          $ref: '#/components/schemas/IdentityUpdateEventPayload'
+        seq:
+          type: integer
+        type:
+          enum:
+          - before_identity_update
+          type: string
+      type: object
+    BeforePasswordUpdateEvent:
+      properties:
+        context:
+          $ref: '#/components/schemas/EventContext'
+        id:
+          type: string
+        payload:
+          $ref: '#/components/schemas/PasswordUpdateEventPayload'
+        seq:
+          type: integer
+        type:
+          enum:
+          - before_password_update
+          type: string
+      type: object
+    BeforeSessionCreateEvent:
+      properties:
+        context:
+          $ref: '#/components/schemas/EventContext'
+        id:
+          type: string
+        payload:
+          $ref: '#/components/schemas/SessionCreateEventPayload'
+        seq:
+          type: integer
+        type:
+          enum:
+          - before_session_create
+          type: string
+      type: object
+    BeforeSessionDeleteEvent:
+      properties:
+        context:
+          $ref: '#/components/schemas/EventContext'
+        id:
+          type: string
+        payload:
+          $ref: '#/components/schemas/SessionDeleteEventPayload'
+        seq:
+          type: integer
+        type:
+          enum:
+          - before_session_delete
+          type: string
+      type: object
+    BeforeUserCreateEvent:
+      properties:
+        context:
+          $ref: '#/components/schemas/EventContext'
+        id:
+          type: string
+        payload:
+          $ref: '#/components/schemas/UserCreateEventPayload'
+        seq:
+          type: integer
+        type:
+          enum:
+          - before_user_create
+          type: string
+      type: object
+    BeforeUserUpdateEvent:
+      properties:
+        context:
+          $ref: '#/components/schemas/EventContext'
+        id:
+          type: string
+        payload:
+          $ref: '#/components/schemas/UserUpdateEventPayload'
+        seq:
+          type: integer
+        type:
+          enum:
+          - before_user_update
+          type: string
+      type: object
+    ChangePasswordRequest:
+      properties:
+        old_password:
+          minLength: 1
+          type: string
+        password:
+          minLength: 1
+          type: string
+      required:
+      - password
+      - old_password
+      type: object
+    EventContext:
+      properties:
+        identity_id:
+          type: string
+        session:
+          $ref: '#/components/schemas/Session'
+        timestamp:
+          type: integer
+        user_id:
+          type: string
+      type: object
+    ForgotPasswordRequest:
+      properties:
+        email:
+          format: email
+          type: string
+      required:
+      - email
+      type: object
+    ForgotPasswordResetRequest:
+      properties:
+        code:
+          minLength: 1
+          type: string
+        new_password:
+          minLength: 1
+          type: string
+      required:
+      - code
+      - new_password
+      type: object
+    Identity:
+      properties:
+        claims:
+          type: object
+        type:
+          type: string
+      type: object
+    IdentityCreateEventPayload:
+      properties:
+        identity:
+          $ref: '#/components/schemas/Identity'
+        user:
+          $ref: '#/components/schemas/User'
+      type: object
+    IdentityDeleteEventPayload:
+      properties:
+        identity:
+          $ref: '#/components/schemas/Identity'
+        user:
+          $ref: '#/components/schemas/User'
+      type: object
+    IdentityListResponse:
+      properties:
+        result:
+          properties:
+            identities:
+              items:
+                $ref: '#/components/schemas/Identity'
+              type: array
+          type: object
+      type: object
+    IdentityUpdateEventPayload:
+      properties:
+        new_identity:
+          $ref: '#/components/schemas/Identity'
+        old_identity:
+          $ref: '#/components/schemas/Identity'
+        user:
+          $ref: '#/components/schemas/User'
+      type: object
+    LoginRequest:
+      properties:
+        login_id:
+          minLength: 1
+          type: string
+        login_id_key:
+          minLength: 1
+          type: string
+        password:
+          minLength: 1
+          type: string
+      required:
+      - login_id
+      - password
+      type: object
+    OAuthChallengeRequest:
+      properties:
+        purpose:
+          type: string
+      required:
+      - purpose
+      type: object
+    OAuthChallengeResponse:
+      properties:
+        expire_at:
+          type: string
+        token:
+          type: string
+      required:
+      - token
+      - expire_at
+      type: object
+    PasswordUpdateEventPayload:
+      properties:
+        reason:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+      type: object
+    RefreshRequest:
+      properties:
+        refresh_token:
+          type: string
+      required:
+      - refresh_token
+      type: object
+    RefreshResponse:
+      properties:
+        access_token:
+          type: string
+      type: object
+    RemoveLoginIDRequest:
+      properties:
+        key:
+          minLength: 1
+          type: string
+        value:
+          minLength: 1
+          type: string
+      required:
+      - key
+      - value
+      type: object
+    ResetPasswordRequest:
+      properties:
+        password:
+          type: string
+        user_id:
+          type: string
+      required:
+      - user_id
+      - password
+      type: object
+    SSOLinkRequest:
+      properties:
+        access_token:
+          minLength: 1
+          type: string
+      required:
+      - access_token
+      type: object
+    SSOLoginRequest:
+      properties:
+        access_token:
+          minLength: 1
+          type: string
+        on_user_duplicate:
+          enum:
+          - abort
+          - merge
+          - create
+          type: string
+      required:
+      - access_token
+      type: object
+    Session:
+      properties:
+        acr:
+          type: string
+        amr:
+          items:
+            type: string
+          type: array
+        created_at:
+          type: string
+        created_by_ip:
+          type: string
+        id:
+          type: string
+        identity_claims:
+          type: object
+        identity_type:
+          type: string
+        last_accessed_at:
+          type: string
+        last_accessed_by_ip:
+          type: string
+        user_agent:
+          $ref: '#/components/schemas/UserAgent'
+      type: object
+    SessionCreateEventPayload:
+      properties:
+        identity:
+          $ref: '#/components/schemas/Identity'
+        reason:
+          type: string
+        session:
+          $ref: '#/components/schemas/Session'
+        user:
+          $ref: '#/components/schemas/User'
+      type: object
+    SessionDeleteEventPayload:
+      properties:
+        reason:
+          type: string
+        session:
+          $ref: '#/components/schemas/Session'
+        user:
+          $ref: '#/components/schemas/User'
+      type: object
+    SessionGetRequest:
+      properties:
+        session_id:
+          minLength: 1
+          type: string
+      required:
+      - session_id
+      type: object
+    SessionGetResponse:
+      properties:
+        result:
+          properties:
+            session:
+              $ref: '#/components/schemas/Session'
+          type: object
+      type: object
+    SessionListResponse:
+      properties:
+        result:
+          properties:
+            sessions:
+              items:
+                $ref: '#/components/schemas/Session'
+              type: array
+          type: object
+      type: object
+    SessionResponse:
+      properties:
+        result:
+          $ref: '#/components/schemas/Session'
+      type: object
+    SessionRevokeRequest:
+      properties:
+        session_id:
+          minLength: 1
+          type: string
+      required:
+      - session_id
+      type: object
+    SetDisableRequest:
+      properties:
+        disabled:
+          type: boolean
+        expiry:
+          format: date-time
+          type: string
+        message:
+          minLength: 1
+          type: string
+        user_id:
+          minLength: 1
+          type: string
+      required:
+      - user_id
+      - disabled
+      type: object
+    SignupRequest:
+      properties:
+        login_ids:
+          items:
+            properties:
+              key:
+                minLength: 1
+                type: string
+              value:
+                minLength: 1
+                type: string
+            required:
+            - key
+            - value
+            type: object
+          maxItems: 1
+          minItems: 1
+          type: array
+        metadata:
+          type: object
+        on_user_duplicate:
+          enum:
+          - abort
+          - create
+          type: string
+        password:
+          minLength: 1
+          type: string
+      required:
+      - login_ids
+      - password
+      type: object
+    UpdateLoginIDRequest:
+      properties:
+        new_login_id:
+          properties:
+            key:
+              minLength: 1
+              type: string
+            value:
+              minLength: 1
+              type: string
+          required:
+          - key
+          - value
+          type: object
+        old_login_id:
+          properties:
+            key:
+              minLength: 1
+              type: string
+            value:
+              minLength: 1
+              type: string
+          required:
+          - key
+          - value
+          type: object
+      required:
+      - old_login_id
+      - new_login_id
+      type: object
+    UpdateMetadataRequest:
+      properties:
+        metadata:
+          type: object
+        user_id:
+          type: string
+      required:
+      - metadata
+      type: object
+    UpdateVerifyStateRequest:
+      properties:
+        is_manually_verified:
+          type: boolean
+        user_id:
+          minLength: 1
+          type: string
+        verify_info:
+          type: object
+      required:
+      - user_id
+      type: object
+    User:
+      properties:
+        created_at:
+          type: string
+        id:
+          type: string
+        is_disabled:
+          type: boolean
+        is_manually_verified:
+          type: boolean
+        is_verified:
+          type: boolean
+        last_login_at:
+          type: string
+        metadata:
+          type: object
+        verify_info:
+          type: object
+      type: object
+    UserAgent:
+      properties:
+        device_model:
+          type: string
+        device_name:
+          type: string
+        name:
+          type: string
+        os:
+          type: string
+        os_version:
+          type: string
+        raw:
+          type: string
+        version:
+          type: string
+      type: object
+    UserCreateEventPayload:
+      properties:
+        identity:
+          items:
+            $ref: '#/components/schemas/Identity'
+          type: array
+        user:
+          $ref: '#/components/schemas/User'
+      type: object
+    UserResponse:
+      properties:
+        result:
+          properties:
+            user:
+              $ref: '#/components/schemas/User'
+          type: object
+      type: object
+    UserSyncEvent:
+      properties:
+        context:
+          $ref: '#/components/schemas/EventContext'
+        id:
+          type: string
+        payload:
+          $ref: '#/components/schemas/UserSyncEventPayload'
+        seq:
+          type: integer
+        type:
+          enum:
+          - user_sync
+          type: string
+      type: object
+    UserSyncEventPayload:
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+      type: object
+    UserUpdateEventPayload:
+      properties:
+        is_disabled:
+          type: boolean
+        is_verified:
+          type: boolean
+        metadata:
+          type: object
+        reason:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+        verify_info:
+          type: object
+      type: object
+    VerifyCodeRequest:
+      properties:
+        code:
+          minLength: 1
+          type: string
+      required:
+      - code
+      type: object
+    VerifyRequest:
+      oneOf:
+      - properties:
+          login_id:
+            format: phone
+            type: string
+          login_id_type:
+            enum:
+            - phone
+        required:
+        - login_id_type
+        - login_id
+        type: object
+      - properties:
+          login_id:
+            format: email
+            type: string
+          login_id_type:
+            enum:
+            - email
+        required:
+        - login_id_type
+        - login_id
+        type: object
+  parameters:
+    SSOCallbackURL:
+      name: callback_url
+      in: query
+      description: Callback URL after SSO flow
+      schema:
+        type: string
+    SSOOnUserDuplicate:
+      name: on_user_duplicate
+      in: query
+      description: Behavior when duplicated user is detected
+      schema:
+        type: string
+    SSOProviderID:
+      name: provider_id
+      in: path
+      description: ID of SSO provider
+      required: true
+      schema:
+        type: string
+    SSOUXMode:
+      name: ux_mode
+      in: query
+      description: UX mode of SSO flow
+      schema:
+        type: string
+  requestBodies:
+    AuthURLRequest:
+      description: Describe desired behavior and UX of SSO flow.
+      content:
+        application/json:
+          schema:
+            properties:
+              callback_url:
+                format: uri
+                type: string
+              code_challenge:
+                minLength: 1
+                type: string
+              on_user_duplicate:
+                enum:
+                - abort
+                - merge
+                - create
+                type: string
+              ux_mode:
+                enum:
+                - web_redirect
+                - web_popup
+                - mobile_app
+                - manual
+                type: string
+            required:
+            - code_challenge
+            - callback_url
+            - ux_mode
+            type: object
+  responses:
+    AuthURLResponse:
+      description: SSO initiation URL.
+      content:
+        application/json:
+          schema:
+            properties:
+              result:
+                type: string
+            type: object
+          examples:
+            Success:
+              summary: Return SSO URL
+              value:
+                result: https://myapp.skygearapis.com/_auth/sso/provider/auth_handler
+    EmptyResponse:
+      description: Empty response.
+      content:
+        application/json:
+          schema:
+            properties:
+              result:
+                type: object
+            type: object
+    HookResponse:
+      description: Validation result of the event, and optionally mutate the user object.
+      content:
+        application/json:
+          schema:
+            oneOf:
+            - additionalProperties: false
+              properties:
+                is_allowed:
+                  enum:
+                  - true
+                  type: boolean
+                mutations:
+                  properties:
+                    is_disabled:
+                      type: boolean
+                    is_manually_verified:
+                      type: boolean
+                    metadata:
+                      type: object
+                    verify_info:
+                      type: object
+                  type: object
+              required:
+              - is_allowed
+            - additionalProperties: false
+              properties:
+                data:
+                  type: object
+                is_allowed:
+                  enum:
+                  - false
+                  type: boolean
+                reason:
+                  type: string
+              required:
+              - is_allowed
+              - reason
+          examples:
+            Allowed:
+              summary: Allow operation
+              value:
+                is_allowed: true
+            Disallowed:
+              summary: Disallow operation with reason
+              value:
+                data:
+                  fields:
+                  - user_name
+                is_allowed: false
+                reason: Validation failure
+  securitySchemes:
+    access_key:
+      type: apiKey
+      description: Access key used by client app
+      name: X-Skygear-API-Key
+      in: header
+    access_token:
+      type: http
+      description: Access token of user
+      scheme: bearer
+      bearerFormat: token
+    master_key:
+      type: apiKey
+      description: |-
+        Master key used by admins, can perform administrative operations.
+        Can be used as access key as well.
+      name: X-Skygear-API-Key
+      in: header
+  callbacks:
+    IdentityCreateEvent:
+      /after_identity_create:
+        post:
+          summary: After identity creation
+          description: An identity is created.
+          requestBody:
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/AfterIdentityCreateEvent'
+          responses:
+            "200":
+              $ref: '#/components/responses/EmptyResponse'
+      /before_identity_create:
+        post:
+          summary: Before identity creation
+          description: An identity is about to be created.
+          requestBody:
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/BeforeIdentityCreateEvent'
+          responses:
+            "200":
+              $ref: '#/components/responses/HookResponse'
+    IdentityDeleteEvent:
+      /after_identity_delete:
+        post:
+          summary: After identity deletion
+          description: An identity is deleted.
+          requestBody:
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/AfterIdentityDeleteEvent'
+          responses:
+            "200":
+              $ref: '#/components/responses/EmptyResponse'
+      /before_identity_delete:
+        post:
+          summary: Before identity deletion
+          description: An identity is about to be deleted.
+          requestBody:
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/BeforeIdentityDeleteEvent'
+          responses:
+            "200":
+              $ref: '#/components/responses/HookResponse'
+    IdentityUpdateEvent:
+      /after_identity_update:
+        post:
+          summary: After identity update
+          description: An identity is updated.
+          requestBody:
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/AfterIdentityUpdateEvent'
+          responses:
+            "200":
+              $ref: '#/components/responses/EmptyResponse'
+      /before_identity_update:
+        post:
+          summary: Before identity update
+          description: An identity is about to be updated.
+          requestBody:
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/BeforeIdentityUpdateEvent'
+          responses:
+            "200":
+              $ref: '#/components/responses/HookResponse'
+    PasswordUpdateEvent:
+      /after_password_udpate:
+        post:
+          summary: After password update
+          description: The password of a user is created.
+          requestBody:
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/AfterPasswordUpdateEvent'
+          responses:
+            "200":
+              $ref: '#/components/responses/EmptyResponse'
+      /before_password_update:
+        post:
+          summary: Before password update
+          description: The password of a user is about to be updated.
+          requestBody:
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/BeforePasswordUpdateEvent'
+          responses:
+            "200":
+              $ref: '#/components/responses/HookResponse'
+    SessionCreateEvent:
+      /after_session_create:
+        post:
+          summary: After session creation
+          description: A session is created.
+          requestBody:
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/AfterSessionCreateEvent'
+          responses:
+            "200":
+              $ref: '#/components/responses/EmptyResponse'
+      /before_session_create:
+        post:
+          summary: Before session creation
+          description: A session is about to be created.
+          requestBody:
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/BeforeSessionCreateEvent'
+          responses:
+            "200":
+              $ref: '#/components/responses/HookResponse'
+    SessionDeleteEvent:
+      /after_session_delete:
+        post:
+          summary: After session deletion
+          description: A session is created.
+          requestBody:
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/AfterSessionDeleteEvent'
+          responses:
+            "200":
+              $ref: '#/components/responses/EmptyResponse'
+      /before_session_delete:
+        post:
+          summary: Before session deletion
+          description: A session is about to be created.
+          requestBody:
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/BeforeSessionDeleteEvent'
+          responses:
+            "200":
+              $ref: '#/components/responses/HookResponse'
+    UserCreateEvent:
+      /after_user_create:
+        post:
+          summary: After user creation
+          description: A user is created.
+          requestBody:
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/AfterUserCreateEvent'
+          responses:
+            "200":
+              $ref: '#/components/responses/EmptyResponse'
+      /before_user_create:
+        post:
+          summary: Before user creation
+          description: A user is about to be created.
+          requestBody:
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/BeforeUserCreateEvent'
+          responses:
+            "200":
+              $ref: '#/components/responses/HookResponse'
+    UserSyncEvent:
+      /user_sync:
+        post:
+          summary: Synchronize user information
+          description: User information should be synchronized.
+          requestBody:
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/UserSyncEvent'
+          responses:
+            "200":
+              $ref: '#/components/responses/EmptyResponse'
+    UserUpdateEvent:
+      /after_user_update:
+        post:
+          summary: After user update
+          description: A user is updated.
+          requestBody:
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/AfterUserUpdateEvent'
+          responses:
+            "200":
+              $ref: '#/components/responses/EmptyResponse'
+      /before_user_update:
+        post:
+          summary: Before user update
+          description: A user is about to be updated.
+          requestBody:
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/BeforeUserUpdateEvent'
+          responses:
+            "200":
+              $ref: '#/components/responses/HookResponse'
+security:
+- access_key: []
+tags:
+- name: User
+  description: User information
+- name: User Verification
+  description: Login IDs verification
+- name: Forgot Password
+  description: Password recovery process
+- name: Administration
+  description: Administrative operation
+- name: SSO
+  description: Single sign-on
