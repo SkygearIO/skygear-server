@@ -1,7 +1,6 @@
 package event
 
 import (
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 )
 
@@ -15,7 +14,6 @@ type UserUpdateReason string
 const (
 	UserUpdateReasonUpdateMetadata = "update_metadata"
 	UserUpdateReasonUpdateIdentity = "update_identity"
-	UserUpdateReasonVerification   = "verification"
 	UserUpdateReasonAdministrative = "administrative"
 )
 
@@ -34,12 +32,9 @@ const (
 			@Response 200 {EmptyResponse}
 */
 type UserUpdateEvent struct {
-	Reason     UserUpdateReason  `json:"reason"`
-	IsDisabled *bool             `json:"is_disabled,omitempty"`
-	IsVerified *bool             `json:"is_verified,omitempty"`
-	VerifyInfo *map[string]bool  `json:"verify_info,omitempty"`
-	Metadata   *userprofile.Data `json:"metadata,omitempty"`
-	User       model.User        `json:"user"`
+	Reason   UserUpdateReason        `json:"reason"`
+	Metadata *map[string]interface{} `json:"metadata,omitempty"`
+	User     model.User              `json:"user"`
 }
 
 // @JSONSchema
@@ -79,9 +74,6 @@ const UserUpdateEventPayloadSchema = `
 	"type": "object",
 	"properties": {
 		"reason": { "type": "string" },
-		"is_disabled": { "type": "boolean" },
-		"is_verified": { "type": "boolean" },
-		"verify_info": { "type": "object" },
 		"metadata": { "type": "object" },
 		"user": { "$ref": "#User" }
 	}
@@ -99,20 +91,6 @@ func (UserUpdateEvent) AfterEventType() Type {
 func (event UserUpdateEvent) WithMutationsApplied(mutations Mutations) UserAwarePayload {
 	// user object in this event is a snapshot before operation, so mutations are not applied
 	newEvent := event
-	if mutations.IsDisabled != nil {
-		newEvent.IsDisabled = mutations.IsDisabled
-	}
-	if mutations.VerifyInfo != nil {
-		newEvent.VerifyInfo = mutations.VerifyInfo
-		// IsComputedVerified will be updated by mutator
-	}
-	if mutations.IsComputedVerified != nil {
-		isVerified := *mutations.IsComputedVerified
-		if mutations.IsManuallyVerified != nil {
-			isVerified = isVerified || *mutations.IsManuallyVerified
-		}
-		newEvent.IsVerified = &isVerified
-	}
 	if mutations.Metadata != nil {
 		newEvent.Metadata = mutations.Metadata
 	}

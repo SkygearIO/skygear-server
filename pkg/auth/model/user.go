@@ -15,22 +15,23 @@
 package model
 
 import (
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"time"
-
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 )
 
 // User is the unify way of returning a AuthInfo with LoginID to SDK
 type User struct {
-	ID               string           `json:"id,omitempty"`
-	CreatedAt        time.Time        `json:"created_at"`
-	LastLoginAt      *time.Time       `json:"last_login_at,omitempty"`
-	Verified         bool             `json:"is_verified"`
-	ManuallyVerified bool             `json:"is_manually_verified"`
-	Disabled         bool             `json:"is_disabled"`
-	IsAnonymous      bool             `json:"is_anonymous"`
-	VerifyInfo       map[string]bool  `json:"verify_info"`
-	Metadata         userprofile.Data `json:"metadata"`
+	ID          string                 `json:"id,omitempty"`
+	CreatedAt   time.Time              `json:"created_at"`
+	LastLoginAt *time.Time             `json:"last_login_at,omitempty"`
+	IsAnonymous bool                   `json:"is_anonymous"`
+	Metadata    map[string]interface{} `json:"metadata"`
+}
+
+func (u *User) ToUserInfo() *authn.UserInfo {
+	return &authn.UserInfo{
+		ID: u.ID,
+	}
 }
 
 // @JSONSchema
@@ -42,11 +43,7 @@ const UserSchema = `
 		"id": { "type": "string" },
 		"created_at": { "type": "string" },
 		"last_login_at": { "type": "string" },
-		"is_verified": { "type": "boolean" },
-		"is_manually_verified": { "type": "boolean" },
-		"is_disabled": { "type": "boolean" },
 		"is_anonymous": { "type": "boolean" },
-		"verify_info": { "type": "object" },
 		"metadata": { "type": "object" }
 	}
 }

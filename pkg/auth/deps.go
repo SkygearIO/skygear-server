@@ -36,15 +36,12 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/user"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcomemessage"
 	"github.com/skygeario/skygear-server/pkg/auth/deps"
 	"github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	coreauth "github.com/skygeario/skygear-server/pkg/core/auth"
-	authinfopq "github.com/skygeario/skygear-server/pkg/core/auth/authinfo/pq"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
@@ -226,14 +223,20 @@ var welcomemessageDependencySet = wire.NewSet(
 	wire.Bind(new(user.WelcomeMessageProvider), new(*welcomemessage.Provider)),
 )
 
+type HookUserProvider struct {
+	*user.Queries
+	*user.RawCommands
+}
+
 var userDependencySet = wire.NewSet(
 	user.DependencySet,
 
 	wire.Bind(new(auth.UserProvider), new(*user.Queries)),
 	wire.Bind(new(forgotpassword.UserProvider), new(*user.Queries)),
-	wire.Bind(new(hook.UserProvider), new(*user.Queries)),
+	wire.Struct(new(HookUserProvider), "*"),
+	wire.Bind(new(hook.UserProvider), new(*HookUserProvider)),
 	wire.Bind(new(interaction.UserProvider), new(*user.Provider)),
-	wire.Bind(new(interactionflows.UserProvider), new(*user.Queries)),
+	wire.Bind(new(interactionflows.UserProvider), new(*user.Provider)),
 	wire.Bind(new(oidc.UserProvider), new(*user.Queries)),
 )
 
@@ -252,8 +255,6 @@ var CommonDependencySet = wire.NewSet(
 	logging.DependencySet,
 	time.DependencySet,
 	db.DependencySet,
-	authinfopq.DependencySet,
-	userprofile.DependencySet,
 	session.DependencySet,
 	sessionredis.DependencySet,
 	coreauth.DependencySet,
@@ -275,7 +276,6 @@ var CommonDependencySet = wire.NewSet(
 	oauthredis.DependencySet,
 	oidc.DependencySet,
 	oidchandler.DependencySet,
-	userverify.DependencySet,
 	forgotpassword.DependencySet,
 	challengeDependencySet,
 	interactionDependencySet,

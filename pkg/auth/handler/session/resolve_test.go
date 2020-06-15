@@ -28,9 +28,7 @@ func TestResolveHandler(t *testing.T) {
 
 		Convey("should attach headers for valid sessions", func() {
 			u := &authn.UserInfo{
-				ID:         "user-id",
-				IsDisabled: false,
-				IsVerified: true,
+				ID: "user-id",
 			}
 			s := &session.IDPSession{
 				ID:    "session-id",
@@ -49,8 +47,6 @@ func TestResolveHandler(t *testing.T) {
 				So(resp.Header, ShouldResemble, http.Header{
 					"X-Skygear-Session-Valid":  []string{"true"},
 					"X-Skygear-User-Id":        []string{"user-id"},
-					"X-Skygear-User-Verified":  []string{"true"},
-					"X-Skygear-User-Disabled":  []string{"false"},
 					"X-Skygear-User-Anonymous": []string{"false"},
 					"X-Skygear-Session-Acr":    []string{""},
 					"X-Skygear-Session-Amr":    []string{""},
@@ -70,8 +66,6 @@ func TestResolveHandler(t *testing.T) {
 				So(resp.Header, ShouldResemble, http.Header{
 					"X-Skygear-Session-Valid":  []string{"true"},
 					"X-Skygear-User-Id":        []string{"user-id"},
-					"X-Skygear-User-Verified":  []string{"true"},
-					"X-Skygear-User-Disabled":  []string{"false"},
 					"X-Skygear-User-Anonymous": []string{"true"},
 					"X-Skygear-Session-Acr":    []string{""},
 					"X-Skygear-Session-Amr":    []string{""},
