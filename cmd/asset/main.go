@@ -85,7 +85,7 @@ func main() {
 		)
 	}
 
-	dbPool := db.NewPool()
+	dbPool := db.NewPool(configuration.Database)
 	validator := validation.NewValidator("http://v2.skgyear.io")
 	validator.AddSchemaFragments(
 		handler.PresignUploadRequestSchema,

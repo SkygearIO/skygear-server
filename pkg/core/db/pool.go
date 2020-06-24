@@ -9,6 +9,12 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
+type DatabaseConfiguration struct {
+	MaxOpenConns          int `envconfig:"MAX_OPEN_CONNS" default:"30"`
+	MaxIdleConns          int `envconfig:"MAX_IDLE_CONNS" default:"5"`
+	ConnMaxLifetimeSecond int `envconfig:"CONN_MAX_LIFETIME_SECOND" default:"1800"`
+}
+
 type Pool interface {
 	Open(tConfig config.TenantConfiguration) (*sqlx.DB, error)
 	OpenURL(url string) (*sqlx.DB, error)
@@ -21,10 +27,12 @@ type poolImpl struct {
 
 	cache      map[string]*sqlx.DB
 	cacheMutex sync.RWMutex
+
+	config DatabaseConfiguration
 }
 
-func NewPool() Pool {
-	p := &poolImpl{cache: map[string]*sqlx.DB{}}
+func NewPool(config DatabaseConfiguration) Pool {
+	p := &poolImpl{cache: map[string]*sqlx.DB{}, config: config}
 	return p
 }
 
@@ -43,7 +51,7 @@ func (p *poolImpl) OpenURL(source string) (db *sqlx.DB, err error) {
 		p.cacheMutex.Lock()
 		db, exists = p.cache[source]
 		if !exists {
-			db, err = openPostgresDB(source)
+			db, err = p.openPostgresDB(source)
 			if err == nil {
 				p.cache[source] = db
 			}
@@ -72,15 +80,15 @@ func (p *poolImpl) Close() (err error) {
 	return
 }
 
-func openPostgresDB(url string) (db *sqlx.DB, err error) {
+func (p *poolImpl) openPostgresDB(url string) (db *sqlx.DB, err error) {
 	db, err = sqlx.Open("postgres", url)
 	if err != nil {
 		return
 	}
 
 	// TODO(pool): configurable / profile for good value?
-	db.SetMaxOpenConns(30)
-	db.SetMaxIdleConns(5)
-	db.SetConnMaxLifetime(30 * time.Minute)
+	db.SetMaxOpenConns(p.config.MaxOpenConns)
+	db.SetMaxIdleConns(p.config.MaxIdleConns)
+	db.SetConnMaxLifetime(time.Duration(p.config.ConnMaxLifetimeSecond) * time.Second)
 	return
 }

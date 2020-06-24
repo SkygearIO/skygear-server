@@ -3,15 +3,18 @@ package config
 import (
 	"io/ioutil"
 	"os"
+
+	"github.com/skygeario/skygear-server/pkg/core/db"
 )
 
 // Configuration is Asset Gear configuration.
 type Configuration struct {
 	Standalone                        bool
-	StandaloneTenantConfigurationFile string               `envconfig:"STANDALONE_TENANT_CONFIG_FILE" default:"standalone-tenant-config.yaml"`
-	ServerHost                        string               `envconfig:"SERVER_HOST" default:"localhost:3002"`
-	UseInsecureCookie                 bool                 `envconfig:"INSECURE_COOKIE"`
-	Storage                           StorageConfiguration `envconfig:"STORAGE"`
+	StandaloneTenantConfigurationFile string                   `envconfig:"STANDALONE_TENANT_CONFIG_FILE" default:"standalone-tenant-config.yaml"`
+	ServerHost                        string                   `envconfig:"SERVER_HOST" default:"localhost:3002"`
+	UseInsecureCookie                 bool                     `envconfig:"INSECURE_COOKIE"`
+	Storage                           StorageConfiguration     `envconfig:"STORAGE"`
+	Database                          db.DatabaseConfiguration `envconfig:"DATABASE"`
 }
 
 type StorageBackend string

@@ -42,7 +42,8 @@ type configuration struct {
 	StaticAssetDir string `envconfig:"STATIC_ASSET_DIR"`
 	// StaticAssetURLPrefix sets the prefix for static asset.
 	// In production, it should look like https://code.skygear.dev/dist/git-<commit-hash>/authui
-	StaticAssetURLPrefix string `envconfig:"STATIC_ASSET_URL_PREFIX"`
+	StaticAssetURLPrefix string                   `envconfig:"STATIC_ASSET_URL_PREFIX"`
+	Database             db.DatabaseConfiguration `envconfig:"DATABASE"`
 }
 
 type TemplateConfiguration struct {
@@ -94,7 +95,11 @@ func main() {
 	}
 
 	configuration := configuration{}
-	envconfig.Process("", &configuration)
+	envErr = envconfig.Process("", &configuration)
+	if envErr != nil {
+		logger.Fatalf("failed to process envvar: %v", envErr)
+	}
+
 	if configuration.ValidHosts == "" {
 		configuration.ValidHosts = configuration.Host
 	}
@@ -104,7 +109,7 @@ func main() {
 		oauthhandler.ChallengeRequestSchema,
 	)
 
-	dbPool := db.NewPool()
+	dbPool := db.NewPool(configuration.Database)
 	redisPool, err := redis.NewPool(configuration.Redis)
 	if err != nil {
 		logger.Fatalf("fail to create redis pool: %v", err.Error())
