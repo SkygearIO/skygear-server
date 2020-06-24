@@ -5,6 +5,7 @@ import (
 
 	"github.com/kelseyhightower/envconfig"
 
+	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/redis"
 	"github.com/skygeario/skygear-server/pkg/gateway/model"
 )
@@ -12,13 +13,14 @@ import (
 // Configuration is gateway startup configuration
 type Configuration struct {
 	Standalone                        bool
-	StandaloneTenantConfigurationFile string              `envconfig:"STANDALONE_TENANT_CONFIG_FILE" default:"standalone-tenant-config.yaml"`
-	Host                              string              `envconfig:"SERVER_HOST" default:"localhost:3001"`
-	ConnectionStr                     string              `envconfig:"DATABASE_URL"`
-	Auth                              GearURLConfig       `envconfig:"AUTH"`
-	Asset                             GearURLConfig       `envconfig:"ASSET"`
-	Redis                             redis.Configuration `envconfig:"REDIS"`
-	UseInsecureCookie                 bool                `envconfig:"INSECURE_COOKIE"`
+	StandaloneTenantConfigurationFile string                   `envconfig:"STANDALONE_TENANT_CONFIG_FILE" default:"standalone-tenant-config.yaml"`
+	Host                              string                   `envconfig:"SERVER_HOST" default:"localhost:3001"`
+	ConnectionStr                     string                   `envconfig:"DATABASE_URL"`
+	Auth                              GearURLConfig            `envconfig:"AUTH"`
+	Asset                             GearURLConfig            `envconfig:"ASSET"`
+	Redis                             redis.Configuration      `envconfig:"REDIS"`
+	UseInsecureCookie                 bool                     `envconfig:"INSECURE_COOKIE"`
+	Database                          db.DatabaseConfiguration `envconfig:"DATABASE"`
 }
 
 // ReadFromEnv reads from environment variable and update the configuration.

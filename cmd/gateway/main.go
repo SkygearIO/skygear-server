@@ -53,7 +53,7 @@ func init() {
 }
 
 func main() {
-	dbPool := db.NewPool()
+	dbPool := db.NewPool(config.Database)
 
 	// create gateway store
 	var store store.GatewayStore

@@ -87,7 +87,7 @@ func main() {
 		)
 	}
 
-	dbPool := db.NewPool()
+	dbPool := db.NewPool(configuration.Database)
 	redisPool, err := redis.NewPool(configuration.Redis)
 	if err != nil {
 		logger.Fatalf("fail to create redis pool: %v", err)

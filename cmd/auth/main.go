@@ -44,6 +44,7 @@ type configuration struct {
 	Template                          TemplateConfiguration       `envconfig:"TEMPLATE"`
 	Default                           config.DefaultConfiguration `envconfig:"DEFAULT"`
 	ReservedNameSourceFile            string                      `envconfig:"RESERVED_NAME_SOURCE_FILE" default:"reserved_name.txt"`
+	Database                          db.DatabaseConfiguration    `envconfig:"DATABASE"`
 }
 
 type TemplateConfiguration struct {
@@ -95,7 +96,11 @@ func main() {
 	}
 
 	configuration := configuration{}
-	envconfig.Process("", &configuration)
+	envErr = envconfig.Process("", &configuration)
+	if envErr != nil {
+		logger.Fatalf("failed to process envvar: %v", envErr)
+	}
+
 	if configuration.ValidHosts == "" {
 		configuration.ValidHosts = configuration.Host
 	}
@@ -146,7 +151,7 @@ func main() {
 		loginidhandler.UpdateLoginIDRequestSchema,
 	)
 
-	dbPool := db.NewPool()
+	dbPool := db.NewPool(configuration.Database)
 	redisPool, err := redis.NewPool(configuration.Redis)
 	if err != nil {
 		logger.Fatalf("fail to create redis pool: %v", err.Error())
