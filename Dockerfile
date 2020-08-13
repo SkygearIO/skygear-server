@@ -22,7 +22,7 @@ RUN make build VERSION=$version WITH_ZMQ=1
 FROM alpine:3.8
 
 RUN apk --update --no-cache add libc6-compat libstdc++ zlib ca-certificates \
-        libsodium libzmq=4.2.5-r0 && \
+        libsodium libzmq=4.2.5-r1 && \
     ln -s /lib /lib64
 
 ARG version

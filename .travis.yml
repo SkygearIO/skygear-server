@@ -35,7 +35,7 @@ before_install:
   - vg init
 
 install:
-  - sudo apt-get install -y postgresql-9.5-postgis-2.3
+  - sudo apt-get install -y postgresql-9.5-postgis-2.4
   - vg ensure
 
 before_script:

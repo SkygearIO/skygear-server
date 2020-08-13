@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -144,7 +145,7 @@ func (s *s3Store) GeneratePostFileRequest(name string, contentType string, lengt
 func (s *s3Store) SignedURL(name string) (string, error) {
 	if !s.IsSignatureRequired() {
 		if s.urlPrefix != "" {
-			return strings.Join([]string{s.urlPrefix, name}, "/"), nil
+			return strings.Join([]string{s.urlPrefix, url.PathEscape(name)}, "/"), nil
 		}
 		key := aws.String(name)
 		input := &s3.GetObjectInput{
